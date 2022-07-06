@@ -1,0 +1,18 @@
+:root {
+    --light: #2d2d2d;
+    --mid: #252526;
+    --dark: #1e1e1e;
+    --text:white;
+}
+
+.dark {
+    --light: #2d2d2d;
+    --mid: #252526;
+    --dark: #1e1e1e;
+    --text:white;
+}
+
+html {
+    background: var(--dark);
+    color: var(--text);
+}
