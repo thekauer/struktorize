@@ -15,6 +15,7 @@ export const Editor = () => {
     }
 
     if (e.key === "a") {
+      ast.addIf();
     }
   };
   useEffect(() => {

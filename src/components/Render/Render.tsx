@@ -19,8 +19,8 @@ export const Render = ({ head }: RenderProps) => {
       return (
         <Function
           signature={<Render head={fn.signature} />}
-          body={fn.body.map((node) => (
-            <Render key={node.path} head={node} />
+          body={fn.body.map((node, index) => (
+            <Render key={(node.path as any) + index} head={node} />
           ))}
           {...props}
         />
@@ -38,7 +38,4 @@ export const Render = ({ head }: RenderProps) => {
     default:
       return null;
   }
-  console.log("🚀 - props", props);
-  console.log("🚀 - props", props);
-  console.log("🚀 - props", props);
 };
