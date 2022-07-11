@@ -1,26 +1,23 @@
-import { ReactNode, useEffect } from "react";
+import { ReactNode } from "react";
+import { Ast } from "../../lib/ast";
+import { SignatureAst } from "../Signature/Signature";
+import * as S from "./Function.atoms";
+
+export interface FunctionAst extends Ast {
+  signature: SignatureAst;
+  body: Ast[];
+}
 
 interface FunctionProps {
   signature: ReactNode;
-  body: ReactNode[];
+  body: ReactNode;
 }
 
 export const Function = ({ signature, body }: FunctionProps) => {
-  const keydownHandler = (e: KeyboardEvent) => {
-    console.log(e.key);
-  };
-
-  useEffect(() => {
-    document.addEventListener("keydown", keydownHandler);
-    return () => {
-      document.removeEventListener("keydown", keydownHandler);
-    };
-  }, []);
-
   return (
-    <>
+    <S.Container>
       {signature}
-      {body.map((node) => node)}
-    </>
+      {body}
+    </S.Container>
   );
 };

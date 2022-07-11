@@ -1,11 +1,14 @@
 import { Editor } from "./components/Editor/Editor";
-import "./theme.css";
+import { AstProvider } from "./hooks/useAST";
+import "./style/theme.css";
 
 function App() {
   return (
-    <div className="dark app">
-      <Editor />
-    </div>
+    <AstProvider>
+      <div className="dark app">
+        <Editor />
+      </div>
+    </AstProvider>
   );
 }
 

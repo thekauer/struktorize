@@ -1,6 +1,7 @@
-import styled from "styled-components";
+import styled, { css } from "styled-components";
+import { StyleProps } from "../../style/styleProps";
 
-export const Container = styled.div`
+export const Container = styled.div<StyleProps>`
   padding: 0.5em;
   display: flex;
   flex-direction: column;
@@ -10,12 +11,19 @@ export const Container = styled.div`
   outline-offset: -1px;
   min-width: 6em;
   min-height: 0.5em;
-  &:hover,
-  &.selected {
+  &:hover {
     background-color: var(--light);
     cursor: pointer;
   }
-  &.active {
-    background-color: var(--blue);
-  }
+  ${({ selected }) =>
+    selected &&
+    css`
+      background-color: var(--light);
+      cursor: pointer;
+    `}
+  ${({ active }) =>
+    active &&
+    css`
+      background-color: var(--blue);
+    `}
 `;

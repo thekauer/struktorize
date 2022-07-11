@@ -1,6 +1,7 @@
-import styled from "styled-components";
+import styled, { css } from "styled-components";
+import { StyleProps } from "../../style/styleProps";
 
-export const Container = styled.div`
+export const Container = styled.div<StyleProps>`
   padding: 0.5em;
   border-radius: 25px;
   border: solid 2px var(--mid);
@@ -14,6 +15,18 @@ export const Container = styled.div`
   &.active {
     border: 1px solid var(--blue);
   }
+
+  ${({ selected }) =>
+    selected &&
+    css`
+      background-color: var(--light);
+      cursor: pointer;
+    `}
+  ${({ active }) =>
+    active &&
+    css`
+      border: 1px solid var(--blue);
+    `}
 `;
 
 export const Line = styled.div`
