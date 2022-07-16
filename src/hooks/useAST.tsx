@@ -13,7 +13,9 @@ export const useAST = () => {
 
   const up = () => dispatch({ type: "up" });
   const down = () => dispatch({ type: "down" });
-  const addIf = () => dispatch({ type: "addIf" });
+  const addIf = () => dispatch({ type: "add", payload: { type: "branch" } });
+  const addLoop = () =>
+    dispatch({ type: "add", payload: { type: "loop", body: [] } });
 
   return {
     ast,
@@ -22,6 +24,7 @@ export const useAST = () => {
     up,
     down,
     addIf,
+    addLoop,
   };
 };
 
@@ -34,7 +37,7 @@ type State = {
   scope: string[];
 };
 
-type Action = { type: "up" } | { type: "down" } | { type: "addIf" };
+type Action = { type: "up" } | { type: "down" } | { type: "add"; payload: Ast };
 
 const up = (scope: string[]) => {
   const last = scope.at(-1);
@@ -68,20 +71,54 @@ const down = (scope: string[], ast: Ast) => {
   }
 };
 
-const addIf = (scope: string[], ast: Ast) => {
-  //TODO: splice and shift everything
+const setIndex = (path: string, index: number) =>
+  path.split(".").slice(0, -1).concat(index.toString()).join(".");
+
+const insert = (body: Ast[], index: number, node: Ast) => {
+  const oldPath = body[index].path;
+  return [...body.slice(0, index + 1), node, ...body.slice(index + 1)].map(
+    (node, i) =>
+      ({
+        ...node,
+        path: setIndex(oldPath, i),
+      } as Ast)
+  );
+};
+
+const grandParent = (scope: string[], ast: Ast) => {
+  const parent = scope.slice(0, -2);
+  return parent.reduce((acc: any, curr) => acc[curr], ast);
+};
+
+const scopeIndex = (scope: string[]) => Number(scope.at(-1)!);
+const scopeWithoutIndex = (scope: string[]) => scope.slice(0, -1);
+const pathToScope = (path: string) => path.split(".");
+
+const withScope = (scope: string[], ast: any): any => {
+  const [first, ...rest] = scope;
+  if (rest.length === 0) {
+    return { [first]: ast };
+  }
+  return {
+    [first]: withScope(rest, ast),
+  };
+};
+
+const withScopeAuto = (ast: any): any => withScope(pathToScope(ast.path), ast);
+
+const add = (scope: string[], ast: Ast, node: Ast) => {
   //TODO: what if there is no body yet?
-  //TODO: add helper functions
   //TODO: tests
-  //TODO: duplicates maybe because we need keyup or better check for them here or in a helper function
-  const init = scope.slice(0, -1);
-  const last = scope.at(-1);
-  const nextNumber = Number(last) + 1;
-  const path = init.concat(nextNumber.toString()).join(".");
-  init.reduce((acc: any, curr) => acc[curr], ast).push({ type: "if", path });
-  const newScope = down(scope, ast);
-  console.log(ast, newScope);
-  return { ast, scope: newScope };
+  const where = grandParent(scope, ast);
+  const index = scopeIndex(scope);
+  const newBody = insert(where.body, index, node);
+
+  const bodyScope = scopeWithoutIndex(scope);
+  const bodyInScope = withScope(bodyScope, newBody);
+  const newAst = { ...ast, ...bodyInScope };
+
+  const newScope = down(scope, newAst);
+  return { scope: newScope, ast: newAst };
 };
 
 function reducer(state: State, action: Action) {
@@ -97,8 +134,8 @@ function reducer(state: State, action: Action) {
         ...state,
         scope: down(scope, ast),
       };
-    case "addIf":
-      return addIf(scope, ast);
+    case "add":
+      return add(scope, ast, action.payload);
 
     default:
       return state;

@@ -17,6 +17,9 @@ export const Editor = () => {
     if (e.key === "a") {
       ast.addIf();
     }
+    if (e.key === "s") {
+      ast.addLoop();
+    }
   };
   useEffect(() => {
     document.addEventListener("keydown", handleKeydown);

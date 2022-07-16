@@ -1,5 +1,5 @@
-import { ReactNode } from "react";
 import { Ast } from "../../lib/ast";
+import { Render } from "../Render/Render";
 import { SignatureAst } from "../Signature/Signature";
 import * as S from "./Function.atoms";
 
@@ -8,16 +8,13 @@ export interface FunctionAst extends Ast {
   body: Ast[];
 }
 
-interface FunctionProps {
-  signature: ReactNode;
-  body: ReactNode;
-}
-
-export const Function = ({ signature, body }: FunctionProps) => {
+export const Function = ({ signature, body }: FunctionAst) => {
   return (
     <S.Container>
-      {signature}
-      {body}
+      <>
+        <Render head={signature} />
+        <Render head={body} />
+      </>
     </S.Container>
   );
 };

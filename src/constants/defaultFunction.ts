@@ -8,5 +8,5 @@ export const DEFAULT_FUNCTION: FunctionAst = {
     { path: "body.1", type: "statement", text: "return a" } as StatementAst,
   ],
   type: "function",
-  path: null,
+  path: "",
 };
