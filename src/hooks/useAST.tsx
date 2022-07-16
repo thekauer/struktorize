@@ -13,7 +13,13 @@ export const useAST = () => {
 
   const up = () => dispatch({ type: "up" });
   const down = () => dispatch({ type: "down" });
-  const addIf = () => dispatch({ type: "add", payload: { type: "branch" } });
+  const addIf = () =>
+    dispatch({
+      type: "add",
+      payload: {
+        type: "branch",
+      },
+    });
   const addLoop = () =>
     dispatch({ type: "add", payload: { type: "loop", body: [] } });
 
@@ -39,35 +45,74 @@ type State = {
 
 type Action = { type: "up" } | { type: "down" } | { type: "add"; payload: Ast };
 
-const up = (scope: string[]) => {
-  const last = scope.at(-1);
-  switch (last) {
-    case "signature":
-      return scope;
-    case "0":
-      return scope.slice(0, -2).concat("signature");
+const get = (scope: string[], ast: Ast) =>
+  scope.reduce((acc: any, curr) => acc[curr], ast);
 
-    //number
-    default:
-      return scope.slice(0, -1).concat((Number(last) - 1).toString());
+const grandParent = (scope: string[], ast: Ast) => {
+  const parent = scope.slice(0, -2);
+  return parent.reduce((acc: any, curr) => acc[curr], ast);
+};
+
+const bodyLength = (ast: any | Ast) => {
+  switch (ast.type) {
+    case "function":
+      return ast.body.length;
+    case "loop":
+      return ast.body.length;
+    case "branch":
+      return ast.ifBranch.length;
   }
 };
 
-const down = (scope: string[], ast: Ast) => {
+const up = (scope: string[], ast: Ast) => {
   const last = scope.at(-1);
+  if (last === "0") {
+    const { type } = grandParent(scope, ast);
+    switch (type) {
+      case "function":
+        return scope.slice(0, -2).concat("signature");
+      case "branch":
+        return scope.slice(0, -2);
+    }
+  }
+
   switch (last) {
     case "signature":
-      return scope.slice(0, -1).concat(["body", "0"]);
+      return scope;
 
     //number
     default:
-      const { length } = scope
-        .slice(0, -2)
-        .reduce((acc: any, curr) => acc[curr], ast).body;
+      const newScope = scope.slice(0, -1).concat((Number(last) - 1).toString());
+      const node = get(newScope, ast);
+      if (node.type === "branch") {
+        return node.ifBranch.at(-1).path.split(".");
+      }
+
+      return newScope;
+  }
+};
+
+const down = (scope: string[], ast: Ast): string[] => {
+  const last = scope.at(-1);
+  const { type } = get(scope, ast);
+  switch (type) {
+    case "signature":
+      return scope.slice(0, -1).concat(["body", "0"]);
+    case "branch":
+      return [...scope, "ifBranch", "0"];
+
+    default:
+      const parent = grandParent(scope, ast);
+      const length = bodyLength(parent);
       const nextNumber = Number(last) + 1;
-      return nextNumber < length
-        ? scope.slice(0, -1).concat(nextNumber.toString())
-        : scope;
+      if (nextNumber < length)
+        return scope.slice(0, -1).concat(nextNumber.toString());
+
+      if (parent.type === "function") {
+        return scope;
+      }
+
+      return incrementScope(parent.path.split("."));
   }
 };
 
@@ -83,11 +128,6 @@ const insert = (body: Ast[], index: number, node: Ast) => {
         path: setIndex(oldPath, i),
       } as Ast)
   );
-};
-
-const grandParent = (scope: string[], ast: Ast) => {
-  const parent = scope.slice(0, -2);
-  return parent.reduce((acc: any, curr) => acc[curr], ast);
 };
 
 const scopeIndex = (scope: string[]) => Number(scope.at(-1)!);
@@ -106,13 +146,44 @@ const withScope = (scope: string[], ast: any): any => {
 
 const withScopeAuto = (ast: any): any => withScope(pathToScope(ast.path), ast);
 
+const incrementScope = (scope: string[]) => {
+  const last = Number(scope.at(-1));
+  //if last is a number
+  if (last !== NaN) {
+    return scope.slice(0, -1).concat((last + 1).toString());
+  }
+  return scope.concat("0");
+};
+
+const prepare = (scope: string[], node: Ast): Ast => {
+  switch (node.type) {
+    case "branch":
+      const path = incrementScope(scope).join(".");
+      return {
+        ...node,
+        path,
+        ifBranch: [{ type: "statement", path: `${path}.ifBranch.0`, text: "" }],
+        elseBranch: [
+          { type: "statement", path: `${path}.elseBranch.0`, text: "" },
+        ],
+      } as Ast;
+  }
+
+  //TODO: remove this
+  return node;
+};
+
 const add = (scope: string[], ast: Ast, node: Ast) => {
   //TODO: what if there is no body yet?
   //TODO: tests
+  const newNode = prepare(scope, node);
+
+  //create new body
   const where = grandParent(scope, ast);
   const index = scopeIndex(scope);
-  const newBody = insert(where.body, index, node);
+  const newBody = insert(where.body, index, newNode);
 
+  //set new body
   const bodyScope = scopeWithoutIndex(scope);
   const bodyInScope = withScope(bodyScope, newBody);
   const newAst = { ...ast, ...bodyInScope };
@@ -127,7 +198,7 @@ function reducer(state: State, action: Action) {
     case "up":
       return {
         ...state,
-        scope: up(scope),
+        scope: up(scope, ast),
       };
     case "down":
       return {

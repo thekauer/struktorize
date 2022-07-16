@@ -1,6 +1,7 @@
-import styled from "styled-components";
+import styled, { css } from "styled-components";
+import { StyleProps } from "../../style/styleProps";
 
-export const Condition = styled.div`
+export const Condition = styled.div<StyleProps>`
   padding: 0.5em;
   outline: solid 2px var(--mid);
   outline-offset: -1px;
@@ -18,6 +19,18 @@ export const Condition = styled.div`
   &.active {
     background-color: var(--blue);
   }
+
+  ${({ selected }) =>
+    selected &&
+    css`
+      background-color: var(--light);
+      cursor: pointer;
+    `}
+  ${({ active }) =>
+    active &&
+    css`
+      background-color: var(--blue);
+    `}
 `;
 export const Container = styled.div`
   display: flex;
