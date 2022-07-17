@@ -55,7 +55,7 @@ type Action =
   | { type: "add"; payload: Ast };
 
 const get = (scope: string[], ast: Ast) =>
-  scope.reduce((acc: any, curr) => acc[curr], ast);
+  scope[0] === "" ? ast : scope.reduce((acc: any, curr) => acc[curr], ast);
 
 const grandParent = (scope: string[], ast: Ast) => {
   const parent = scope.slice(0, -2);
@@ -74,14 +74,14 @@ const swapBranch = (scope: string[], ast: Ast) => {
   return [...branchScope, otherBranch, Math.min(index, length - 1).toString()];
 };
 
-const bodyLength = (ast: any | Ast) => {
+const getBody = (ast: any | Ast) => {
   switch (ast.type) {
     case "function":
-      return ast.body.length;
+      return ast.body;
     case "loop":
-      return ast.body.length;
+      return ast.body;
     case "branch":
-      return ast.ifBranch.length;
+      return ast.ifBranch;
   }
 };
 
@@ -121,7 +121,7 @@ const up = (scope: string[], ast: Ast) => {
 const isLast = (scope: string[], ast: Ast) => {
   const last = scope.at(-1);
   const parent = grandParent(scope, ast);
-  const length = bodyLength(parent);
+  const { length } = getBody(parent);
   const nextNumber = Number(last) + 1;
   return nextNumber >= length;
 };
@@ -202,7 +202,6 @@ const insert = (body: Ast[], index: number, node: Ast) => {
 };
 
 const scopeIndex = (scope: string[]) => Number(scope.at(-1)!);
-const scopeWithoutIndex = (scope: string[]) => scope.slice(0, -1);
 
 const withScope = (scope: string[], ast: any): any => {
   const [first, ...rest] = scope;
@@ -247,22 +246,29 @@ const prepare = (scope: string[], node: Ast): Ast => {
   return node;
 };
 
-const add = (scope: string[], ast: Ast, node: Ast) => {
-  //TODO: what if there is no body yet?
-  //TODO: tests
-  const newNode = prepare(scope, node);
-
-  //create new body
-  const where = grandParent(scope, ast);
+const createBody = (scope: string[], ast: Ast, node: Ast) => {
+  const parent = grandParent(scope, ast);
+  const parentBody = getBody(parent);
   const index = scopeIndex(scope);
-  const newBody = insert(where.body, index, newNode);
+  return insert(parentBody, index, node);
+};
 
-  //set new body
-  const bodyScope = scopeWithoutIndex(scope);
-  const bodyInScope = withScope(bodyScope, newBody);
-  const newAst = { ...ast, ...bodyInScope };
+const setBody = (scope: string[], ast: Ast, body: Ast[]) => {
+  const parent = grandParent(scope, ast);
+  const newAst = { ...ast };
+  const parentScope = parent.path.split(".");
+  get(parentScope, newAst).body = body;
+  return newAst;
+};
 
+const add = (scope: string[], ast: Ast, node: Ast) => {
+  if (scope.at(-1) === "signature") return { scope, ast };
+
+  const newNode = prepare(scope, node);
+  const newBody = createBody(scope, ast, newNode);
+  const newAst = setBody(scope, ast, newBody);
   const newScope = down(scope, newAst);
+
   return { scope: newScope, ast: newAst };
 };
 
@@ -290,6 +296,7 @@ function reducer(state: State, action: Action) {
         scope: right(scope, ast),
       };
     case "add":
+      console.log("calling add with", action.payload.type);
       return add(scope, ast, action.payload);
 
     default:
