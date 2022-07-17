@@ -73,6 +73,8 @@ const up = (scope: string[], ast: Ast) => {
         return scope.slice(0, -2).concat("signature");
       case "branch":
         return scope.slice(0, -2);
+      default:
+        return scope.slice(0, -2);
     }
   }
 
@@ -87,6 +89,9 @@ const up = (scope: string[], ast: Ast) => {
       if (node.type === "branch") {
         return node.ifBranch.at(-1).path.split(".");
       }
+      if (node.type === "loop") {
+        return node.body.at(-1).path.split(".");
+      }
 
       return newScope;
   }
@@ -100,6 +105,8 @@ const down = (scope: string[], ast: Ast): string[] => {
       return scope.slice(0, -1).concat(["body", "0"]);
     case "branch":
       return [...scope, "ifBranch", "0"];
+    case "loop":
+      return [...scope, "body", "0"];
 
     default:
       const parent = grandParent(scope, ast);
@@ -156,9 +163,9 @@ const incrementScope = (scope: string[]) => {
 };
 
 const prepare = (scope: string[], node: Ast): Ast => {
+  const path = incrementScope(scope).join(".");
   switch (node.type) {
     case "branch":
-      const path = incrementScope(scope).join(".");
       return {
         ...node,
         path,
@@ -166,6 +173,12 @@ const prepare = (scope: string[], node: Ast): Ast => {
         elseBranch: [
           { type: "statement", path: `${path}.elseBranch.0`, text: "" },
         ],
+      } as Ast;
+    case "loop":
+      return {
+        ...node,
+        path,
+        body: [{ type: "statement", path: `${path}.body.0`, text: "" }],
       } as Ast;
   }
 
