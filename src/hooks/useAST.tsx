@@ -118,8 +118,28 @@ const up = (scope: string[], ast: Ast) => {
   }
 };
 
-const down = (scope: string[], ast: Ast): string[] => {
+const isLast = (scope: string[], ast: Ast) => {
   const last = scope.at(-1);
+  const parent = grandParent(scope, ast);
+  const length = bodyLength(parent);
+  const nextNumber = Number(last) + 1;
+  return nextNumber >= length;
+};
+
+const isLeaf = (scope: string[], ast: Ast) => {
+  if (!isLast(scope, ast)) {
+    return false;
+  }
+  const parent = grandParent(scope, ast);
+  if (parent.type === "function") {
+    return true;
+  }
+
+  const parentScope = parent.path.split(".");
+  return isLast(parentScope, ast);
+};
+
+const down = (scope: string[], ast: Ast): string[] => {
   const { type } = get(scope, ast);
   switch (type) {
     case "signature":
@@ -130,17 +150,12 @@ const down = (scope: string[], ast: Ast): string[] => {
       return [...scope, "body", "0"];
 
     default:
+      if (!isLast(scope, ast)) return incrementScope(scope);
+
       const parent = grandParent(scope, ast);
-      const length = bodyLength(parent);
-      const nextNumber = Number(last) + 1;
-      if (nextNumber < length)
-        return scope.slice(0, -1).concat(nextNumber.toString());
+      const parentScope = parent.path.split(".");
 
-      if (parent.type === "function") {
-        return scope;
-      }
-
-      return incrementScope(parent.path.split("."));
+      return isLeaf(scope, ast) ? scope : incrementScope(parentScope);
   }
 };
 
