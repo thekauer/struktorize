@@ -14,6 +14,12 @@ export const Editor = () => {
       if (e.key === "ArrowUp") {
         ast.up();
       }
+      if (e.key === "ArrowLeft") {
+        ast.left();
+      }
+      if (e.key === "ArrowRight") {
+        ast.right();
+      }
 
       if (e.key === "a") {
         ast.addIf();
