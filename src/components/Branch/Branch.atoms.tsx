@@ -41,7 +41,6 @@ export const TrueBranch = styled.div`
   min-width: 6em;
   min-height: 0.5em;
   justify-self: flex-start;
-  flex: 1;
 `;
 
 export const FalseBranch = styled.div`
@@ -50,5 +49,4 @@ export const FalseBranch = styled.div`
   min-width: 6em;
   min-height: 0.5em;
   justify-self: flex-end;
-  flex: 1;
 `;
