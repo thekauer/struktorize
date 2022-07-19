@@ -77,7 +77,6 @@ const swapBranch = (scope: string[], ast: Ast) => {
 const getBody = (ast: any | Ast) => {
   switch (ast.type) {
     case "function":
-      return ast.body;
     case "loop":
       return ast.body;
     case "branch":
@@ -257,7 +256,8 @@ const setBody = (scope: string[], ast: Ast, body: Ast[]) => {
   const parent = grandParent(scope, ast);
   const newAst = { ...ast };
   const parentScope = parent.path.split(".");
-  get(parentScope, newAst).body = body;
+  const bodyName = scope.at(-2)!;
+  get(parentScope, newAst)[bodyName] = body;
   return newAst;
 };
 
@@ -296,7 +296,6 @@ function reducer(state: State, action: Action) {
         scope: right(scope, ast),
       };
     case "add":
-      console.log("calling add with", action.payload.type);
       return add(scope, ast, action.payload);
 
     default:
