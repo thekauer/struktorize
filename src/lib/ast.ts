@@ -63,10 +63,10 @@ const insert = (body: Ast[], index: number, node: Ast) => {
   const oldPath = body[index].path;
   return [...body.slice(0, index + 1), node, ...body.slice(index + 1)].map(
     (node, i) =>
-      ({
-        ...node,
-        path: setIndex(oldPath, i),
-      } as Ast)
+    ({
+      ...node,
+      path: setIndex(oldPath, i),
+    } as Ast)
   );
 };
 
@@ -202,7 +202,7 @@ export const right = (scope: string[], ast: Ast) => {
   const { type } = get(scope, ast);
   switch (type) {
     case "loop":
-      return [...scope, "body", "0"];
+      return scope;
     default:
       const parent = grandParent(scope, ast);
       if (parent.type === "branch" && isOnIfBranch(scope)) {
