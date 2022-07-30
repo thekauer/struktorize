@@ -1,8 +1,8 @@
 import { useAST } from "../../hooks/useAST";
 import { Ast } from "../../lib/ast";
+import { Latex } from "../Latex/Latex";
 import { Render } from "../Render/Render";
 import * as S from "./Branch.atoms";
-import { InlineMath } from 'react-katex';
 
 export interface BranchAst extends Ast {
   condition?: string;
@@ -21,7 +21,9 @@ export const Branch = ({
 
   return (
     <>
-      <S.Condition selected={selected}><InlineMath>{condition}</InlineMath></S.Condition>
+      <S.Condition selected={selected}>
+        <Latex>{condition}</Latex>
+      </S.Condition>
       <S.Container>
         <S.TrueBranch>
           <Render head={ifBranch} />
