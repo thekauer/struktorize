@@ -36,7 +36,21 @@ export const Editor = () => {
 
       if (e.key === "Backspace") {
         ast.backspace();
+        return;
       }
+
+      const isNotAllowedKey = [
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+        "Shift",
+        "Alt",
+        "Control",
+        "AltGraph",
+        "Backspace",
+      ].includes(e.key);
+      if (isNotAllowedKey) return;
 
       ast.edit(e.shiftKey ? e.key.toUpperCase() : e.key);
     };

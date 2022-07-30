@@ -1,13 +1,15 @@
 const transformations = new Map<string, string>([
   ["in", "\\in"],
-  ["R", "\\mathbb{R}"],
-  ["N", "\\mathbb{N}"],
+  ["R", "\\mathbb{R} "],
+  ["N", "\\mathbb{N} "],
   ["return", "\\bold{return}\\;"],
+  [" ", "\\;"],
+  ["pi", "\\pi"],
 ]);
 
-export const parse = (input?: string): string | undefined => {
+export const parse = (input?: string): string => {
   if (!input) {
-    return undefined;
+    return "";
   }
 
   const splits = input.split(/\s+/);
@@ -29,9 +31,10 @@ export const deleteLast = (input?: string): string | undefined => {
     return undefined;
   }
 
-  const splits = input.split(/\s+/);
-  if (splits.at(-1)?.includes("\\")) {
-    return splits.slice(0, -1).join(" ");
+  for (const key of transformations.keys()) {
+    if (input.endsWith(key)) {
+      return input.slice(0, input.lastIndexOf(key));
+    }
   }
 
   return input.slice(0, -1);
