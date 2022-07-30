@@ -63,10 +63,10 @@ const insert = (body: Ast[], index: number, node: Ast) => {
   const oldPath = body[index].path;
   return [...body.slice(0, index + 1), node, ...body.slice(index + 1)].map(
     (node, i) =>
-    ({
-      ...node,
-      path: setIndex(oldPath, i),
-    } as Ast)
+      ({
+        ...node,
+        path: setIndex(oldPath, i),
+      } as Ast)
   );
 };
 
@@ -128,6 +128,12 @@ const setBody = (scope: string[], ast: Ast, body: Ast[]) => {
   const parentScope = parent.path.split(".");
   const bodyName = scope.at(-2)!;
   get(parentScope, newAst)[bodyName] = body;
+  return newAst;
+};
+
+const set = (scope: string[], ast: Ast, node: Ast): Ast => {
+  const newAst = { ...ast };
+  get(scope.slice(0, -1), newAst)[scope.at(-1)!] = node;
   return newAst;
 };
 
@@ -221,4 +227,15 @@ export const add = (scope: string[], ast: Ast, node: Ast) => {
   const newScope = down(scope, newAst);
 
   return { scope: newScope, ast: newAst };
+};
+
+export const edit = (
+  scope: string[],
+  ast: Ast,
+  textTransform: (text?: string) => string | undefined
+) => {
+  const node = get(scope, ast);
+  const newNode = { ...node, text: textTransform(node.text) };
+  const newAst = set(scope, ast, newNode);
+  return { scope, ast: newAst };
 };
