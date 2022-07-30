@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useContext, useReducer } from "react";
 import { DEFAULT_FUNCTION } from "../constants/defaultFunction";
-import { Ast, up, down, left, right, add } from "../lib/ast";
+import { Ast, up, down, left, right, add, edit } from "../lib/ast";
+import { deleteLast } from "../lib/textTransform";
 
 const AstContext = createContext(null as any);
 
@@ -24,6 +25,8 @@ export const useAST = () => {
     });
   const addLoop = () =>
     dispatch({ type: "add", payload: { type: "loop", body: [] } });
+  const backspace = () => dispatch({ type: "backspace" });
+  const edit = (text: string) => dispatch({ type: "text", payload: text });
 
   return {
     ast,
@@ -35,6 +38,8 @@ export const useAST = () => {
     right,
     addIf,
     addLoop,
+    backspace,
+    edit,
   };
 };
 
@@ -52,7 +57,9 @@ type Action =
   | { type: "down" }
   | { type: "left" }
   | { type: "right" }
-  | { type: "add"; payload: Ast };
+  | { type: "add"; payload: Ast }
+  | { type: "text"; payload: string }
+  | { type: "backspace" };
 
 function reducer(state: State, action: Action) {
   const { ast, scope } = state;
@@ -62,23 +69,33 @@ function reducer(state: State, action: Action) {
         ...state,
         scope: up(scope, ast),
       };
+
     case "down":
       return {
         ...state,
         scope: down(scope, ast),
       };
+
     case "left":
       return {
         ...state,
         scope: left(scope, ast),
       };
+
     case "right":
       return {
         ...state,
         scope: right(scope, ast),
       };
+
     case "add":
       return add(scope, ast, action.payload);
+
+    case "text":
+      return edit(scope, ast, (text) => text + action.payload);
+
+    case "backspace":
+      return edit(scope, ast, deleteLast);
 
     default:
       return state;
