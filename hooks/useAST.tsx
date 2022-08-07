@@ -1,4 +1,10 @@
-import { createContext, ReactNode, useContext, useReducer } from "react";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useReducer,
+} from "react";
 import { DEFAULT_FUNCTION } from "../constants/defaultFunction";
 import { Ast, up, down, left, right, add, edit } from "../lib/ast";
 import { deleteLast } from "../lib/textTransform";
@@ -12,21 +18,32 @@ export const useAST = () => {
     return scope.join(".") === path;
   };
 
-  const up = () => dispatch({ type: "up" });
-  const down = () => dispatch({ type: "down" });
-  const left = () => dispatch({ type: "left" });
-  const right = () => dispatch({ type: "right" });
-  const addIf = () =>
-    dispatch({
-      type: "add",
-      payload: {
-        type: "branch",
-      },
-    });
-  const addLoop = () =>
-    dispatch({ type: "add", payload: { type: "loop", body: [] } });
-  const backspace = () => dispatch({ type: "backspace" });
-  const edit = (text: string) => dispatch({ type: "text", payload: text });
+  const up = useCallback(() => dispatch({ type: "up" }), [dispatch]);
+  const down = useCallback(() => dispatch({ type: "down" }), [dispatch]);
+  const left = useCallback(() => dispatch({ type: "left" }), [dispatch]);
+  const right = useCallback(() => dispatch({ type: "right" }), [dispatch]);
+  const addIf = useCallback(
+    () =>
+      dispatch({
+        type: "add",
+        payload: {
+          type: "branch",
+        },
+      }),
+    [dispatch]
+  );
+  const addLoop = useCallback(
+    () => dispatch({ type: "add", payload: { type: "loop", body: [] } }),
+    [dispatch]
+  );
+  const backspace = useCallback(
+    () => dispatch({ type: "backspace" }),
+    [dispatch]
+  );
+  const edit = useCallback(
+    (text: string) => dispatch({ type: "text", payload: text }),
+    [dispatch]
+  );
 
   return {
     ast,
@@ -42,7 +59,6 @@ export const useAST = () => {
     edit,
   };
 };
-
 interface AstProviderProps {
   children: ReactNode;
 }

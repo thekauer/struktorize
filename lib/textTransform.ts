@@ -31,8 +31,8 @@ export const deleteLast = (input?: string): string | undefined => {
 
   const splits = input.split(/\s+/);
   if (splits.at(-1)?.includes("\\")) {
-    return splits.slice(0, -1).join(" ");
+    return splits.slice(0, -1).join(" ") + "\\;";
   }
 
-  return input.slice(0, -1);
+  return input.slice(0, -1) + "\\;";
 };
