@@ -8,37 +8,28 @@ export const Editor = () => {
 
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
-      if (e.ctrlKey) {
-        switch (e.key) {
-          case "ArrowUp":
-            ast.up();
-            break;
-          case "ArrowDown":
-            ast.down();
-            break;
-          case "ArrowLeft":
-            ast.left();
-            break;
-          case "ArrowRight":
-            ast.right();
-            break;
-
-          //misc
-          case "e":
-            ast.addIf();
-            break;
-          case "s":
-            ast.addLoop();
-            break;
-        }
-        return;
+      switch (e.key) {
+        case "ArrowUp":
+          ast.up();
+          return;
+        case "ArrowDown":
+          ast.down();
+          return;
+        case "ArrowLeft":
+          ast.left();
+          return;
+        case "ArrowRight":
+          ast.right();
+          return;
+        case "Backspace":
+          ast.backspace();
+          return;
       }
 
-      if (e.key === "Backspace") {
-        ast.backspace();
+      const allowedChars = /^[a-zA-Z0-9_:\+\/\(\)\*\- \"\^]{1}$/;
+      if (allowedChars.test(e.key)) {
+        ast.edit(e.shiftKey ? e.key.toUpperCase() : e.key);
       }
-
-      ast.edit(e.shiftKey ? e.key.toUpperCase() : e.key);
     };
 
     document.addEventListener("keydown", handleKeydown);
