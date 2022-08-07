@@ -8,25 +8,51 @@ export const Editor = () => {
 
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowDown") {
-        ast.down();
-      }
-      if (e.key === "ArrowUp") {
-        ast.up();
-      }
-      if (e.key === "ArrowLeft") {
-        ast.left();
-      }
-      if (e.key === "ArrowRight") {
-        ast.right();
+      if (e.ctrlKey) {
+        switch (e.key) {
+          case "ArrowUp":
+            ast.up();
+            break;
+          case "ArrowDown":
+            ast.down();
+            break;
+          case "ArrowLeft":
+            ast.left();
+            break;
+          case "ArrowRight":
+            ast.right();
+            break;
+
+          //misc
+          case "e":
+            ast.addIf();
+            break;
+          case "s":
+            ast.addLoop();
+            break;
+        }
+        return;
       }
 
-      if (e.key === "a") {
-        ast.addIf();
+      if (e.key === "Backspace") {
+        ast.backspace();
+        return;
       }
-      if (e.key === "s") {
-        ast.addLoop();
-      }
+
+      const isNotAllowedKey = [
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+        "Shift",
+        "Alt",
+        "Control",
+        "AltGraph",
+        "Backspace",
+      ].includes(e.key);
+      if (isNotAllowedKey) return;
+
+      ast.edit(e.shiftKey ? e.key.toUpperCase() : e.key);
     };
 
     document.addEventListener("keydown", handleKeydown);
