@@ -1,11 +1,10 @@
-import { FunctionAst } from "../components/Function/Function";
-import { StatementAst } from "../components/Statement/Statement";
+import { FunctionAst } from "../lib/ast";
 
 export const DEFAULT_FUNCTION: FunctionAst = {
   signature: { text: "main(a in N)", type: "signature", path: "signature" },
   body: [
-    { path: "body.0", type: "statement", text: "a:=1" } as StatementAst,
-    { path: "body.1", type: "statement", text: "return a" } as StatementAst,
+    { path: "body.0", type: "statement", text: "a:=1" },
+    { path: "body.1", type: "statement", text: "return a" },
   ],
   type: "function",
   path: "",

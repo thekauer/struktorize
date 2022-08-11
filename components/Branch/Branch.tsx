@@ -1,14 +1,8 @@
-import { useAST } from "../../hooks/useAST";
-import { Ast } from "../../lib/ast";
+import { useSelected } from "../../hooks/useAST";
+import { BranchAst } from "../../lib/ast";
 import { Latex } from "../Latex/Latex";
 import { Render } from "../Render/Render";
 import * as S from "./Branch.atoms";
-
-export interface BranchAst extends Ast {
-  condition?: string;
-  ifBranch?: Ast[];
-  elseBranch?: Ast[];
-}
 
 export const Branch = ({
   condition,
@@ -16,8 +10,7 @@ export const Branch = ({
   elseBranch,
   path,
 }: BranchAst) => {
-  const { isSelected } = useAST();
-  const selected = isSelected(path);
+  const selected = useSelected(path);
 
   return (
     <>

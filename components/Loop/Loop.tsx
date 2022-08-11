@@ -1,17 +1,11 @@
-import { useAST } from "../../hooks/useAST";
-import { Ast } from "../../lib/ast";
+import { useSelected } from "../../hooks/useAST";
+import { LoopAst } from "../../lib/ast";
 import { Latex } from "../Latex/Latex";
 import { Render } from "../Render/Render";
 import * as S from "./Loop.atoms";
 
-export interface LoopAst extends Ast {
-  condition?: string;
-  body: Ast[];
-}
-
 export const Loop = ({ condition, body, path }: LoopAst) => {
-  const { isSelected } = useAST();
-  const selected = isSelected(path);
+  const selected = useSelected(path);
 
   return (
     <S.Container>

@@ -1,15 +1,10 @@
-import { useAST } from "../../hooks/useAST";
-import { Ast } from "../../lib/ast";
+import { useSelected } from "../../hooks/useAST";
+import { StatementAst } from "../../lib/ast";
 import { Latex } from "../Latex/Latex";
 import * as S from "./Statement.atoms";
 
-export interface StatementAst extends Ast {
-  text: string;
-}
-
 export const Statement = ({ text, path }: StatementAst) => {
-  const { isSelected } = useAST();
-  const selected = isSelected(path);
+  const selected = useSelected(path);
   return (
     <S.Container selected={selected}>
       <Latex>{text}</Latex>

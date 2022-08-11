@@ -1,9 +1,40 @@
 type AstType = "function" | "signature" | "branch" | "loop" | "statement";
 
-export interface Ast {
+export interface AstBase {
   path: string;
   type: AstType;
 }
+
+export interface SignatureAst extends AstBase {
+  text: string;
+}
+
+export interface FunctionAst extends AstBase {
+  signature: SignatureAst;
+  body: Ast[];
+}
+
+export interface StatementAst extends AstBase {
+  text: string;
+}
+
+export interface LoopAst extends AstBase {
+  condition?: string;
+  body: Ast[];
+}
+
+export interface BranchAst extends AstBase {
+  condition?: string;
+  ifBranch?: Ast[];
+  elseBranch?: Ast[];
+}
+
+export type Ast =
+  | FunctionAst
+  | SignatureAst
+  | BranchAst
+  | LoopAst
+  | StatementAst;
 
 const get = (scope: string[], ast: Ast) =>
   scope[0] === "" ? ast : scope.reduce((acc: any, curr) => acc[curr], ast);
@@ -98,16 +129,18 @@ const prepare = (scope: string[], node: Ast): Ast => {
       return {
         ...node,
         path,
-        ifBranch: [{ type: "statement", path: `${path}.ifBranch.0`, text: "" }],
+        ifBranch: [
+          { type: "statement", path: `${path}.ifBranch.0`, text: " " },
+        ],
         elseBranch: [
-          { type: "statement", path: `${path}.elseBranch.0`, text: "" },
+          { type: "statement", path: `${path}.elseBranch.0`, text: " " },
         ],
       } as Ast;
     case "loop":
       return {
         ...node,
         path,
-        body: [{ type: "statement", path: `${path}.body.0`, text: "" }],
+        body: [{ type: "statement", path: `${path}.body.0`, text: " " }],
       } as Ast;
   }
 
@@ -124,7 +157,7 @@ const createBody = (scope: string[], ast: Ast, node: Ast) => {
 
 const setBody = (scope: string[], ast: Ast, body: Ast[]) => {
   const parent = grandParent(scope, ast);
-  const newAst = { ...ast };
+  const newAst = structuredClone(ast);
   const parentScope = parent.path.split(".");
   const bodyName = scope.at(-2)!;
   get(parentScope, newAst)[bodyName] = body;
@@ -132,7 +165,7 @@ const setBody = (scope: string[], ast: Ast, body: Ast[]) => {
 };
 
 const set = (scope: string[], ast: Ast, node: Ast): Ast => {
-  const newAst = { ...ast };
+  const newAst = structuredClone(ast);
   get(scope.slice(0, -1), newAst)[scope.at(-1)!] = node;
   return newAst;
 };
