@@ -1,15 +1,10 @@
-import { useAST } from "../../hooks/useAST";
-import { Ast } from "../../lib/ast";
+import { useSelected } from "../../hooks/useAST";
+import { SignatureAst } from "../../lib/ast";
 import { Latex } from "../Latex/Latex";
 import * as S from "./Signature.atoms";
 
-export interface SignatureAst extends Ast {
-  text: string;
-}
-
 export const Signature = ({ text, path }: SignatureAst) => {
-  const { isSelected } = useAST();
-  const selected = isSelected(path);
+  const selected = useSelected(path);
 
   return (
     <>

@@ -9,7 +9,6 @@ export const parse = (input?: string): string | undefined => {
   if (!input) {
     return undefined;
   }
-
   const splits = input.split(/\s+/);
   const transformed = splits
     .map((s) => {
