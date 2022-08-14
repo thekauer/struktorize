@@ -1,4 +1,5 @@
 import { ReactNode, useState } from "react";
+import { Files } from "../Files/Files";
 import { MenuItem } from "../MenuItem/MenuItem";
 import * as S from "./Layout.atoms";
 
@@ -7,12 +8,15 @@ interface LayoutProps {
 }
 
 export const Layout = ({ children }: LayoutProps) => {
+  const menus = [() => <Files />, () => <h1>Exports</h1>];
   const menuItems = ["files", "export"];
   const [activeIndex, setActiveIndex] = useState(0);
   const open = activeIndex !== -1;
   const menuItemClick = (index: number) => () => {
     setActiveIndex(index === activeIndex ? -1 : index);
   };
+
+  const ActiveMenu = menus[activeIndex];
 
   return (
     <S.Container>
@@ -26,7 +30,11 @@ export const Layout = ({ children }: LayoutProps) => {
           />
         ))}
       </S.Menu>
-      {open && <S.ToggleMenu></S.ToggleMenu>}
+      {open && (
+        <S.ToggleMenu>
+          <ActiveMenu />
+        </S.ToggleMenu>
+      )}
       <S.Main>{children}</S.Main>
     </S.Container>
   );
