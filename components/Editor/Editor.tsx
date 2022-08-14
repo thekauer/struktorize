@@ -34,7 +34,7 @@ export const Editor = () => {
         return;
     }
 
-    const allowedChars = /^[a-zA-Z0-9_:\+\/\(\)\*\- \"\^]{1}$/;
+    const allowedChars = /^[a-zA-Z0-9_:\+\/\(\)\*\- \"\^=]{1}$/;
     if (allowedChars.test(e.key)) {
       const key = e.shiftKey ? e.key.toUpperCase() : e.key;
       ast.edit(key);

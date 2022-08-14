@@ -8,7 +8,7 @@ import {
 } from "react";
 import { DEFAULT_FUNCTION } from "../constants/defaultFunction";
 import { Ast, up, down, left, right, add, edit } from "../lib/ast";
-import { deleteLast } from "../lib/textTransform";
+import { addText, deleteLast } from "../lib/textTransform";
 
 export const AstContext = createContext({ scope: ["signature"] });
 
@@ -106,7 +106,7 @@ function reducer(state: State, action: Action) {
       return add(scope, ast, action.payload);
 
     case "text":
-      return edit(scope, ast, (text) => text + action.payload);
+      return edit(scope, ast, addText(action.payload));
 
     case "backspace":
       return edit(scope, ast, deleteLast);
