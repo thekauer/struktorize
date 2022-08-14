@@ -1,24 +1,39 @@
 const transformations = new Map<string, string>([
   ["in", "\\in"],
-  ["R", "\\mathbb{R}"],
-  ["N", "\\mathbb{N}"],
+  ["pi", "\\pi"],
+  ["(", "\\left("],
+  [")", "\\right)"],
+  ["/R", "\\mathbb{R}"],
+  ["/N", "\\mathbb{N}"],
+  ["/B", "\\mathbb{B}"],
+  ["/S", "\\mathbb{S}"],
   ["return", "\\bold{return}\\;"],
 ]);
+
+const split = (input: string): string[] =>
+  input
+    .split(/\s+/)
+    .flatMap((x) => x.split(/(\(|\))/g))
+    .filter((y) => y !== "");
 
 export const parse = (input?: string): string | undefined => {
   if (!input) {
     return undefined;
   }
-  const splits = input.split(/\s+/);
+  const splits = split(input);
+
   const transformed = splits
     .map((s) => {
       if (transformations.has(s)) {
         return transformations.get(s);
       }
 
-      return `\\text{${s}}`;
+      const variableRegex = /[a-zA-Z_$][a-zA-Z_$0-9]*/g;
+      return s.replace(variableRegex, (match) => {
+        return `\\text{${match}}`;
+      });
     })
-    .join(" ");
+    .join("");
 
   return transformed;
 };
@@ -28,7 +43,7 @@ export const deleteLast = (input?: string): string | undefined => {
     return undefined;
   }
 
-  const splits = input.split(/\s+/);
+  const splits = split(input);
   if (splits.at(-1)?.includes("\\")) {
     return splits.slice(0, -1).join(" ") + "\\;";
   }
