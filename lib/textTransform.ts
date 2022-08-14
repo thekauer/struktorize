@@ -3,6 +3,7 @@ const transformations = new Map<string, string>([
   ["pi", "\\pi"],
   ["(", "\\left("],
   [")", "\\right)"],
+  ["/ ", "/ "],
   ["/R", "\\mathbb{R}"],
   ["/N", "\\mathbb{N}"],
   ["/B", "\\mathbb{B}"],
@@ -16,10 +17,7 @@ const split = (input: string): string[] =>
     .flatMap((x) => x.split(/(\(|\))/g))
     .filter((y) => y !== "");
 
-export const parse = (input?: string): string | undefined => {
-  if (!input) {
-    return undefined;
-  }
+export const parse = (input: string = ""): string => {
   const splits = split(input);
 
   const transformed = splits
@@ -38,12 +36,17 @@ export const parse = (input?: string): string | undefined => {
   return transformed;
 };
 
-export const deleteLast = (input?: string): string | undefined => {
-  if (!input) {
-    return undefined;
-  }
+export const addText =
+  (char: string) =>
+  (text: string = "") => {
+    if (text.at(-1)! === " " && char === " ") {
+      return text;
+    }
+    return text + char;
+  };
 
-  const splits = split(input);
+export const deleteLast = (input: string = ""): string => {
+  const splits = split(parse(input));
   if (splits.at(-1)?.includes("\\")) {
     return splits.slice(0, -1).join(" ") + "\\;";
   }
