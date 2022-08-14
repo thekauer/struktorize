@@ -75,17 +75,41 @@ const isLast = (scope: string[], ast: Ast) => {
   return nextNumber >= length;
 };
 
-const isLeaf = (scope: string[], ast: Ast) => {
-  if (!isLast(scope, ast)) {
-    return false;
-  }
+const isLeaf = (scope: string[], ast: Ast, depth = 0): boolean => {
   const parent = grandParent(scope, ast);
+  const { length } = getBody(scope, parent);
+  const last = scope.at(-1);
+  const nextNumber = Number(last) + 1;
+  const isTheLast = nextNumber >= length;
+
   if (parent.type === "function") {
-    return true;
+    return isTheLast;
   }
 
   const parentScope = parent.path.split(".");
-  return isLast(parentScope, ast);
+  return isTheLast && isLeaf(parentScope, ast, depth + 1);
+};
+
+const tryIncrementScope = (
+  scope: string[],
+  ast: Ast,
+  depth = 0,
+  originalScope = scope
+): string[] => {
+  const parent = grandParent(scope, ast);
+  const { length } = getBody(scope, parent);
+  const last = scope.at(-1);
+  const nextNumber = Number(last) + 1;
+  const isTheLast = nextNumber >= length;
+
+  if (parent.type === "function") {
+    return isTheLast ? originalScope : incrementScope(scope);
+  }
+
+  const parentScope = parent.path.split(".");
+  return !isTheLast
+    ? parentScope
+    : tryIncrementScope(parentScope, ast, depth++, originalScope);
 };
 
 const setIndex = (path: string, index: number) =>
@@ -114,13 +138,23 @@ const withScope = (scope: string[], ast: any): any => {
   };
 };
 
-const incrementScope = (scope: string[]) => {
+const incrementScope = (scope: string[]): string[] => {
   const last = Number(scope.at(-1));
   //if last is a number
   if (!isNaN(last)) {
     return scope.slice(0, -1).concat((last + 1).toString());
   }
   return scope.concat("0");
+};
+
+const incrementAt = (scope: string[], ast: Ast, depth: number): string[] => {
+  const parent = grandParent(scope, ast);
+  const parentScope = parent.path.split(".");
+
+  if (depth === 0) {
+    return incrementScope(parentScope);
+  }
+  return incrementAt(parentScope, ast, depth - 1);
 };
 
 const prepare = (scope: string[], node: Ast): Ast => {
@@ -288,7 +322,7 @@ export const down = (scope: string[], ast: Ast): string[] => {
       const parent = grandParent(scope, ast);
       const parentScope = parent.path.split(".");
 
-      return isLeaf(scope, ast) ? scope : incrementScope(parentScope);
+      return tryIncrementScope(scope, ast);
   }
 };
 
