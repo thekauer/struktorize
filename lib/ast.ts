@@ -56,23 +56,21 @@ const swapBranch = (scope: string[], ast: Ast) => {
   return [...branchScope, otherBranch, Math.min(index, length - 1).toString()];
 };
 
-/**
- * @deprecated DONT USE THIS
- */
-const getBody = (ast: any | Ast) => {
+const getBody = (scope: string[], ast: any | Ast) => {
   switch (ast.type) {
     case "function":
     case "loop":
       return ast.body;
     case "branch":
-      return ast.ifBranch;
+      const last = scope.at(-2)!;
+      return ast[last];
   }
 };
 
 const isLast = (scope: string[], ast: Ast) => {
   const last = scope.at(-1);
   const parent = grandParent(scope, ast);
-  const { length } = getBody(parent);
+  const { length } = getBody(scope, parent);
   const nextNumber = Number(last) + 1;
   return nextNumber >= length;
 };
@@ -153,7 +151,7 @@ const prepare = (scope: string[], node: Ast): Ast => {
 
 const createBody = (scope: string[], ast: Ast, node: Ast) => {
   const parent = grandParent(scope, ast);
-  const parentBody = getBody(parent);
+  const parentBody = getBody(scope, parent);
   const index = scopeIndex(scope);
   return insert(parentBody, index, node);
 };
@@ -208,8 +206,7 @@ const correctPathsHelper = (scope: string[], ast: Ast): Ast => {
 };
 const removeFromBody = (scope: string[], ast: Ast) => {
   const parent = grandParent(scope, ast);
-  const last = scope.at(-2)!;
-  const parentBody = parent[last];
+  const parentBody = getBody(scope, parent);
   const index = scopeIndex(scope);
 
   const newBody = parentBody
