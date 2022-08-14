@@ -1,13 +1,8 @@
 const transformations = new Map<string, string>([
   ["in", "\\in"],
   ["pi", "\\pi"],
-  ["(", "\\left("],
-  [")", "\\right)"],
+  [" ", ";"],
   ["/ ", "/ "],
-  ["/R", "\\mathbb{R}"],
-  ["/N", "\\mathbb{N}"],
-  ["/B", "\\mathbb{B}"],
-  ["/S", "\\mathbb{S}"],
   ["return", "\\bold{return}\\;"],
 ]);
 
@@ -36,20 +31,57 @@ export const parse = (input: string = ""): string => {
   return transformed;
 };
 
+const getLastTag = (text: string) => {
+  const index = text.lastIndexOf("\\");
+  const sub = text.substring(index);
+
+  const tag = sub.substring(1, sub.indexOf("{"));
+  const content = sub.substring(sub.indexOf("{") + 1, sub.indexOf("}"));
+  return { tag, content };
+};
+
+const doesEndWithExpression = (text: string) =>
+  text.endsWith("}") ||
+  text.endsWith("\\in") ||
+  text.endsWith("\\pi") ||
+  text.endsWith("\\;");
+
 export const addText =
   (char: string) =>
   (text: string = "") => {
-    if (text.at(-1)! === " " && char === " ") {
-      return text;
+    const isTypeExpression =
+      text.endsWith(":") || text.endsWith("\\in") || text.endsWith("×");
+    const isType = ["N", "R", "B", "S"].includes(char);
+
+    if (isTypeExpression && isType) {
+      return text + `\\mathbb{${char}}`;
     }
-    return text + char;
+
+    const { tag, content } = getLastTag(text);
+    if (doesEndWithExpression(text) && tag === "text") {
+      const head = text.substring(0, text.lastIndexOf("\\"));
+      return head + parse(content + char);
+    }
+
+    return text + parse(char);
   };
 
 export const deleteLast = (input: string = ""): string => {
-  const splits = split(parse(input));
-  if (splits.at(-1)?.includes("\\")) {
-    return splits.slice(0, -1).join(" ") + "\\;";
+  const { tag, content } = getLastTag(input);
+
+  if (input.endsWith("}") && tag === "text" && content.length > 1) {
+    const head = input.substring(0, input.lastIndexOf("\\"));
+    return head + `\\text{${content.substring(0, content.length - 1)}}`;
   }
 
-  return input.slice(0, -1) + "\\;";
+  if (doesEndWithExpression(input)) {
+    const head = input.substring(0, input.lastIndexOf("\\"));
+    return head;
+  }
+
+  if (input.endsWith(":=")) {
+    return input.substring(0, input.length - 2);
+  }
+
+  return input.substring(0, input.length - 1);
 };
