@@ -56,6 +56,9 @@ const swapBranch = (scope: string[], ast: Ast) => {
   return [...branchScope, otherBranch, Math.min(index, length - 1).toString()];
 };
 
+/**
+ * @deprecated DONT USE THIS
+ */
 const getBody = (ast: any | Ast) => {
   switch (ast.type) {
     case "function":
@@ -155,13 +158,73 @@ const createBody = (scope: string[], ast: Ast, node: Ast) => {
   return insert(parentBody, index, node);
 };
 
+const correctPaths = (ast: Ast): Ast => {
+  const newAst = structuredClone(ast);
+  newAst.body = newAst.body.map((node: Ast, index: number) =>
+    correctPathsHelper(["body", index.toString()], node)
+  );
+
+  return newAst;
+};
+
+const correctPathsHelper = (scope: string[], ast: Ast): Ast => {
+  const path = scope.join(".");
+
+  switch (ast.type) {
+    case "branch":
+      const { ifBranch, elseBranch } = ast as BranchAst;
+      return {
+        ...ast,
+        path,
+        ifBranch: ifBranch?.map((child, index) =>
+          correctPathsHelper(
+            setIndex(`${path}.ifBranch.0`, index).split("."), //this might be scope.concat(["ifBranch", index.toString()]), could make a function for this
+            child
+          )
+        ),
+        elseBranch: elseBranch?.map((child, index) =>
+          correctPathsHelper(
+            setIndex(`${path}.elseBranch.0`, index).split("."),
+            child
+          )
+        ),
+      };
+    case "loop":
+      const { body } = ast as LoopAst;
+
+      return {
+        ...ast,
+        path,
+        body: body.map((child, index) =>
+          correctPathsHelper(
+            setIndex(`${path}.body.0`, index).split("."),
+            child
+          )
+        ),
+      };
+    default:
+      return { ...ast, path: scope.join(".") };
+  }
+};
+const removeFromBody = (scope: string[], ast: Ast) => {
+  const parent = grandParent(scope, ast);
+  const last = scope.at(-2)!;
+  const parentBody = parent[last];
+  const index = scopeIndex(scope);
+
+  const newBody = parentBody
+    .slice(0, index)
+    .concat(parentBody.slice(index + 1));
+  return newBody;
+};
+
 const setBody = (scope: string[], ast: Ast, body: Ast[]) => {
   const parent = grandParent(scope, ast);
   const newAst = structuredClone(ast);
   const parentScope = parent.path.split(".");
   const bodyName = scope.at(-2)!;
   get(parentScope, newAst)[bodyName] = body;
-  return newAst;
+  return correctPaths(newAst);
 };
 
 const set = (scope: string[], ast: Ast, node: Ast): Ast => {
@@ -170,7 +233,16 @@ const set = (scope: string[], ast: Ast, node: Ast): Ast => {
   return newAst;
 };
 
-export const up = (scope: string[], ast: Ast) => {
+const isAddingToPlaceholder = (scope: string[], ast: Ast, node: Ast) => {
+  if (node.type === "branch" || node.type === "loop") {
+    const inScope = get(scope, ast);
+
+    return inScope.type === "statement" && inScope.text === " ";
+  }
+  return false;
+};
+
+export const up = (scope: string[], ast: Ast): string[] => {
   const last = scope.at(-1);
   if (last === "0") {
     const { type } = grandParent(scope, ast);
@@ -251,7 +323,18 @@ export const right = (scope: string[], ast: Ast) => {
   }
 };
 
-export const add = (scope: string[], ast: Ast, node: Ast) => {
+export const remove = (scope: string[], ast: Ast) => {
+  const newBody = removeFromBody(scope, ast);
+  const newAst = setBody(scope, ast, newBody);
+
+  return { scope: scope, ast: newAst };
+};
+
+export const add = (
+  scope: string[],
+  ast: Ast,
+  node: Ast
+): { scope: string[]; ast: Ast } => {
   if (scope.at(-1) === "signature") return { scope, ast };
 
   const newNode = prepare(scope, node);
@@ -259,6 +342,9 @@ export const add = (scope: string[], ast: Ast, node: Ast) => {
   const newAst = setBody(scope, ast, newBody);
   const newScope = down(scope, newAst);
 
+  if (isAddingToPlaceholder(scope, ast, node)) {
+    return remove(scope, newAst);
+  }
   return { scope: newScope, ast: newAst };
 };
 

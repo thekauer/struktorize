@@ -10,9 +10,11 @@ export const Editor = () => {
     if (e.altKey) {
       if (e.key === "b") {
         ast.addIf();
+        return;
       }
       if (e.key === "v") {
         ast.addLoop();
+        return;
       }
     }
 
