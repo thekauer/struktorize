@@ -41,7 +41,9 @@ const get = (scope: string[], ast: Ast) =>
 
 const grandParent = (scope: string[], ast: Ast) => {
   const parent = scope.slice(0, -2);
-  return parent.reduce((acc: any, curr) => acc[curr], ast);
+  return parent.length === 0
+    ? ast
+    : parent.reduce((acc: any, curr) => acc[curr], ast);
 };
 
 const isOnIfBranch = (scope: string[]) => scope.at(-2) === "ifBranch";
@@ -326,31 +328,66 @@ export const down = (scope: string[], ast: Ast): string[] => {
   }
 };
 
-export const left = (scope: string[], ast: Ast) => {
-  const { type } = grandParent(scope, ast);
-  switch (type) {
+export const left = (
+  scope: string[],
+  ast: Ast,
+  originalScope: string[] = scope
+): string[] => {
+  const parent = grandParent(scope, ast);
+  switch (parent.type) {
     case "loop":
       return scope.slice(0, -2);
-    default:
-      const parent = grandParent(scope, ast);
-      if (parent.type === "branch" && !isOnIfBranch(scope)) {
-        return swapBranch(scope, ast);
+    case "branch": {
+      if (isOnIfBranch(scope)) {
+        const parentScope = parent.path.split(".");
+
+        const hitTheWall =
+          left(parentScope, ast, originalScope) === originalScope;
+
+        if (hitTheWall) {
+          return originalScope;
+        }
+
+        return right(down(left(parentScope, ast, originalScope), ast), ast);
       }
-      return scope;
+
+      return swapBranch(scope, ast);
+    }
+
+    default:
+      return originalScope;
   }
 };
 
-export const right = (scope: string[], ast: Ast) => {
-  const { type } = get(scope, ast);
-  switch (type) {
-    case "loop":
-      return scope;
-    default:
-      const parent = grandParent(scope, ast);
-      if (parent.type === "branch" && isOnIfBranch(scope)) {
-        return swapBranch(scope, ast);
+//TODO: go right from loop in ifBranch
+export const right = (
+  scope: string[],
+  ast: Ast,
+  originalScope = scope
+): string[] => {
+  const parent = grandParent(scope, ast);
+  const parentScope = parent.path.split(".");
+
+  switch (parent.type) {
+    case "function":
+      return originalScope;
+    case "branch": {
+      if (!isOnIfBranch(scope)) {
+        const hitTheWall =
+          right(parentScope, ast, originalScope) === originalScope;
+
+        if (hitTheWall) {
+          return originalScope;
+        }
+
+        return down(right(parentScope, ast, originalScope), ast);
       }
-      return scope;
+
+      return swapBranch(scope, ast);
+    }
+
+    default:
+      return down(right(parentScope, ast), ast);
   }
 };
 
@@ -361,6 +398,8 @@ export const remove = (scope: string[], ast: Ast) => {
   return { scope: scope, ast: newAst };
 };
 
+//TODO: allow adding to the signature of a function, which would add to function's body.0
+//TODO: if signature is empty, add a dashed box with explanation in place of the future nodes
 export const add = (
   scope: string[],
   ast: Ast,
