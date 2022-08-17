@@ -1,4 +1,4 @@
-import { down, up, left, right, remove } from "./ast";
+import { down, up, left, right, remove, Ast } from "./ast";
 
 describe("ast", () => {
   describe("down", () => {
@@ -8,7 +8,8 @@ describe("ast", () => {
           signature: { type: "signature", path: "signature", text: "none" },
           body: [{ type: "statement", path: "body.0", text: "a" }],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["signature"];
 
         const actual = down(scope, ast);
@@ -24,12 +25,13 @@ describe("ast", () => {
             { type: "statement", path: "body.2", text: "a" },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0"];
 
         const actual = down(down(scope, ast), ast);
-        const expexted = "body.2";
-        expect(actual.join(".")).toBe(expexted);
+        const expected = "body.2";
+        expect(actual.join(".")).toBe(expected);
       });
 
       it("should not go down at after the last statement", () => {
@@ -54,9 +56,13 @@ describe("ast", () => {
     describe("loop", () => {
       it("should go down to loop condition", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            text: "\\text{main}(\\text{a}\\in\\mathbb{N})",
+            type: "signature",
+            path: "signature",
+          },
           body: [
-            { type: "statement", path: "body.0", text: "a" },
+            { type: "statement", path: "body.1", text: "a" },
             {
               type: "loop",
               path: "body.1",
@@ -65,12 +71,13 @@ describe("ast", () => {
             { type: "statement", path: "body.2", text: "a" },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0"];
 
         const actual = down(scope, ast);
-        const expexted = "body.1";
-        expect(actual.join(".")).toBe(expexted);
+        const expected = "body.1";
+        expect(actual.join(".")).toBe(expected);
       });
 
       it("should go down into loop body", () => {
@@ -86,12 +93,13 @@ describe("ast", () => {
             { type: "statement", path: "body.2", text: "a" },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0"];
 
         const actual = down(down(scope, ast), ast);
-        const expexted = "body.1.body.0";
-        expect(actual.join(".")).toBe(expexted);
+        const expected = "body.1.body.0";
+        expect(actual.join(".")).toBe(expected);
       });
 
       it("should go down to the statement after the loop body", () => {
@@ -107,12 +115,13 @@ describe("ast", () => {
             { type: "statement", path: "body.2", text: "a" },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0"];
 
         const actual = down(down(down(scope, ast), ast), ast);
-        const expexted = "body.2";
-        expect(actual.join(".")).toBe(expexted);
+        const expected = "body.2";
+        expect(actual.join(".")).toBe(expected);
       });
 
       it("should not go down if loop is the last ast", () => {
@@ -127,12 +136,13 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0"];
 
         const actual = down(down(down(scope, ast), ast), ast);
-        const expexted = "body.1.body.0";
-        expect(actual.join(".")).toBe(expexted);
+        const expected = "body.1.body.0";
+        expect(actual.join(".")).toBe(expected);
       });
 
       it("when two loops are on top of each other it should go down from top loop's last ast to bottom loop's  condition", () => {
@@ -159,7 +169,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0", "body", "2"];
 
         const actual = down(scope, ast);
@@ -186,12 +197,13 @@ describe("ast", () => {
             { type: "statement", path: "body.2", text: "a" },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0"];
 
         const actual = down(scope, ast);
-        const expexted = "body.1";
-        expect(actual.join(".")).toBe(expexted);
+        const expected = "body.1";
+        expect(actual.join(".")).toBe(expected);
       });
 
       it("should go down to the true branch", () => {
@@ -212,12 +224,13 @@ describe("ast", () => {
             { type: "statement", path: "body.2", text: "a" },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0"];
 
         const actual = down(down(scope, ast), ast);
-        const expexted = "body.1.ifBranch.0";
-        expect(actual.join(".")).toBe(expexted);
+        const expected = "body.1.ifBranch.0";
+        expect(actual.join(".")).toBe(expected);
       });
 
       it("should go down to the statement after the branch", () => {
@@ -238,12 +251,13 @@ describe("ast", () => {
             { type: "statement", path: "body.2", text: "a" },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0"];
 
         const actual = down(down(down(scope, ast), ast), ast);
-        const expexted = "body.2";
-        expect(actual.join(".")).toBe(expexted);
+        const expected = "body.2";
+        expect(actual.join(".")).toBe(expected);
       });
 
       it("should not go down if the branch is the last ast", () => {
@@ -263,12 +277,13 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0"];
 
         const actual = down(down(down(scope, ast), ast), ast);
-        const expexted = "body.1.ifBranch.0";
-        expect(actual.join(".")).toBe(expexted);
+        const expected = "body.1.ifBranch.0";
+        expect(actual.join(".")).toBe(expected);
       });
 
       it("when two branches are on top of each other it should go down frop the top branch's true branch to the bottom branch's condition", () => {
@@ -297,12 +312,13 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0", "ifBranch", "0"];
 
         const actual = down(scope, ast);
-        const expexted = "body.1";
-        expect(actual.join(".")).toBe(expexted);
+        const expected = "body.1";
+        expect(actual.join(".")).toBe(expected);
       });
 
       it("when two branches are on top of each other it should go down frop the top branch's false branch to the bottom branch's condition", () => {
@@ -331,12 +347,13 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0", "elseBranch", "0"];
 
         const actual = down(scope, ast);
-        const expexted = "body.1";
-        expect(actual.join(".")).toBe(expexted);
+        const expected = "body.1";
+        expect(actual.join(".")).toBe(expected);
       });
     });
   });
@@ -348,7 +365,8 @@ describe("ast", () => {
           signature: { type: "signature", path: "signature", text: "none" },
           body: [{ type: "statement", path: "body.0", text: "a" }],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["signature"];
 
         const actual = up(scope, ast);
@@ -360,7 +378,8 @@ describe("ast", () => {
           signature: { type: "signature", path: "signature", text: "none" },
           body: [{ type: "statement", path: "body.0", text: "a" }],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0"];
 
         const actual = up(scope, ast);
@@ -376,7 +395,8 @@ describe("ast", () => {
             { type: "statement", path: "body.2", text: "a" },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "2"];
 
         const actual = up(up(scope, ast), ast);
@@ -400,7 +420,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0"];
 
         const actual = up(scope, ast);
@@ -422,7 +443,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0", "body", "0"];
 
         const actual = up(scope, ast);
@@ -444,7 +466,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0", "body", "2"];
 
         const actual = up(up(scope, ast), ast);
@@ -475,7 +498,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "1"];
 
         const actual = up(scope, ast);
@@ -504,7 +528,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0"];
 
         const actual = up(scope, ast);
@@ -531,7 +556,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0", "ifBranch", "0"];
 
         const actual = up(scope, ast);
@@ -558,7 +584,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0", "elseBranch", "0"];
 
         const actual = up(scope, ast);
@@ -585,7 +612,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0", "elseBranch", "2"];
 
         const actual = up(up(scope, ast), ast);
@@ -612,7 +640,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0", "ifBranch", "2"];
 
         const actual = up(up(scope, ast), ast);
@@ -653,7 +682,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "1"];
 
         const actual = up(scope, ast);
@@ -669,7 +699,8 @@ describe("ast", () => {
           signature: { type: "signature", path: "signature", text: "none" },
           body: [{ type: "statement", path: "body.0", text: "a" }],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["signature"];
 
         const actual = left(scope, ast);
@@ -681,7 +712,8 @@ describe("ast", () => {
           signature: { type: "signature", path: "signature", text: "none" },
           body: [{ type: "statement", path: "body.0", text: "a" }],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0"];
 
         const actual = left(scope, ast);
@@ -702,7 +734,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0"];
 
         const actual = left(scope, ast);
@@ -721,7 +754,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0", "body", "0"];
 
         const actual = left(scope, ast);
@@ -747,7 +781,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0"];
 
         const actual = left(scope, ast);
@@ -771,7 +806,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0", "ifBranch", "0"];
 
         const actual = left(scope, ast);
@@ -795,7 +831,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0", "elseBranch", "0"];
 
         const actual = left(scope, ast);
@@ -821,7 +858,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0", "elseBranch", "2"];
 
         const actual = left(scope, ast);
@@ -837,7 +875,8 @@ describe("ast", () => {
           signature: { type: "signature", path: "signature", text: "none" },
           body: [{ type: "statement", path: "body.0", text: "a" }],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["signature"];
 
         const actual = right(scope, ast);
@@ -849,7 +888,8 @@ describe("ast", () => {
           signature: { type: "signature", path: "signature", text: "none" },
           body: [{ type: "statement", path: "body.0", text: "a" }],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0"];
 
         const actual = right(scope, ast);
@@ -870,7 +910,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0"];
 
         const actual = right(scope, ast);
@@ -889,7 +930,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0", "body", "0"];
 
         const actual = right(scope, ast);
@@ -915,7 +957,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0"];
 
         const actual = right(scope, ast);
@@ -939,7 +982,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0", "elseBranch", "0"];
 
         const actual = right(scope, ast);
@@ -963,7 +1007,8 @@ describe("ast", () => {
             },
           ],
           type: "function",
-        } as any;
+          path: "",
+        } as Ast;
         const scope = ["body", "0", "ifBranch", "0"];
 
         const actual = right(scope, ast);
@@ -1012,5 +1057,74 @@ describe("ast", () => {
     });
   });
 
-  describe("compound", () => {});
+  describe("compound", () => {
+    it("should go left 4 times when there is a branch both a branches true and false branch", () => {
+      const ast = {
+        signature: {
+          text: "\\text{main}(\\text{a}\\in\\mathbb{N})",
+          type: "signature",
+          path: "signature",
+        },
+        body: [
+          {
+            type: "branch",
+            path: "body.0",
+            text: " ",
+            ifBranch: [
+              {
+                type: "branch",
+                path: "body.0.ifBranch.0",
+                text: " ",
+                ifBranch: [
+                  {
+                    type: "statement",
+                    path: "body.0.ifBranch.0.ifBranch.0",
+                    text: " ",
+                  },
+                ],
+                elseBranch: [
+                  {
+                    type: "statement",
+                    path: "body.0.ifBranch.0.elseBranch.0",
+                    text: " ",
+                  },
+                ],
+              },
+            ],
+            elseBranch: [
+              {
+                type: "branch",
+                path: "body.0.elseBranch.0",
+                text: " ",
+                ifBranch: [
+                  {
+                    type: "statement",
+                    path: "body.0.elseBranch.0.ifBranch.0",
+                    text: " ",
+                  },
+                ],
+                elseBranch: [
+                  {
+                    type: "statement",
+                    path: "body.0.elseBranch.0.elseBranch.0",
+                    text: " ",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        type: "function",
+        path: "",
+      } as Ast;
+      //start at the rightmost point
+      const scope = ["body", "0", "elseBranch", "0", "elseBranch", "0"];
+
+      //go left 3 times till the left wall, and one more time to test that it doesn't go left anymore
+      const actual = left(left(left(left(scope, ast), ast), ast), ast);
+
+      //end up at the left wall
+      expect(actual.join(".")).toBe("body.0.ifBranch.0.ifBranch.0");
+    });
+  });
 });
