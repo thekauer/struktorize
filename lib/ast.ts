@@ -19,12 +19,12 @@ export interface StatementAst extends AstBase {
 }
 
 export interface LoopAst extends AstBase {
-  condition?: string;
+  text?: string;
   body: Ast[];
 }
 
 export interface BranchAst extends AstBase {
-  condition?: string;
+  text?: string;
   ifBranch?: Ast[];
   elseBranch?: Ast[];
 }
@@ -359,7 +359,6 @@ export const left = (
   }
 };
 
-//TODO: go right from loop in ifBranch
 export const right = (
   scope: string[],
   ast: Ast,
