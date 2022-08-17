@@ -346,13 +346,12 @@ export const left = (
   originalScope: string[] = scope
 ): string[] => {
   const parent = grandParent(scope, ast);
+  const parentScope = parent.path.split(".");
   switch (parent.type) {
     case "loop":
       return scope.slice(0, -2);
     case "branch": {
       if (isOnIfBranch(scope)) {
-        const parentScope = parent.path.split(".");
-
         const hitTheWall =
           left(parentScope, ast, originalScope) === originalScope;
 
@@ -360,7 +359,11 @@ export const left = (
           return originalScope;
         }
 
-        return right(down(left(parentScope, ast, originalScope), ast), ast);
+        const leftScope = left(parentScope, ast, originalScope);
+        const leftNode = get(leftScope, ast);
+        const newScope = down(leftScope, ast);
+
+        return leftNode.type === "branch" ? right(newScope, ast) : newScope;
       }
 
       return swapBranch(scope, ast);
