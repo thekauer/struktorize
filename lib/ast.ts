@@ -118,6 +118,17 @@ const setIndex = (path: string, index: number) =>
   path.split(".").slice(0, -1).concat(index.toString()).join(".");
 
 const insert = (body: Ast[], index: number, node: Ast) => {
+  if (index === -1) {
+    const oldPath = body[0].path;
+    return [node, ...body].map(
+      (node, i) =>
+        ({
+          ...node,
+          path: setIndex(oldPath, i),
+        } as Ast)
+    );
+  }
+
   const oldPath = body[index].path;
   return [...body.slice(0, index + 1), node, ...body.slice(index + 1)].map(
     (node, i) =>
@@ -128,7 +139,8 @@ const insert = (body: Ast[], index: number, node: Ast) => {
   );
 };
 
-const scopeIndex = (scope: string[]) => Number(scope.at(-1)!);
+const scopeIndex = (scope: string[]) =>
+  scope[0] === "signature" ? -1 : Number(scope.at(-1)!);
 
 const withScope = (scope: string[], ast: any): any => {
   const [first, ...rest] = scope;
@@ -255,7 +267,7 @@ const setBody = (scope: string[], ast: Ast, body: Ast[]) => {
   const parent = grandParent(scope, ast);
   const newAst = structuredClone(ast);
   const parentScope = parent.path.split(".");
-  const bodyName = scope.at(-2)!;
+  const bodyName = scope.at(-2) || "body";
   get(parentScope, newAst)[bodyName] = body;
   return correctPaths(newAst);
 };
@@ -397,15 +409,11 @@ export const remove = (scope: string[], ast: Ast) => {
   return { scope: scope, ast: newAst };
 };
 
-//TODO: allow adding to the signature of a function, which would add to function's body.0
-//TODO: if signature is empty, add a dashed box with explanation in place of the future nodes
 export const add = (
   scope: string[],
   ast: Ast,
   node: Ast
 ): { scope: string[]; ast: Ast } => {
-  if (scope.at(-1) === "signature") return { scope, ast };
-
   const newNode = prepare(scope, node);
   const newBody = createBody(scope, ast, newNode);
   const newAst = setBody(scope, ast, newBody);
