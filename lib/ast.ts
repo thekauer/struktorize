@@ -205,7 +205,10 @@ const createBody = (scope: string[], ast: Ast, node: Ast) => {
 };
 
 const correctPaths = (ast: Ast): Ast => {
+  if (ast.type === "signature") return ast;
+
   const newAst = structuredClone(ast);
+  // @ts-ignore
   newAst.body = newAst.body.map((node: Ast, index: number) =>
     correctPathsHelper(["body", index.toString()], node)
   );
