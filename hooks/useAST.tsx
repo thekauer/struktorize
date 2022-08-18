@@ -35,13 +35,13 @@ export const useAST = () => {
       payload: {
         type: "branch",
         path: "",
-        condition: " ",
+        text: " ",
       },
     });
   const addLoop = () =>
     dispatch({
       type: "add",
-      payload: { type: "loop", body: [], path: "", condition: " " },
+      payload: { type: "loop", body: [], path: "", text: " " },
     });
   const backspace = () => dispatch({ type: "backspace" });
   const edit = (text: string) => dispatch({ type: "text", payload: text });

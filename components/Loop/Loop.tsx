@@ -4,13 +4,13 @@ import { Latex } from "../Latex/Latex";
 import { Render } from "../Render/Render";
 import * as S from "./Loop.atoms";
 
-export const Loop = ({ condition, body, path }: LoopAst) => {
+export const Loop = ({ text, body, path }: LoopAst) => {
   const selected = useSelected(path);
 
   return (
     <S.Container>
       <S.Loop selected={selected}>
-        <Latex>{condition}</Latex>
+        <Latex>{text}</Latex>
       </S.Loop>
       <S.Left />
       <S.Right>

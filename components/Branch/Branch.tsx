@@ -4,18 +4,13 @@ import { Latex } from "../Latex/Latex";
 import { Render } from "../Render/Render";
 import * as S from "./Branch.atoms";
 
-export const Branch = ({
-  condition,
-  ifBranch,
-  elseBranch,
-  path,
-}: BranchAst) => {
+export const Branch = ({ text, ifBranch, elseBranch, path }: BranchAst) => {
   const selected = useSelected(path);
 
   return (
     <>
       <S.Condition selected={selected}>
-        <Latex>{condition}</Latex>
+        <Latex>{text}</Latex>
       </S.Condition>
       <S.Container>
         <S.TrueBranch>
