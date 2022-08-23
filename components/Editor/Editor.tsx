@@ -1,7 +1,7 @@
 import useEventListener from "@use-it/event-listener";
 import { useState } from "react";
 import { AstContext, useAST } from "../../hooks/useAST";
-import { Render } from "../Render/Render";
+import { Render } from "../Ast/Render/Render";
 import * as S from "./Editor.atoms";
 
 export const Editor = () => {

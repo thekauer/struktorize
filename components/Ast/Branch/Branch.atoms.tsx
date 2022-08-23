@@ -1,5 +1,5 @@
 import styled, { css } from "styled-components";
-import { StyleProps } from "../../style/styleProps";
+import { StyleProps } from "../../../style/styleProps";
 
 export const Condition = styled.div<StyleProps>`
   position: relative;

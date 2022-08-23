@@ -1,5 +1,5 @@
-import { useSelected } from "../../hooks/useAST";
-import { LoopAst } from "../../lib/ast";
+import { useSelected } from "../../../hooks/useAST";
+import { LoopAst } from "../../../lib/ast";
 import { Latex } from "../Latex/Latex";
 import { Render } from "../Render/Render";
 import * as S from "./Loop.atoms";

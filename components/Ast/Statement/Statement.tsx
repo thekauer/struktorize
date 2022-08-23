@@ -1,5 +1,5 @@
-import { useSelected } from "../../hooks/useAST";
-import { StatementAst } from "../../lib/ast";
+import { useSelected } from "../../../hooks/useAST";
+import { StatementAst } from "../../../lib/ast";
 import { Latex } from "../Latex/Latex";
 import * as S from "./Statement.atoms";
 

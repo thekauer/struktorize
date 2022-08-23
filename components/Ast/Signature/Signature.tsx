@@ -1,5 +1,5 @@
-import { useSelected } from "../../hooks/useAST";
-import { SignatureAst } from "../../lib/ast";
+import { useSelected } from "../../../hooks/useAST";
+import { SignatureAst } from "../../../lib/ast";
 import { Latex } from "../Latex/Latex";
 import * as S from "./Signature.atoms";
 

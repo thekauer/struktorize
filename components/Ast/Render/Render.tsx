@@ -1,4 +1,4 @@
-import { Ast } from "../../lib/ast";
+import { Ast } from "../../../lib/ast";
 import { Branch } from "../Branch/Branch";
 import { Function } from "../Function/Function";
 import { Loop } from "../Loop/Loop";
