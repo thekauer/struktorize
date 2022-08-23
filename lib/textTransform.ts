@@ -145,10 +145,6 @@ export const addText =
 export const deleteLast = (input: string = ""): string => {
   const { tag, content } = getLastTag(input);
 
-  if (input === " ") {
-    return input;
-  }
-
   if (doesEndWithScript(input)) {
     const scriptTag =
       input.lastIndexOf("_") > input.lastIndexOf("^") ? "_" : "^";

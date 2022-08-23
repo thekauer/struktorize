@@ -65,5 +65,9 @@ interface LatexProps {
 }
 
 export const Latex = ({ children }: LatexProps) => {
-  return <InlineMath>{children === " " ? "\\;" : children}</InlineMath>;
+  return (
+    <InlineMath>
+      {children === " " || children === "" ? "\\;" : children}
+    </InlineMath>
+  );
 };
