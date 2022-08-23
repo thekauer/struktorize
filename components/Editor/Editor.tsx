@@ -78,7 +78,8 @@ export const Editor = () => {
         return;
     }
 
-    const allowedChars = /^[a-zA-Z0-9_:\+\/\(\)\*\- \"\^=\.\&\|<>!\^\×\,]{1}$/;
+    const allowedChars =
+      /^[a-zA-Z0-9_:\+\/\(\)\*\- \"\^=\.\&\|<>!\^\×\,\[\]\;]{1}$/;
     if (allowedChars.test(key)) {
       setBuffer((prev) => prev.substring(prev.length - 3) + key);
 

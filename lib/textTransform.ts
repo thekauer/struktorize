@@ -1,6 +1,8 @@
 const transformations = new Map<string, string>([
-  ["in", "\\in{}"],
+  ["is", "\\in{}"],
   ["pi", "\\pi{}"],
+  ["epsilon", "\\varepsilon{}"],
+  ["&", "\\&{}"],
   [" ", ";"],
   ["/ ", "/ "],
   ["for", "\\forall{}"],
@@ -9,6 +11,8 @@ const transformations = new Map<string, string>([
   ["and", "\\land{}"],
   ["or", "\\lor{}"],
   ["return", "\\bold{return}\\;"],
+  ["skip", "\\text{SKIP}\\;"],
+  ["inf", "\\infty{}"],
 ]);
 
 const mathOperators = new Map<string, string>([
@@ -97,6 +101,10 @@ export const addText =
 
     if (exceptions.includes(char)) {
       return text;
+    }
+
+    if (text.endsWith("\\&{}") && char === "&") {
+      return text.substring(0, text.length - 4) + "\\land{}";
     }
 
     if (insertMode === "normal" && text.includes("htmlStyle")) {
