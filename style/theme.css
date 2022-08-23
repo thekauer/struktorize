@@ -4,6 +4,8 @@
     --dark: #1e1e1e;
     --text:white;
     --text-secondary: #888;
+    --blue: #007acc;
+    --blue-light: #0099ff;
 }
 
 .dark {

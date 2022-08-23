@@ -11,6 +11,19 @@ export const Title = styled.h3`
   color: var(--text-secondary);
 `;
 
+export const Button = styled.button`
+  margin: 0.5rem;
+  padding: 0.5rem;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  background-color: var(--blue);
+
+  &:hover {
+    background-color: var(--blue-light);
+  }
+`;
+
 export const Menu = styled.aside`
   position: relative;
   background: var(--light);
