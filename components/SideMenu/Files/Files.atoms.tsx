@@ -1,15 +1,4 @@
-import styled, { css } from "styled-components";
-
-export const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-export const Title = styled.h3`
-  margin: 0.5rem;
-  margin-bottom: 0;
-  color: var(--text-secondary);
-`;
+import styled from "styled-components";
 
 export const Menu = styled.div`
   display: flex;
