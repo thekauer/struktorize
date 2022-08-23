@@ -89,7 +89,11 @@ const doesEndWithMathOperator = (text: string, char: string) => {
 };
 
 const doesEndWithScript = (text: string) => {
-  return text.endsWith("}}");
+  const scriptTag = text.lastIndexOf("_") > text.lastIndexOf("^") ? "_" : "^";
+
+  return text.includes("htmlStyle")
+    ? text.endsWith("}}")
+    : !text.substring(text.lastIndexOf(scriptTag) + 2).includes("{");
 };
 
 export const addText =
