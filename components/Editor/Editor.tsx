@@ -105,7 +105,9 @@ export const Editor = () => {
   return (
     <AstContext.Provider value={{ scope: ast.scope }}>
       <S.Container id="root-container">
-        <Render head={ast.ast} />
+        <S.Root>
+          <Render head={ast.ast} />
+        </S.Root>
       </S.Container>
     </AstContext.Provider>
   );

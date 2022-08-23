@@ -1,10 +1,12 @@
 import styled, { css } from "styled-components";
-import { StyleProps } from "../../style/styleProps";
+import { StyleProps } from "../../../style/styleProps";
 
 export const Container = styled.div`
   display: grid;
   grid-template-columns: 2em auto;
-  outline: solid 2px var(--mid);
+  color: var(--s-text);
+  background-color: var(--s-bg);
+  outline: solid 2px var(--s-border);
   outline-offset: -1px;
 `;
 export const Loop = styled.div<StyleProps>`
@@ -19,12 +21,12 @@ export const Loop = styled.div<StyleProps>`
   &:hover + div,
   &.selected,
   &.selected + div {
-    background-color: var(--light);
+    background-color: var(--s-selected);
     cursor: pointer;
   }
   &.active,
   &.active + div {
-    background-color: var(--blue);
+    background-color: var(--s-active);
   }
 
   ${({ selected }) =>
@@ -32,7 +34,7 @@ export const Loop = styled.div<StyleProps>`
     css`
       &,
       & + div {
-        background-color: var(--light);
+        background-color: var(--s-selected);
         cursor: pointer;
       }
     `}
@@ -41,7 +43,7 @@ export const Loop = styled.div<StyleProps>`
     css`
       &,
       & + div {
-        background-color: var(--blue);
+        background-color: var(--s-active);
       }
     `}
 `;

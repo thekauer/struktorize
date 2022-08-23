@@ -6,6 +6,16 @@
     --text-secondary: #888;
     --blue: #007acc;
     --blue-light: #0099ff;
+
+    --s-bg: #1e1e1e;
+    --s-border:#252526;
+    --s-text: white;
+    --s-selected: #2d2d2d;
+    --s-active:#007acc;
+    --s-container: #1e1e1e;
+    --s-root: #1e1e1e;
+    --s-shadow: none;
+
 }
 
 .dark {
