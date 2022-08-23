@@ -2,7 +2,7 @@ import { FunctionAst } from "../lib/ast";
 
 export const DEFAULT_FUNCTION: FunctionAst = {
   signature: {
-    text: "\\text{main}(\\text{a}\\in\\mathbb{N})",
+    text: "\\text{main}(\\text{a}\\in{}\\mathbb{N})",
     type: "signature",
     path: "signature",
   },

@@ -10,6 +10,8 @@ export const Branch = ({ text, ifBranch, elseBranch, path }: BranchAst) => {
   return (
     <>
       <S.Condition selected={selected}>
+        <S.True>t</S.True>
+        <S.False>f</S.False>
         <Latex>{text}</Latex>
       </S.Condition>
       <S.Container>

@@ -1,9 +1,26 @@
 const transformations = new Map<string, string>([
-  ["in", "\\in"],
-  ["pi", "\\pi"],
+  ["is", "\\in{}"],
+  ["pi", "\\pi{}"],
+  ["epsilon", "\\varepsilon{}"],
+  ["&", "\\&{}"],
   [" ", ";"],
   ["/ ", "/ "],
+  ["for", "\\forall{}"],
+  ["exists", "\\exists{}"],
+  ["not", "\\neg{}"],
+  ["and", "\\land{}"],
+  ["or", "\\lor{}"],
   ["return", "\\bold{return}\\;"],
+  ["skip", "\\text{SKIP}\\;"],
+  ["inf", "\\infty{}"],
+]);
+
+const mathOperators = new Map<string, string>([
+  ["&&", "\\land{}"],
+  ["||", "\\lor{}"],
+  ["<=", "\\le{}"],
+  [">=", "\\ge{}"],
+  ["!=", "\\neq{}"],
 ]);
 
 const split = (input: string): string[] =>
@@ -41,25 +58,96 @@ const getLastTag = (text: string) => {
 };
 
 const doesEndWithExpression = (text: string) =>
-  text.endsWith("}") ||
-  text.endsWith("\\in") ||
-  text.endsWith("\\pi") ||
-  text.endsWith("\\;");
+  text.endsWith("}") || text.endsWith("\\;");
+
+const endsWithTextExpression = (text: string) => {
+  const lastIsText =
+    text.indexOf("\\text{") > text.indexOf("^{") &&
+    text.indexOf("\\text{") > text.indexOf("_{");
+  const { tag } = getLastTag(text);
+  return lastIsText && doesEndWithExpression(text) && tag === "text";
+};
+
+const isType = (text: string) => {
+  return ["N", "R", "B", "S"].includes(text);
+};
+
+const isTypeExpression = (text: string) => {
+  return (
+    text.endsWith(":") ||
+    text.endsWith("\\in{}") ||
+    text.endsWith("×") ||
+    text.endsWith(":\\;") ||
+    text.endsWith("\\in{}\\;") ||
+    text.endsWith("×\\;")
+  );
+};
+
+const doesEndWithMathOperator = (text: string, char: string) => {
+  const lastTwo = text.at(-1) + char;
+  return mathOperators.has(lastTwo);
+};
+
+const doesEndWithScript = (text: string) => {
+  const scriptTag = text.lastIndexOf("_") > text.lastIndexOf("^") ? "_" : "^";
+
+  return text.includes("htmlStyle")
+    ? text.endsWith("}}")
+    : !text.substring(text.lastIndexOf(scriptTag) + 2).includes("{");
+};
 
 export const addText =
-  (char: string) =>
+  (char: string, insertMode = "normal") =>
   (text: string = "") => {
-    const isTypeExpression =
-      text.endsWith(":") || text.endsWith("\\in") || text.endsWith("×");
-    const isType = ["N", "R", "B", "S"].includes(char);
+    const style =
+      "\\htmlStyle{background-color: #252526; padding: 2px; border-radius: 3px;}";
+    const exceptions = ["_", "^"];
 
-    if (isTypeExpression && isType) {
+    if (exceptions.includes(char)) {
+      return text;
+    }
+
+    if (text.endsWith("\\&{}") && char === "&") {
+      return text.substring(0, text.length - 4) + "\\land{}";
+    }
+
+    if (insertMode === "normal" && text.includes("htmlStyle")) {
+      const head = text.replace(style + "{", "");
+      return head.substring(0, head.length - 1);
+    }
+
+    if (insertMode === "subscript" || insertMode === "superscript") {
+      if (text.endsWith("\\;}}")) {
+        const head = text.substring(0, text.length - 4);
+        return head + char + "}}";
+      }
+      if (text.endsWith("}}")) {
+        const head = text.substring(0, text.length - 2);
+        return head + char + "}}";
+      }
+      const lead = insertMode === "subscript" ? "_" : "^";
+      return text + `${lead}{${style}{\\;}}`;
+    }
+
+    if (doesEndWithMathOperator(text, char)) {
+      const head = text.substring(0, text.length - 1);
+      const lastTwo = text.at(-1) + char;
+      const operator = mathOperators.get(lastTwo);
+      return head + operator;
+    }
+
+    if (!text.endsWith("\\;") && char === " ") {
+      return text + "\\;";
+    }
+
+    if (isTypeExpression(text) && isType(char)) {
       return text + `\\mathbb{${char}}`;
     }
 
-    const { tag, content } = getLastTag(text);
-    if (doesEndWithExpression(text) && tag === "text") {
+    if (endsWithTextExpression(text)) {
+      const { content } = getLastTag(text);
       const head = text.substring(0, text.lastIndexOf("\\"));
+
       return head + parse(content + char);
     }
 
@@ -68,6 +156,12 @@ export const addText =
 
 export const deleteLast = (input: string = ""): string => {
   const { tag, content } = getLastTag(input);
+
+  if (doesEndWithScript(input)) {
+    const scriptTag =
+      input.lastIndexOf("_") > input.lastIndexOf("^") ? "_" : "^";
+    return input.substring(0, input.lastIndexOf(scriptTag));
+  }
 
   if (input.endsWith("}") && tag === "text" && content.length > 1) {
     const head = input.substring(0, input.lastIndexOf("\\"));

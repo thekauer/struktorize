@@ -4,6 +4,8 @@ import { StyleProps } from "../../style/styleProps";
 export const Container = styled.div<StyleProps>`
   padding: 0.5em;
   border-radius: 25px;
+  display: flex;
+  justify-content: center;
   border: solid 2px var(--mid);
   min-width: 6em;
   min-height: 0.5em;
