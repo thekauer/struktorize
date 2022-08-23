@@ -1,11 +1,4 @@
-import {
-  createContext,
-  ReactNode,
-  useCallback,
-  useContext,
-  useReducer,
-  useState,
-} from "react";
+import { createContext, useContext, useReducer } from "react";
 import { DEFAULT_FUNCTION } from "../constants/defaultFunction";
 import { Ast, up, down, left, right, add, edit } from "../lib/ast";
 import { addText, deleteLast } from "../lib/textTransform";
@@ -29,6 +22,11 @@ export const useAST = () => {
   const down = () => dispatch({ type: "down" });
   const left = () => dispatch({ type: "left" });
   const right = () => dispatch({ type: "right" });
+  const addStatement = () =>
+    dispatch({
+      type: "add",
+      payload: { type: "statement", path: "", text: " " },
+    });
   const addIf = () =>
     dispatch({
       type: "add",
@@ -43,8 +41,11 @@ export const useAST = () => {
       type: "add",
       payload: { type: "loop", body: [], path: "", text: " " },
     });
-  const backspace = () => dispatch({ type: "backspace" });
-  const edit = (text: string) => dispatch({ type: "text", payload: text });
+  const backspace = (n = 1) => {
+    for (let i = 0; i < n; i++) dispatch({ type: "backspace" });
+  };
+  const edit = (text: string, insertMode = "normal") =>
+    dispatch({ type: "text", payload: { text, insertMode } });
 
   return {
     ast,
@@ -53,6 +54,7 @@ export const useAST = () => {
     down,
     left,
     right,
+    addStatement,
     addIf,
     addLoop,
     backspace,
@@ -72,7 +74,7 @@ type Action =
   | { type: "left" }
   | { type: "right" }
   | { type: "add"; payload: Ast }
-  | { type: "text"; payload: string }
+  | { type: "text"; payload: { text: string; insertMode: string } }
   | { type: "backspace" };
 
 function reducer(state: State, action: Action) {
@@ -106,7 +108,11 @@ function reducer(state: State, action: Action) {
       return add(scope, ast, action.payload);
 
     case "text":
-      return edit(scope, ast, addText(action.payload));
+      return edit(
+        scope,
+        ast,
+        addText(action.payload.text, action.payload.insertMode)
+      );
 
     case "backspace":
       return edit(scope, ast, deleteLast);
