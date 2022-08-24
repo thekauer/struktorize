@@ -1,6 +1,16 @@
 import { createContext, useContext, useReducer } from "react";
 import { DEFAULT_FUNCTION } from "../constants/defaultFunction";
-import { Ast, up, down, left, right, add, edit } from "../lib/ast";
+import {
+  Ast,
+  up,
+  down,
+  left,
+  right,
+  add,
+  edit,
+  isEmpty,
+  remove,
+} from "../lib/ast";
 import { addText, deleteLast } from "../lib/textTransform";
 
 export const AstContext = createContext({ scope: ["signature"] });
@@ -115,7 +125,11 @@ function reducer(state: State, action: Action) {
       );
 
     case "backspace":
-      return edit(scope, ast, deleteLast);
+      if (!isEmpty(scope, ast)) return edit(scope, ast, deleteLast);
+
+      const removed = remove(scope, ast, true);
+      const newScope = up(removed.scope, removed.ast);
+      return { scope: newScope, ast: removed.ast };
 
     default:
       return state;

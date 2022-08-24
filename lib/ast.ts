@@ -46,6 +46,10 @@ const grandParent = (scope: string[], ast: Ast) => {
     : parent.reduce((acc: any, curr) => acc[curr], ast);
 };
 
+const isOnSignature = (scope: string[]) => {
+  return scope[0] === "signature";
+};
+
 const isOnIfBranch = (scope: string[]) => scope.at(-2) === "ifBranch";
 
 const swapBranch = (scope: string[], ast: Ast) => {
@@ -117,9 +121,9 @@ const tryIncrementScope = (
 const setIndex = (path: string, index: number) =>
   path.split(".").slice(0, -1).concat(index.toString()).join(".");
 
-const insert = (body: Ast[], index: number, node: Ast) => {
+const insert = (scope: string[], body: Ast[], index: number, node: Ast) => {
+  const oldPath = scope.join(".");
   if (index === -1) {
-    const oldPath = body[0].path;
     return [node, ...body].map(
       (node, i) =>
         ({
@@ -129,7 +133,6 @@ const insert = (body: Ast[], index: number, node: Ast) => {
     );
   }
 
-  const oldPath = body[index].path;
   return [...body.slice(0, index + 1), node, ...body.slice(index + 1)].map(
     (node, i) =>
       ({
@@ -140,7 +143,7 @@ const insert = (body: Ast[], index: number, node: Ast) => {
 };
 
 const scopeIndex = (scope: string[]) =>
-  scope[0] === "signature" ? -1 : Number(scope.at(-1)!);
+  isOnSignature(scope) ? -1 : Number(scope.at(-1)!);
 
 const withScope = (scope: string[], ast: any): any => {
   const [first, ...rest] = scope;
@@ -201,7 +204,8 @@ const createBody = (scope: string[], ast: Ast, node: Ast) => {
   const parent = grandParent(scope, ast);
   const parentBody = getBody(scope, parent);
   const index = scopeIndex(scope);
-  return insert(parentBody, index, node);
+  console.log("🚀 - scope", scope);
+  return insert(scope, parentBody, index, node);
 };
 
 const correctPaths = (ast: Ast): Ast => {
@@ -324,6 +328,9 @@ export const up = (scope: string[], ast: Ast): string[] => {
 };
 
 export const down = (scope: string[], ast: Ast): string[] => {
+  if (isOnSignature(scope) && (ast as FunctionAst).body.length === 0) {
+    return scope;
+  }
   const { type } = get(scope, ast);
   switch (type) {
     case "signature":
@@ -335,9 +342,6 @@ export const down = (scope: string[], ast: Ast): string[] => {
 
     default:
       if (!isLast(scope, ast)) return incrementScope(scope);
-
-      const parent = grandParent(scope, ast);
-      const parentScope = parent.path.split(".");
 
       return tryIncrementScope(scope, ast);
   }
@@ -408,7 +412,29 @@ export const right = (
   }
 };
 
-export const remove = (scope: string[], ast: Ast) => {
+export const remove = (
+  scope: string[],
+  ast: Ast,
+  strict = false
+): { scope: string[]; ast: Ast } => {
+  if (isOnSignature(scope)) return { scope, ast };
+  if (strict) {
+    const node = get(scope, ast);
+    const parent = grandParent(scope, ast);
+    const { length } = getBody(scope, parent);
+    if (length === 1 && node.path.at(-1)! === "0") {
+      if (node.type === "statement") {
+        return remove(scope, ast);
+      }
+
+      const removed = remove(scope, ast);
+      return add(scope, removed.ast, {
+        type: "statement",
+        text: " ",
+        path: "",
+      });
+    }
+  }
   const newBody = removeFromBody(scope, ast);
   const newAst = setBody(scope, ast, newBody);
 
@@ -440,4 +466,9 @@ export const edit = (
   const newNode = { ...node, text: textTransform(node.text) };
   const newAst = set(scope, ast, newNode);
   return { scope, ast: newAst };
+};
+
+export const isEmpty = (scope: string[], ast: Ast) => {
+  const { text } = get(scope, ast);
+  return text === " " || text === "\\;" || text === "";
 };
