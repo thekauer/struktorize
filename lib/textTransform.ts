@@ -100,7 +100,7 @@ export const addText =
   (char: string, insertMode = "normal") =>
   (text: string = "") => {
     const style =
-      "\\htmlStyle{background-color: #252526; padding: 2px; border-radius: 3px;}";
+      "\\htmlStyle{background-color: var(--s-script); padding: 2px; border-radius: 3px;}";
     const exceptions = ["_", "^"];
 
     if (exceptions.includes(char)) {
