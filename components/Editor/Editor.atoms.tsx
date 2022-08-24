@@ -13,7 +13,7 @@ export const Root = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 1rem;
   background: var(--s-root);
 `;
