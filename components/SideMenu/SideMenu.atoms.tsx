@@ -3,16 +3,16 @@ import styled from "styled-components";
 export const Container = styled.div`
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem;
 `;
 
 export const Title = styled.h3`
-  margin: 0.5rem;
   margin-bottom: 0;
   color: var(--text-secondary);
 `;
 
 export const Button = styled.button`
-  margin: 0.5rem;
   padding: 0.5rem;
   border: none;
   color: var(--text);
@@ -22,6 +22,19 @@ export const Button = styled.button`
   &:hover {
     background-color: var(--blue-light);
   }
+`;
+
+export const Option = styled.option``;
+
+export const Select = styled.select`
+  background: var(--light);
+  color: var(--text);
+  border: none;
+  padding: 0.25rem;
+`;
+
+export const Label = styled.label`
+  color: var(--text-secondary);
 `;
 
 export const Menu = styled.aside`
