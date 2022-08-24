@@ -18,6 +18,29 @@ const useScreenshot = () => {
     }
   };
 
+  const downloadScreenshot = async (node: HTMLElement) => {
+    if (!node) {
+      throw new Error("You should provide correct html node.");
+    }
+
+    const downloadURI = (uri: string) => {
+      let link = document.createElement("a");
+      link.download = "structogram.png";
+      link.href = uri;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    try {
+      const image = await toPng(node);
+      downloadURI(image);
+    } catch (e) {
+      setError(e as any);
+    }
+
+  }
+
   const screenshotToClipboard = async (node: HTMLElement) => {
     if (!node) {
       throw new Error("You should provide correct html node.");
@@ -30,7 +53,7 @@ const useScreenshot = () => {
     ]);
   };
 
-  return { image, takeScreenShot, screenshotToClipboard, error };
+  return { image, takeScreenShot,downloadScreenshot, screenshotToClipboard, error };
 };
 
 export { useScreenshot };
