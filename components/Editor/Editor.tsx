@@ -1,7 +1,8 @@
 import useEventListener from "@use-it/event-listener";
 import { useState } from "react";
 import { AstContext, useAST } from "../../hooks/useAST";
-import { Render } from "../Render/Render";
+import { useTheme } from "../../hooks/useTheme";
+import { Render } from "../Ast/Render/Render";
 import * as S from "./Editor.atoms";
 
 export const Editor = () => {
@@ -10,6 +11,7 @@ export const Editor = () => {
   const [insertMode, setInsertMode] = useState<
     "normal" | "superscript" | "subscript"
   >("normal");
+  const { astTheme, showScope } = useTheme();
 
   const getKey = (e: KeyboardEvent) => {
     if (e.key === "Dead" && e.code === "Digit3") return "^";
@@ -103,9 +105,11 @@ export const Editor = () => {
   useEventListener("keydown", handleKeydown);
 
   return (
-    <AstContext.Provider value={{ scope: ast.scope }}>
-      <S.Container>
-        <Render head={ast.ast} />
+    <AstContext.Provider value={{ scope: showScope ? ast.scope : [] }}>
+      <S.Container id="root-container" className={`s-${astTheme}`}>
+        <S.Root>
+          <Render head={ast.ast} />
+        </S.Root>
       </S.Container>
     </AstContext.Provider>
   );

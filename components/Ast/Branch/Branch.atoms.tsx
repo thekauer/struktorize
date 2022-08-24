@@ -1,36 +1,37 @@
 import styled, { css } from "styled-components";
-import { StyleProps } from "../../style/styleProps";
+import { StyleProps } from "../../../style/styleProps";
 
 export const Condition = styled.div<StyleProps>`
   position: relative;
   padding: 0.5em;
-  outline: solid 2px var(--mid);
+  color: var(--s-text);
+  background-color: var(--s-bg);
+  outline: solid 2px var(--s-border);
   outline-offset: -1px;
   display: grid;
   place-content: center;
   min-width: 6em;
   min-height: 0.5em;
-  background: url("/static/ifelsebg.svg") no-repeat bottom / contain;
 
   &:hover,
   &.selected {
-    background-color: var(--light);
+    background-color: var(--s-selected);
     cursor: pointer;
   }
   &.active {
-    background-color: var(--blue);
+    background-color: var(--s-active);
   }
 
   ${({ selected }) =>
     selected &&
     css`
-      background-color: var(--light);
+      background-color: var(--s-selected);
       cursor: pointer;
     `}
   ${({ active }) =>
     active &&
     css`
-      background-color: var(--blue);
+      background-color: var(--s-active);
     `}
 `;
 
@@ -74,10 +75,11 @@ export const False = styled.div`
 
 export const Container = styled.div`
   display: flex;
+  flex: 1;
 `;
 
 export const TrueBranch = styled.div`
-  outline: solid 2px var(--mid);
+  outline: solid 2px var(--s-border);
   outline-offset: -1px;
   min-width: 6em;
   min-height: 0.5em;
@@ -88,7 +90,7 @@ export const TrueBranch = styled.div`
 `;
 
 export const FalseBranch = styled.div`
-  outline: solid 2px var(--mid);
+  outline: solid 2px var(--s-border);
   outline-offset: -1px;
   min-width: 6em;
   min-height: 0.5em;

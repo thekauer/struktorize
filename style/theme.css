@@ -4,6 +4,66 @@
     --dark: #1e1e1e;
     --text:white;
     --text-secondary: #888;
+    --blue: #007acc;
+    --blue-light: #0099ff;
+
+    --s-bg: #1e1e1e;
+    --s-border:#252526;
+    --s-text: white;
+    --s-selected: #2d2d2d;
+    --s-active:#007acc;
+    --s-container: #1e1e1e;
+    --s-root: #1e1e1e;
+    --s-shadow: none;
+
+}
+
+.s-dark {
+    --s-bg: #1e1e1e;
+    --s-border:#252526;
+    --s-text: white;
+    --s-selected: #2d2d2d;
+    --s-active:#007acc;
+    --s-container: #1e1e1e;
+    --s-root: #1e1e1e;
+    --s-script: #252526;
+    --s-shadow: none;
+}
+
+.s-light {
+    --s-bg: #fafafa;
+    --s-border:#eaeaeb;
+    --s-text: black;
+    --s-selected: #e5e5e5;
+    --s-active:#007acc;
+    --s-container: #fafafa;
+    --s-root: #fafafa;
+    --s-script: white;
+    --s-shadow: none;
+}
+
+.s-black-on-white {
+    --s-bg: white;
+    --s-border:black;
+    --s-text: black;
+    --s-selected: #e5e5e5;
+    --s-active:#007acc;
+    --s-container: white;
+    --s-root: white;
+    --s-script: #fafafa;
+    --s-shadow: none;
+}
+
+.s-white-on-black {
+    --s-bg: black;
+    --s-border:white;
+    --s-text: white;
+    --s-selected: #2d2d2d;
+    --s-active:#007acc;
+    --s-container: black;
+    --s-root: black;
+    --s-script: #1e1e1e;
+    --s-shadow: none;
 }
 
 .dark {
@@ -14,9 +74,15 @@
     --text-secondary: #888;
 }
 
+.light {
+    --light: #e5e5e5;
+    --mid: #eaeaeb;
+    --dark: #fafafa;
+    --text: #000;
+    --text-secondary: #535486;
+}
+
 html {
-    background: var(--dark);
-    color: var(--text);
     font-family: Consolas, monospace;
 }
 

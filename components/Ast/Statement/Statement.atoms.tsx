@@ -1,5 +1,5 @@
 import styled, { css } from "styled-components";
-import { StyleProps } from "../../style/styleProps";
+import { StyleProps } from "../../../style/styleProps";
 
 export const Container = styled.div<StyleProps>`
   flex: 1;
@@ -8,23 +8,25 @@ export const Container = styled.div<StyleProps>`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  outline: solid 2px var(--mid);
+  color: var(--s-text);
+  background-color: var(--s-bg);
+  outline: solid 2px var(--s-border);
   outline-offset: -1px;
   min-width: 6em;
   min-height: 0.5em;
   &:hover {
-    background-color: var(--light);
+    background-color: var(--s-selected);
     cursor: pointer;
   }
   ${({ selected }) =>
     selected &&
     css`
-      background-color: var(--light);
+      background-color: var(--s-selected);
       cursor: pointer;
     `}
   ${({ active }) =>
     active &&
     css`
-      background-color: var(--blue);
+      background-color: var(--s-active);
     `}
 `;

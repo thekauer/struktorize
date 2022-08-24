@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@use-it/event-listener": "^0.1.7",
+    "html-to-image": "^1.10.4",
     "katex": "^0.16.0",
     "next": "latest",
     "react": "^18.1.0",
