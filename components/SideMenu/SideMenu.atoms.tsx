@@ -43,8 +43,12 @@ export const Menu = styled.aside`
   padding: 1rem 0;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: 1rem;
 `;
+
+export const TopMenu = styled.div``;
+export const BottomMenu = styled.div``;
 
 export const ToggleMenu = styled.div`
   width: 14rem;

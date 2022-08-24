@@ -8,4 +8,6 @@ export const Container = styled.div`
 export const Main = styled.main`
   flex: 1;
   padding: 2.5rem;
+  background: var(--dark);
+  color: var(--text);
 `;

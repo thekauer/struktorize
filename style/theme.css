@@ -83,8 +83,6 @@
 }
 
 html {
-    background: var(--dark);
-    color: var(--text);
     font-family: Consolas, monospace;
 }
 
