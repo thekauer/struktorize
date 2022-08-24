@@ -36,7 +36,7 @@ export const Container = styled.div<StyleProps>`
 export const Line = styled.div`
   width: 1px;
   height: 1em;
-  border-left: 1px solid var(--mid);
-  background-color: var(--mid);
+  border-left: 1px solid var(--s-border);
+  background-color: var(--s-border);
   justify-self: center;
 `;
