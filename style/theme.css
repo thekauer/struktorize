@@ -38,7 +38,7 @@
     --s-active:#007acc;
     --s-container: #fafafa;
     --s-root: #fafafa;
-    --s-script: #eaeaeb;
+    --s-script: white;
     --s-shadow: none;
 }
 
@@ -50,7 +50,7 @@
     --s-active:#007acc;
     --s-container: white;
     --s-root: white;
-    --s-script: #eaeaea;
+    --s-script: #fafafa;
     --s-shadow: none;
 }
 
@@ -62,7 +62,7 @@
     --s-active:#007acc;
     --s-container: black;
     --s-root: black;
-    --s-script: #323232;
+    --s-script: #1e1e1e;
     --s-shadow: none;
 }
 
