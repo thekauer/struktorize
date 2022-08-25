@@ -21,21 +21,6 @@ export const Editor = () => {
   const handleKeydown = (e: KeyboardEvent) => {
     const key = getKey(e);
 
-    if (e.altKey) {
-      if (key === "b") {
-        ast.addIf();
-        return;
-      }
-      if (key === "v") {
-        ast.addLoop();
-        return;
-      }
-      if (key === "m") {
-        ast.setScope(["body", "1"]);
-        return;
-      }
-    }
-
     switch (key) {
       case "ArrowUp":
         if (insertMode === "subscript") {
