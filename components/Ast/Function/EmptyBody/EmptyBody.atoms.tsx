@@ -20,3 +20,7 @@ export const Mark = styled.mark`
   padding: 0.1rem 0.2rem;
   border-radius: 4px;
 `;
+
+export const Blue = styled.span`
+  color: var(--blue);
+`;
