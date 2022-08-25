@@ -15,12 +15,6 @@ import { addText, deleteLast } from "../lib/textTransform";
 
 export const AstContext = createContext(null as any);
 
-export const useSelected = (path: string | null) => {
-  const { scope } = useContext(AstContext);
-
-  return scope.join(".") === path;
-};
-
 interface AstProviderProps {
   children: ReactNode;
   showScope?: boolean;
@@ -85,6 +79,22 @@ export const AstProvider = ({ children, showScope }: AstProviderProps) => {
 
 export const useAst = () => {
   return useContext(AstContext);
+};
+
+export const useSelected = (path: string | null) => {
+  const { scope } = useContext(AstContext);
+
+  return scope.join(".") === path;
+};
+
+export const useNode = (path: string | null) => {
+  const selected = useSelected(path);
+  const ast = useAst();
+  const onClick = () => {
+    ast.setScope(path?.split("."));
+  };
+
+  return { selected, onClick };
 };
 
 type State = {
