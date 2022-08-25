@@ -1,12 +1,12 @@
 import useEventListener from "@use-it/event-listener";
 import { useState } from "react";
-import { AstContext, useAST } from "../../hooks/useAST";
+import { useAst } from "../../hooks/useAST";
 import { useTheme } from "../../hooks/useTheme";
 import { Render } from "../Ast/Render/Render";
 import * as S from "./Editor.atoms";
 
 export const Editor = () => {
-  const ast = useAST();
+  const ast = useAst();
   const [buffer, setBuffer] = useState("");
   const [insertMode, setInsertMode] = useState<
     "normal" | "superscript" | "subscript"
@@ -28,6 +28,10 @@ export const Editor = () => {
       }
       if (key === "v") {
         ast.addLoop();
+        return;
+      }
+      if (key === "m") {
+        ast.setScope(["body", "1"]);
         return;
       }
     }
@@ -105,12 +109,10 @@ export const Editor = () => {
   useEventListener("keydown", handleKeydown);
 
   return (
-    <AstContext.Provider value={{ scope: showScope ? ast.scope : [] }}>
-      <S.Container id="root-container" className={`s-${astTheme}`}>
-        <S.Root>
-          <Render head={ast.ast} />
-        </S.Root>
-      </S.Container>
-    </AstContext.Provider>
+    <S.Container id="root-container" className={`s-${astTheme}`}>
+      <S.Root>
+        <Render head={ast.ast} />
+      </S.Root>
+    </S.Container>
   );
 };
