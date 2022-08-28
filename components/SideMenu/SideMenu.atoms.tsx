@@ -37,6 +37,10 @@ export const Label = styled.label`
   color: var(--text-secondary);
 `;
 
+export const Span = styled.span`
+  color: var(--text);
+`;
+
 export const Menu = styled.aside`
   position: relative;
   background: var(--light);
@@ -47,10 +51,22 @@ export const Menu = styled.aside`
   gap: 1rem;
 `;
 
-export const TopMenu = styled.div``;
-export const BottomMenu = styled.div``;
+export const MenuTray = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+`;
 
 export const ToggleMenu = styled.div`
   width: 14rem;
   background: var(--mid);
+`;
+
+export const Profile = styled.img`
+  border-radius: 50%;
+  margin: 0.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  cursor: pointer;
 `;

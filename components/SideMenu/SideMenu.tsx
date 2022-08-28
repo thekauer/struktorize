@@ -1,13 +1,16 @@
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useTheme } from "../../hooks/useTheme";
 import { Export } from "./Export/Export";
 import { Files } from "./Files/Files";
 import { MenuItem } from "./MenuItem/MenuItem";
+import { Profile } from "./Profile/Profile";
 import * as S from "./SideMenu.atoms";
 
 export const SideMenu = () => {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const { theme, setTheme,setAstTheme } = useTheme();
+  const [activeMenu, setActiveMenu] = useState<string | undefined>("files");
+  const { theme, setTheme, setAstTheme } = useTheme();
+  const { data: session, status } = useSession();
 
   const moonSrc = theme === "dark" ? "./moon.png" : "./moon_filled.png";
   const moonClick = () => {
@@ -15,31 +18,41 @@ export const SideMenu = () => {
     setAstTheme(theme === "dark" ? "light" : "dark");
   };
 
-  const menus = [() => <Files />, () => <Export />];
-  const menuItems = ["files", "export"];
-  const open = activeIndex !== -1;
-  const menuItemClick = (index: number) => () => {
-    setActiveIndex(index === activeIndex ? -1 : index);
+  const menus: Record<string, JSX.Element> = {
+    files: <Files />,
+    export: <Export />,
+    profile: <Profile />,
+  };
+  const topMenuItems = ["files", "export"];
+  const open = activeMenu !== undefined;
+  const menuItemClick = (name: string) => () => {
+    setActiveMenu((prev) => (prev === name ? undefined : name));
   };
 
-  const ActiveMenu = menus[activeIndex];
+  const ActiveMenu: any = activeMenu ? () => menus[activeMenu] : null;
 
   return (
     <>
       <S.Menu>
-        <S.TopMenu>
-          {menuItems.map((item, index) => (
+        <S.MenuTray>
+          {topMenuItems.map((item) => (
             <MenuItem
               key={item}
               src={`/${item}.png`}
-              isActive={index === activeIndex}
-              onClick={menuItemClick(index)}
+              isActive={item === activeMenu}
+              onClick={menuItemClick(item)}
             />
           ))}
-        </S.TopMenu>
-        <S.BottomMenu>
+        </S.MenuTray>
+        <S.MenuTray>
+          {status === "authenticated" && session.user?.image && (
+            <S.Profile
+              src={session.user?.image}
+              onClick={menuItemClick("profile")}
+            />
+          )}
           <MenuItem src={moonSrc} onClick={moonClick} />
-        </S.BottomMenu>
+        </S.MenuTray>
       </S.Menu>
       {open && (
         <S.ToggleMenu>
