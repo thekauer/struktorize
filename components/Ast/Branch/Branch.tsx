@@ -1,15 +1,15 @@
-import { useSelected } from "../../../hooks/useAST";
+import { useNode } from "../../../hooks/useAST";
 import { BranchAst } from "../../../lib/ast";
 import { Latex } from "../Latex/Latex";
 import { Render } from "../Render/Render";
 import * as S from "./Branch.atoms";
 
 export const Branch = ({ text, ifBranch, elseBranch, path }: BranchAst) => {
-  const selected = useSelected(path);
+  const containerProps = useNode(path);
 
   return (
     <>
-      <S.Condition selected={selected}>
+      <S.Condition {...containerProps}>
         <S.True>t</S.True>
         <S.False>f</S.False>
         <Latex>{text}</Latex>

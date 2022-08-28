@@ -5,6 +5,12 @@ export const Container = styled.div`
   height: 100vh;
 `;
 
+export const MainContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+`;
+
 export const Main = styled.main`
   flex: 1;
   padding: 2.5rem;

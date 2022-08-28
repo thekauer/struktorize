@@ -204,7 +204,6 @@ const createBody = (scope: string[], ast: Ast, node: Ast) => {
   const parent = grandParent(scope, ast);
   const parentBody = getBody(scope, parent);
   const index = scopeIndex(scope);
-  console.log("🚀 - scope", scope);
   return insert(scope, parentBody, index, node);
 };
 

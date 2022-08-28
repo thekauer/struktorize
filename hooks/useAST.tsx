@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer } from "react";
+import React, { createContext, ReactNode, useContext, useReducer } from "react";
 import { DEFAULT_FUNCTION } from "../constants/defaultFunction";
 import {
   Ast,
@@ -13,15 +13,14 @@ import {
 } from "../lib/ast";
 import { addText, deleteLast } from "../lib/textTransform";
 
-export const AstContext = createContext({ scope: ["signature"] });
+export const AstContext = createContext(null as any);
 
-export const useSelected = (path: string | null) => {
-  const { scope } = useContext(AstContext);
+interface AstProviderProps {
+  children: ReactNode;
+  showScope?: boolean;
+}
 
-  return scope.join(".") === path;
-};
-
-export const useAST = () => {
+export const AstProvider = ({ children, showScope }: AstProviderProps) => {
   const [state, dispatch] = useReducer(reducer, {
     scope: ["signature"],
     ast: DEFAULT_FUNCTION,
@@ -56,10 +55,12 @@ export const useAST = () => {
   };
   const edit = (text: string, insertMode = "normal") =>
     dispatch({ type: "text", payload: { text, insertMode } });
+  const setScope = (scope: string[]) =>
+    dispatch({ type: "setScope", payload: scope });
 
-  return {
+  const context = {
     ast,
-    scope,
+    scope: showScope ? scope : [],
     up,
     down,
     left,
@@ -69,8 +70,31 @@ export const useAST = () => {
     addLoop,
     backspace,
     edit,
+    setScope,
     dispatch,
   };
+
+  return <AstContext.Provider value={context}>{children}</AstContext.Provider>;
+};
+
+export const useAst = () => {
+  return useContext(AstContext);
+};
+
+export const useSelected = (path: string | null) => {
+  const { scope } = useContext(AstContext);
+
+  return scope.join(".") === path;
+};
+
+export const useNode = (path: string | null) => {
+  const selected = useSelected(path);
+  const ast = useAst();
+  const onClick = () => {
+    ast.setScope(path?.split("."));
+  };
+
+  return { selected, onClick };
 };
 
 type State = {
@@ -85,7 +109,8 @@ type Action =
   | { type: "right" }
   | { type: "add"; payload: Ast }
   | { type: "text"; payload: { text: string; insertMode: string } }
-  | { type: "backspace" };
+  | { type: "backspace" }
+  | { type: "setScope"; payload: string[] };
 
 function reducer(state: State, action: Action) {
   const { ast, scope } = state;
@@ -130,6 +155,8 @@ function reducer(state: State, action: Action) {
       const removed = remove(scope, ast, true);
       const newScope = up(removed.scope, removed.ast);
       return { scope: newScope, ast: removed.ast };
+    case "setScope":
+      return { ast, scope: action.payload };
 
     default:
       return state;
