@@ -21,6 +21,8 @@ export const Editor = () => {
   const handleKeydown = (e: KeyboardEvent) => {
     const key = getKey(e);
 
+    if (e.ctrlKey) return;
+
     switch (key) {
       case "ArrowUp":
         if (insertMode === "subscript") {
