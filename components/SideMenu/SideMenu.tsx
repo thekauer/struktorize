@@ -49,6 +49,7 @@ export const SideMenu = () => {
             <S.Profile
               src={session.user?.image}
               onClick={menuItemClick("profile")}
+              referrerPolicy="no-referrer"
             />
           )}
           <MenuItem src={moonSrc} onClick={moonClick} />
