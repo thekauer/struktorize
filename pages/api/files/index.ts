@@ -18,6 +18,6 @@ export default async function handler(
     return res.status(401).end();
   }
 
-  const files = await redis.get(`files:${session!.user!.email}`);
+  const files = (await redis.get(`files:${session!.user!.email}`)) || [];
   res.status(200).json({ files });
 }
