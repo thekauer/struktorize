@@ -10,8 +10,9 @@ import {
   edit,
   isEmpty,
   remove,
+  FunctionAst,
 } from "../lib/ast";
-import { addText, deleteLast } from "../lib/textTransform";
+import { addText, deleteLast, getFunctionName } from "../lib/textTransform";
 
 export const AstContext = createContext(null as any);
 
@@ -58,9 +59,12 @@ export const AstProvider = ({ children, showScope }: AstProviderProps) => {
   const setScope = (scope: string[]) =>
     dispatch({ type: "setScope", payload: scope });
 
+  const functionName = getFunctionName((ast as FunctionAst).signature.text);
+
   const context = {
     ast,
     scope: showScope ? scope : [],
+    functionName,
     up,
     down,
     left,

@@ -179,3 +179,7 @@ export const deleteLast = (input: string = ""): string => {
 
   return input.substring(0, input.length - 1);
 };
+
+export const getFunctionName = (input: string = ""): string => {
+  return input.substring("\\text{".length, input.indexOf("}"));
+};
