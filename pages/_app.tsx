@@ -4,6 +4,9 @@ import type { AppProps } from "next/app";
 import { Layout } from "../components/Layout/Layout";
 import { ThemeProvider } from "../hooks/useTheme";
 import { SessionProvider } from "next-auth/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 export default function MyApp({
   Component,
@@ -11,11 +14,13 @@ export default function MyApp({
 }: AppProps) {
   return (
     <SessionProvider session={session}>
-      <ThemeProvider>
-        <Layout>
-          <Component {...pageProps} />
-        </Layout>
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
+        </ThemeProvider>
+      </QueryClientProvider>
     </SessionProvider>
   );
 }
