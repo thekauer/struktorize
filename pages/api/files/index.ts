@@ -21,7 +21,7 @@ export default async function handler(
     const keys = (await redis.keys(`file:${session!.user!.email}:*`)) || [];
     const files = keys.map((key) => ({
       name: key.substring(key.lastIndexOf("/") + 1),
-      path: key,
+      path: key.substring(key.lastIndexOf(":") + 1),
     }));
 
     return res.status(200).json({ files });
