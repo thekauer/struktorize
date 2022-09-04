@@ -61,6 +61,12 @@ export const MenuTray = styled.div`
 export const ToggleMenu = styled.div`
   width: 14rem;
   background: var(--mid);
+  border: 1px solid transparent;
+
+  &:focus {
+    border: 1px solid var(--blue);
+    outline: none;
+  }
 `;
 
 export const Profile = styled.img`

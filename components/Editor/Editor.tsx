@@ -1,9 +1,9 @@
-import useEventListener from "@use-it/event-listener";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAst } from "../../hooks/useAST";
 import { useTheme } from "../../hooks/useTheme";
 import { Render } from "../Ast/Render/Render";
 import * as S from "./Editor.atoms";
+import { KeyboardEvent } from "react";
 
 export const Editor = () => {
   const ast = useAst();
@@ -11,14 +11,15 @@ export const Editor = () => {
   const [insertMode, setInsertMode] = useState<
     "normal" | "superscript" | "subscript"
   >("normal");
-  const { astTheme, showScope } = useTheme();
+  const { astTheme } = useTheme();
+  const rootRef = useRef<HTMLDivElement>(null);
 
   const getKey = (e: KeyboardEvent) => {
     if (e.key === "Dead" && e.code === "Digit3") return "^";
     return e.key;
   };
 
-  const handleKeydown = (e: KeyboardEvent) => {
+  const handleKeydown = (e: KeyboardEvent<HTMLDivElement>) => {
     const key = getKey(e);
 
     if (e.ctrlKey) return;
@@ -93,10 +94,18 @@ export const Editor = () => {
     }
   };
 
-  useEventListener("keydown", handleKeydown);
+  useEffect(() => {
+    rootRef.current?.focus();
+  }, []);
 
   return (
-    <S.Container id="root-container" className={`s-${astTheme}`}>
+    <S.Container
+      id="root-container"
+      className={`s-${astTheme}`}
+      onKeyDown={handleKeydown}
+      ref={rootRef}
+      tabIndex={0}
+    >
       <S.Root>
         <Render head={ast.ast} />
       </S.Root>

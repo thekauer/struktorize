@@ -1,5 +1,4 @@
-import useEventListener from "@use-it/event-listener";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useActiveItems } from "../../hooks/useActiveItems";
 import { AstProvider } from "../../hooks/useAST";
 import { useTheme } from "../../hooks/useTheme";
@@ -16,11 +15,19 @@ export const Layout = ({ children }: LayoutProps) => {
   const [showCheatSheet, setShowCheatSheet] = useState(false);
   const { ITEMS, active } = useActiveItems();
 
-  useEventListener("keydown", (e: KeyboardEvent) => {
-    if (e.ctrlKey && e.key === "i") {
-      setShowCheatSheet((prev) => !prev);
-    }
-  });
+  useEffect(() => {
+    const infoToggle = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "i") {
+        setShowCheatSheet((prev) => !prev);
+      }
+    };
+
+    document.addEventListener("keydown", infoToggle);
+
+    return () => {
+      document.removeEventListener("keydown", infoToggle);
+    };
+  }, []);
 
   const onCheatSheetClose = () => setShowCheatSheet(false);
 

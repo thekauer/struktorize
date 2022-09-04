@@ -1,5 +1,4 @@
-import useEventListener from "@use-it/event-listener";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ItemProps } from "../components/CheatSheet/Item/Item";
 
 const ITEMS: ItemProps[] = [
@@ -34,19 +33,27 @@ export const useActiveItems = () => {
   );
   const [buffer, setBuffer] = useState("");
 
-  useEventListener("keydown", (e: KeyboardEvent) => {
-    if (e.key === "Enter") {
-      setActive((prev) => ({ ...prev, statement: true }));
-    }
-
-    setBuffer((prev) => prev + e.key);
-
-    MARK_ITEMS.forEach((item) => {
-      if ((buffer + e.key).endsWith(item.shortcut as string)) {
-        setActive((prev) => ({ ...prev, [item.id]: true }));
+  useEffect(() => {
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        setActive((prev) => ({ ...prev, statement: true }));
       }
-    });
-  });
+
+      setBuffer((prev) => prev + e.key);
+
+      MARK_ITEMS.forEach((item) => {
+        if ((buffer + e.key).endsWith(item.shortcut as string)) {
+          setActive((prev) => ({ ...prev, [item.id]: true }));
+        }
+      });
+    };
+
+    document.addEventListener("keydown", handleKeydown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeydown);
+    };
+  }, [buffer]);
 
   return { ITEMS, MARK_ITEMS, active };
 };

@@ -56,7 +56,7 @@ export const SideMenu = () => {
         </S.MenuTray>
       </S.Menu>
       {open && (
-        <S.ToggleMenu>
+        <S.ToggleMenu tabIndex={0}>
           <ActiveMenu />
         </S.ToggleMenu>
       )}
