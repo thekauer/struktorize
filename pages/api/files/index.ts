@@ -1,12 +1,11 @@
-import { Redis } from "@upstash/redis";
 import { unstable_getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]";
+import { authOptions, redis } from "../auth/[...nextauth]";
 import { NextApiRequest, NextApiResponse } from "next";
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
+export type FilesDTO = {
+  name: string;
+  path: string;
+};
 
 export default async function handler(
   req: NextApiRequest,
@@ -18,6 +17,13 @@ export default async function handler(
     return res.status(401).end();
   }
 
-  const files = (await redis.get(`files:${session!.user!.email}`)) || [];
-  res.status(200).json({ files });
+  if (req.method === "GET") {
+    const keys = (await redis.keys(`file:${session!.user!.email}:*`)) || [];
+    const files = keys.map((key) => ({
+      name: key.substring(key.lastIndexOf("/") + 1),
+      path: key,
+    }));
+
+    return res.status(200).json({ files });
+  }
 }
