@@ -8,6 +8,7 @@
     "test:ci": "jest --ci"
   },
   "dependencies": {
+    "@next-auth/upstash-redis-adapter": "^3.0.1",
     "@tanstack/react-query": "^4.2.3",
     "@upstash/redis": "^1.12.0",
     "@use-it/event-listener": "^0.1.7",
