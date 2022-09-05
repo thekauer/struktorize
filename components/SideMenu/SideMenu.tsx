@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTheme } from "../../hooks/useTheme";
 import { Export } from "./Export/Export";
 import { Files } from "./Files/Files";
@@ -23,13 +23,17 @@ export const SideMenu = () => {
     export: <Export />,
     profile: <Profile />,
   };
+
   const topMenuItems = ["files", "export"];
   const open = activeMenu !== undefined;
   const menuItemClick = (name: string) => () => {
     setActiveMenu((prev) => (prev === name ? undefined : name));
   };
 
-  const ActiveMenu: any = activeMenu ? () => menus[activeMenu] : null;
+  const ActiveMenu: any = useMemo(
+    () => (activeMenu ? () => menus[activeMenu] : null),
+    [activeMenu]
+  );
 
   return (
     <>
