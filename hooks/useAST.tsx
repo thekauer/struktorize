@@ -58,6 +58,7 @@ export const AstProvider = ({ children, showScope }: AstProviderProps) => {
     dispatch({ type: "text", payload: { text, insertMode } });
   const setScope = (scope: string[]) =>
     dispatch({ type: "setScope", payload: scope });
+  const load = (ast: Ast) => dispatch({ type: "load", payload: ast });
 
   const functionName = getFunctionName((ast as FunctionAst).signature.text);
 
@@ -75,6 +76,7 @@ export const AstProvider = ({ children, showScope }: AstProviderProps) => {
     backspace,
     edit,
     setScope,
+    load,
     dispatch,
   };
 
@@ -114,7 +116,8 @@ type Action =
   | { type: "add"; payload: Ast }
   | { type: "text"; payload: { text: string; insertMode: string } }
   | { type: "backspace" }
-  | { type: "setScope"; payload: string[] };
+  | { type: "setScope"; payload: string[] }
+  | { type: "load"; payload: Ast };
 
 function reducer(state: State, action: Action) {
   const { ast, scope } = state;
@@ -161,6 +164,8 @@ function reducer(state: State, action: Action) {
       return { scope: newScope, ast: removed.ast };
     case "setScope":
       return { ast, scope: action.payload };
+    case "load":
+      return { ast: action.payload, scope: ["signature"] };
 
     default:
       return state;
