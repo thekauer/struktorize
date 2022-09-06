@@ -14,30 +14,62 @@ import {
 } from "../lib/ast";
 import { addText, deleteLast, getFunctionName } from "../lib/textTransform";
 
-export const AstContext = createContext(null as any);
+export const AstContext = createContext<Context>(null as any);
 
 interface AstProviderProps {
   children: ReactNode;
   showScope?: boolean;
 }
 
+type Context = {
+  ast: Ast;
+  scope: string[];
+  functionName: string;
+  up: () => void;
+  down: () => void;
+  left: () => void;
+  right: () => void;
+  addStatement: () => void;
+  addIf: () => void;
+  addLoop: () => void;
+  backspace: (n?: number) => void;
+  edit: (text: string, insertMode?: string) => void;
+  setScope: (scope: string[]) => void;
+  load: (ast: Ast, name: string, path: string) => void;
+  dispatch: React.Dispatch<Action>;
+  addChangeListener: (listener: ChangeListener) => void;
+};
+
+type ChangeListener = (state: State) => void;
+
 export const AstProvider = ({ children, showScope }: AstProviderProps) => {
   const [state, dispatch] = useReducer(reducer, {
     scope: ["signature"],
     ast: DEFAULT_FUNCTION,
+    name: "main",
+    path: "/main",
   });
+  const [changeListeners, setChangeListeners] = React.useState<
+    ChangeListener[]
+  >([]);
   const { ast, scope } = state;
+
+  const callChangeListeners = () => {
+    changeListeners.forEach((listener) => listener(state));
+  };
 
   const up = () => dispatch({ type: "up" });
   const down = () => dispatch({ type: "down" });
   const left = () => dispatch({ type: "left" });
   const right = () => dispatch({ type: "right" });
-  const addStatement = () =>
+  const addStatement = () => {
     dispatch({
       type: "add",
       payload: { type: "statement", path: "", text: " " },
     });
-  const addIf = () =>
+    callChangeListeners();
+  };
+  const addIf = () => {
     dispatch({
       type: "add",
       payload: {
@@ -46,19 +78,30 @@ export const AstProvider = ({ children, showScope }: AstProviderProps) => {
         text: " ",
       },
     });
-  const addLoop = () =>
+    callChangeListeners();
+  };
+  const addLoop = () => {
     dispatch({
       type: "add",
       payload: { type: "loop", body: [], path: "", text: " " },
     });
+    callChangeListeners();
+  };
   const backspace = (n = 1) => {
     for (let i = 0; i < n; i++) dispatch({ type: "backspace" });
+    callChangeListeners();
   };
-  const edit = (text: string, insertMode = "normal") =>
+  const edit = (text: string, insertMode = "normal") => {
     dispatch({ type: "text", payload: { text, insertMode } });
+    callChangeListeners();
+  };
   const setScope = (scope: string[]) =>
     dispatch({ type: "setScope", payload: scope });
-  const load = (ast: Ast) => dispatch({ type: "load", payload: ast });
+  const load = (ast: Ast, name: string, path: string) =>
+    dispatch({ type: "load", payload: { ast, name, path } });
+  const addChangeListener = (listener: ChangeListener) => {
+    setChangeListeners((prev) => [...prev, listener]);
+  };
 
   const functionName = getFunctionName((ast as FunctionAst).signature.text);
 
@@ -78,6 +121,7 @@ export const AstProvider = ({ children, showScope }: AstProviderProps) => {
     setScope,
     load,
     dispatch,
+    addChangeListener,
   };
 
   return <AstContext.Provider value={context}>{children}</AstContext.Provider>;
@@ -97,7 +141,7 @@ export const useNode = (path: string | null) => {
   const selected = useSelected(path);
   const ast = useAst();
   const onClick = () => {
-    ast.setScope(path?.split("."));
+    ast.setScope(path?.split(".") || []);
   };
 
   return { selected, onClick };
@@ -106,6 +150,8 @@ export const useNode = (path: string | null) => {
 type State = {
   ast: Ast;
   scope: string[];
+  name: string;
+  path: string;
 };
 
 type Action =
@@ -117,9 +163,9 @@ type Action =
   | { type: "text"; payload: { text: string; insertMode: string } }
   | { type: "backspace" }
   | { type: "setScope"; payload: string[] }
-  | { type: "load"; payload: Ast };
+  | { type: "load"; payload: { ast: Ast; name: string; path: string } };
 
-function reducer(state: State, action: Action) {
+function reducer(state: State, action: Action): State {
   const { ast, scope } = state;
   switch (action.type) {
     case "up":
@@ -147,25 +193,29 @@ function reducer(state: State, action: Action) {
       };
 
     case "add":
-      return add(scope, ast, action.payload);
+      return { ...state, ...add(scope, ast, action.payload) };
 
     case "text":
-      return edit(
-        scope,
-        ast,
-        addText(action.payload.text, action.payload.insertMode)
-      );
+      return {
+        ...state,
+        ...edit(
+          scope,
+          ast,
+          addText(action.payload.text, action.payload.insertMode)
+        ),
+      };
 
     case "backspace":
-      if (!isEmpty(scope, ast)) return edit(scope, ast, deleteLast);
+      if (!isEmpty(scope, ast))
+        return { ...state, ...edit(scope, ast, deleteLast) };
 
       const removed = remove(scope, ast, true);
       const newScope = up(removed.scope, removed.ast);
-      return { scope: newScope, ast: removed.ast };
+      return { ...state, scope: newScope, ast: removed.ast };
     case "setScope":
-      return { ast, scope: action.payload };
+      return { ...state, ast, scope: action.payload };
     case "load":
-      return { ast: action.payload, scope: ["signature"] };
+      return { ...state, ...action.payload, scope: ["signature"] };
 
     default:
       return state;
