@@ -1,19 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAst } from "../../../../hooks/useAST";
-import { FileDTO, FilesDTO, NewFileDTO } from "../../../../pages/api/files";
+import { debounce } from "../../../../lib/debounce";
+import { FileDTO, FilesDTO } from "../../../../pages/api/files";
 import * as S from "./Explorer.atoms";
 import { File, FileProps } from "./File/File";
 
 export const Explorer = () => {
-  const { functionName, ast } = useAst();
+  const { functionName, ast, load, addChangeListener } = useAst();
   const [activePath, setActivePath] = useState<string>("/main");
   const [newPath, setNewPath] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
-  const { data, refetch } = useQuery<{ files: FilesDTO[] }>(
+  const { data, refetch } = useQuery<{ files: FilesDTO }>(
     ["files"],
     () => axios.get("/api/files").then((res) => res.data),
     {
@@ -23,7 +24,7 @@ export const Explorer = () => {
             file: {
               name: functionName,
               path: `/${functionName}`,
-              ast,
+              ast: ast as any,
               type: "file",
             } as FileDTO,
             method: "post",
@@ -45,13 +46,13 @@ export const Explorer = () => {
         await queryClient.cancelQueries(["files"]);
         const previousFiles = queryClient.getQueryData(["files"]);
         const updater = {
-          post: ({ files }: any) => files,
-          delete: ({ files }: any) => {
-            files: files.filter((f: any) => f.path !== file.path);
-          },
-          put: ({ files }: any) => {
-            files: [...files, file];
-          },
+          post: ({ files }: any) => ({ files }),
+          delete: ({ files }: any) => ({
+            files: files.filter((f: any) => f.path !== file.path),
+          }),
+          put: ({ files }: any) => ({
+            files: [...files, file],
+          }),
         };
         queryClient.setQueryData(["files"], updater[method]);
 
@@ -65,6 +66,22 @@ export const Explorer = () => {
       },
     }
   );
+
+  useEffect(() => {
+    addChangeListener((state) =>
+      debounce(() => {
+        mutate({
+          file: {
+            name: state.name,
+            path: state.path,
+            ast: state.ast as any,
+            type: "file",
+          } as FileDTO,
+          method: "post",
+        });
+      }, 300)()
+    );
+  }, []);
 
   const newFileClick = () => {
     setNewPath(activePath.substring(0, activePath.lastIndexOf("/") + 1));
@@ -106,7 +123,13 @@ export const Explorer = () => {
             {...file}
             key={file.path}
             isActive={file.path === activePath}
-            onClick={(path) => setActivePath(path)}
+            onClick={(path) => {
+              const activeFile = files.find((f: any) => f.path === path);
+              if (activeFile?.type === "file") {
+                load(activeFile.ast as any, activeFile.name, activeFile.path);
+                setActivePath(path);
+              }
+            }}
             onDelete={(path) => {
               mutate({
                 file: {
