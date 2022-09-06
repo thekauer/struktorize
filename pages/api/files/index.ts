@@ -3,11 +3,6 @@ import { authOptions, redis } from "../auth/[...nextauth]";
 import { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-export type FilesDTO = {
-  name: string;
-  path: string;
-};
-
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 type Literal = z.infer<typeof literalSchema>;
 type Json = Literal | { [key: string]: Json } | Json[];
@@ -23,6 +18,8 @@ const file = z.object({
 });
 
 export type FileDTO = z.infer<typeof file>;
+
+export type FilesDTO = FileDTO[];
 
 const newFile = z.object({
   type: z.union([z.literal("file"), z.literal("folder")]),
@@ -46,10 +43,9 @@ export default async function handler(
 
   if (req.method === "GET") {
     const keys = (await redis.keys(`file:${session!.user!.email}:*`)) || [];
-    const files = keys.map((key) => ({
-      name: key.substring(key.lastIndexOf("/") + 1),
-      path: key.substring(key.lastIndexOf(":") + 1),
-    }));
+    const files = await Promise.all(
+      keys.map(async (key) => await redis.get(key))
+    );
 
     return res.status(200).json({ files });
   }
