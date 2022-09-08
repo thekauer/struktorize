@@ -149,7 +149,7 @@ export const Explorer = () => {
             onClick={(path) => {
               const nextFile = files.find((f: any) => f.path === path);
               if (nextFile?.type === "file") {
-                saveFile(activeFile);
+                saveFile({ ...activeFile, ast });
                 load(nextFile.ast as any, nextFile.path);
                 setActivePath(path);
                 if (path !== activePath) {
