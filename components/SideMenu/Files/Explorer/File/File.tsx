@@ -9,7 +9,7 @@ export interface FileProps {
   onClick?: (path: string) => void;
   onDelete?: (path: string) => void;
   onEscape?: () => void;
-  onSubmit?: (path: string, name: string) => void;
+  onSubmit?: (path: string) => void;
 }
 
 export const File = ({
@@ -36,7 +36,7 @@ export const File = ({
       case "Enter":
         if (inputRef.current?.value === "") return;
 
-        onSubmit?.(path, inputRef.current?.value!);
+        onSubmit?.(path + inputRef.current?.value!);
         setIsCreating(false);
         break;
 

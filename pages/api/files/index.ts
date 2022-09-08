@@ -2,6 +2,7 @@ import { unstable_getServerSession } from "next-auth/next";
 import { authOptions, redis } from "../auth/[...nextauth]";
 import { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
+import { Ast } from "../../../lib/ast";
 
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 type Literal = z.infer<typeof literalSchema>;
@@ -11,23 +12,34 @@ const jsonSchema: z.ZodType<Json> = z.lazy(() =>
 );
 
 const file = z.object({
-  type: z.union([z.literal("file"), z.literal("folder")]),
-  name: z.string(),
+  type: z.literal("file"),
   path: z.string(),
   ast: jsonSchema,
 });
 
-export type FileDTO = z.infer<typeof file>;
-
-export type FilesDTO = FileDTO[];
-
-const newFile = z.object({
-  type: z.union([z.literal("file"), z.literal("folder")]),
-  name: z.string(),
+const folder = z.object({
+  type: z.literal("folder"),
   path: z.string(),
 });
 
-export type NewFileDTO = z.infer<typeof newFile>;
+const node = z.union([file, folder]);
+
+export type FileDTO = {
+  ast: Ast;
+  type: "file";
+  path: string;
+};
+export type FolderDTO = z.infer<typeof folder>;
+export type NodeDTO = FileDTO | FolderDTO;
+
+export type NodesDTO = NodeDTO[];
+
+const newNode = z.object({
+  type: z.union([z.literal("file"), z.literal("folder")]),
+  path: z.string().min(2),
+});
+
+export type newNodeDTO = z.infer<typeof newNode>;
 
 const deleteFile = z.string();
 
@@ -51,13 +63,14 @@ export default async function handler(
   }
 
   if (req.method === "PUT") {
-    const newFileSchema = newFile.safeParse(req.body);
+    const newFileSchema = newNode.safeParse(req.body);
 
     if (!newFileSchema.success) {
       return res.status(400).end();
     }
-    const { name, path, type } = newFileSchema.data;
-    const redisPath = `file:${session!.user!.email}:${path}${name}`;
+    const { path, type } = newFileSchema.data;
+    const redisPath = `file:${session!.user!.email}:${path}`;
+    const name = path.split("/").pop();
 
     if (await redis.exists(redisPath)) {
       return res.status(409).end();
@@ -74,11 +87,10 @@ export default async function handler(
       path: "",
     };
 
-    const newEntity = {
-      name,
+    const newEntity: NodeDTO = {
       path,
       type,
-      ast: type === "file" ? ast : undefined,
+      ast: type === "file" ? (ast as any) : undefined,
     };
 
     await redis.set(redisPath, newEntity);
@@ -87,7 +99,7 @@ export default async function handler(
   }
 
   if (req.method === "POST") {
-    const schema = file.safeParse(req.body);
+    const schema = node.safeParse(req.body);
     if (!schema.success) {
       return res.status(400).end();
     }
@@ -100,7 +112,6 @@ export default async function handler(
   if (req.method === "DELETE") {
     const schema = deleteFile.safeParse(req.query.path);
     if (!schema.success) {
-      console.log(schema.error);
       return res.status(400).end();
     }
 

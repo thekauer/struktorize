@@ -35,7 +35,7 @@ type Context = {
   backspace: (n?: number) => void;
   edit: (text: string, insertMode?: string) => void;
   setScope: (scope: string[]) => void;
-  load: (ast: Ast, name: string, path: string) => void;
+  load: (ast: Ast, path: string) => void;
   dispatch: React.Dispatch<Action>;
   addChangeListener: (listener: ChangeListener) => void;
 };
@@ -46,7 +46,6 @@ export const AstProvider = ({ children, showScope }: AstProviderProps) => {
   const [state, dispatch] = useReducer(reducer, {
     scope: ["signature"],
     ast: DEFAULT_FUNCTION,
-    name: "main",
     path: "/main",
   });
   const [changeListeners, setChangeListeners] = React.useState<
@@ -97,13 +96,14 @@ export const AstProvider = ({ children, showScope }: AstProviderProps) => {
   };
   const setScope = (scope: string[]) =>
     dispatch({ type: "setScope", payload: scope });
-  const load = (ast: Ast, name: string, path: string) =>
-    dispatch({ type: "load", payload: { ast, name, path } });
+  const load = (ast: Ast, path: string) => {
+    dispatch({ type: "load", payload: { ast, path } });
+  };
   const addChangeListener = (listener: ChangeListener) => {
     setChangeListeners((prev) => [...prev, listener]);
   };
 
-  const functionName = getFunctionName((ast as FunctionAst).signature.text);
+  const functionName = getFunctionName((ast as FunctionAst).signature?.text);
 
   const context = {
     ast,
@@ -150,7 +150,6 @@ export const useNode = (path: string | null) => {
 type State = {
   ast: Ast;
   scope: string[];
-  name: string;
   path: string;
 };
 
@@ -163,7 +162,7 @@ type Action =
   | { type: "text"; payload: { text: string; insertMode: string } }
   | { type: "backspace" }
   | { type: "setScope"; payload: string[] }
-  | { type: "load"; payload: { ast: Ast; name: string; path: string } };
+  | { type: "load"; payload: { ast: Ast; path: string } };
 
 function reducer(state: State, action: Action): State {
   const { ast, scope } = state;

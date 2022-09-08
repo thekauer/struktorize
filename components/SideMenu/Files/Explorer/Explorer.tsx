@@ -2,8 +2,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useAst } from "../../../../hooks/useAST";
+import { Ast } from "../../../../lib/ast";
 import { debounce } from "../../../../lib/debounce";
-import { FileDTO, FilesDTO } from "../../../../pages/api/files";
+import { FileDTO, NodeDTO, NodesDTO } from "../../../../pages/api/files";
 import * as S from "./Explorer.atoms";
 import { File, FileProps } from "./File/File";
 
@@ -14,7 +15,7 @@ export const Explorer = () => {
 
   const queryClient = useQueryClient();
 
-  const { data, refetch } = useQuery<{ files: FilesDTO }>(
+  const { data, refetch } = useQuery<{ files: NodesDTO }>(
     ["files"],
     () => axios.get("/api/files").then((res) => res.data),
     {
@@ -22,11 +23,10 @@ export const Explorer = () => {
         if (data.files.length === 0) {
           mutate({
             file: {
-              name: functionName,
               path: `/${functionName}`,
               ast: ast as any,
               type: "file",
-            } as FileDTO,
+            } as NodeDTO,
             method: "post",
           });
         }
@@ -67,18 +67,20 @@ export const Explorer = () => {
     }
   );
 
+  const saveFile = (file: any) =>
+    mutate({
+      file: {
+        path: file.path,
+        ast: file.ast as any,
+        type: "file",
+      } as NodeDTO,
+      method: "post",
+    });
+
   useEffect(() => {
     addChangeListener((state) =>
       debounce(() => {
-        mutate({
-          file: {
-            name: state.name,
-            path: state.path,
-            ast: state.ast as any,
-            type: "file",
-          } as FileDTO,
-          method: "post",
-        });
+        saveFile(state);
       }, 300)()
     );
   }, []);
@@ -88,25 +90,42 @@ export const Explorer = () => {
   };
 
   const files = data?.files || [];
+  const activeFile = files.find(
+    (f) => f.path === activePath && f.type === "file"
+  ) as FileDTO;
+
   const newFile: FileProps = {
     path: newPath!,
     isNew: true,
-    onSubmit: (path, name) => {
+    onSubmit: (path) => {
       mutate({
         file: {
-          name,
           path,
           type: "file",
         },
         method: "put",
       });
       setNewPath(null);
+      setActivePath(path);
+
+      const name = path.substring(path.lastIndexOf("/") + 1);
+      const newAst = {
+        signature: {
+          text: `\\text{${name}}()`,
+          type: "signature",
+          path: "signature",
+        },
+        body: [],
+        type: "function",
+        path: "",
+      } as Ast;
+
+      load(newAst, path);
     },
     onEscape: () => {
       setNewPath(null);
     },
   };
-
   const filesWithNewFile = !newPath ? files : [...files, newFile];
 
   return (
@@ -121,16 +140,23 @@ export const Explorer = () => {
         {filesWithNewFile.map((file: any) => (
           <File
             {...file}
+            name={file.path.substring(file.path.lastIndexOf("/") + 1)}
             key={file.path}
             isActive={file.path === activePath}
             onClick={(path) => {
-              const activeFile = files.find((f: any) => f.path === path);
-              if (activeFile?.type === "file") {
-                load(activeFile.ast as any, activeFile.name, activeFile.path);
+              const nextFile = files.find((f: any) => f.path === path);
+              if (nextFile?.type === "file") {
+                saveFile(activeFile);
+                load(nextFile.ast as any, nextFile.path);
                 setActivePath(path);
               }
             }}
             onDelete={(path) => {
+              const nextFile: any = files.filter(
+                (f) => f.path !== path && f.type === "file"
+              )[0];
+              setActivePath(nextFile.path);
+              load(nextFile.ast as any, nextFile.path);
               mutate({
                 file: {
                   path,
