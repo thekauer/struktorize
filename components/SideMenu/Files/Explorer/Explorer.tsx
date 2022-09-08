@@ -152,6 +152,9 @@ export const Explorer = () => {
                 saveFile(activeFile);
                 load(nextFile.ast as any, nextFile.path);
                 setActivePath(path);
+                document
+                  .querySelector<HTMLDivElement>("#root-container")
+                  ?.focus();
               }
             }}
             onDelete={(path) => {
