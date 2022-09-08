@@ -31,6 +31,8 @@ export const Explorer = () => {
           });
         }
       },
+      staleTime: Infinity,
+      cacheTime: Infinity,
     }
   );
 
