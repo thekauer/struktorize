@@ -1,7 +1,7 @@
-import { unstable_getServerSession } from "next-auth/next";
-import { authOptions, redis } from "../auth/[...nextauth]";
-import { NextApiRequest, NextApiResponse } from "next";
-import { z } from "zod";
+import { Redis } from "@upstash/redis";
+import { getToken } from "next-auth/jwt";
+import { NextRequest } from "next/server";
+import z from "zod";
 import { Ast } from "../../../lib/ast";
 
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
@@ -43,37 +43,46 @@ export type newNodeDTO = z.infer<typeof newNode>;
 
 const deleteFile = z.string();
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const session = await unstable_getServerSession(req, res, authOptions);
+const getBody = async (req: NextRequest) => {
+  const blob = await req.blob();
+  const text = await blob.text();
+  const body = JSON.parse(text);
+  return body;
+};
 
-  if (!session) {
-    return res.status(401).end();
+export default async function handler(req: NextRequest) {
+  const redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL!,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+  });
+  const token = await getToken({ req });
+
+  if (!token) {
+    return new Response("Unauthorized", { status: 401 });
   }
 
   if (req.method === "GET") {
-    const keys = (await redis.keys(`file:${session!.user!.email}:*`)) || [];
+    const keys = await redis.keys(`file:${token.email}:*`);
     const files = await Promise.all(
       keys.map(async (key) => await redis.get(key))
     );
 
-    return res.status(200).json({ files });
+    return new Response(JSON.stringify({ files }), { status: 200 });
   }
 
   if (req.method === "PUT") {
-    const newFileSchema = newNode.safeParse(req.body);
+    const body = await getBody(req);
+    const newFileSchema = newNode.safeParse(body);
 
     if (!newFileSchema.success) {
-      return res.status(400).end();
+      return new Response("Bad Request", { status: 400 });
     }
     const { path, type } = newFileSchema.data;
-    const redisPath = `file:${session!.user!.email}:${path}`;
+    const redisPath = `file:${token.email}:${path}`;
     const name = path.split("/").pop();
 
     if (await redis.exists(redisPath)) {
-      return res.status(409).end();
+      return new Response("Conflict", { status: 409 });
     }
 
     const ast = {
@@ -95,29 +104,35 @@ export default async function handler(
 
     await redis.set(redisPath, newEntity);
 
-    return res.status(200).end();
+    return new Response("OK", { status: 200 });
   }
 
   if (req.method === "POST") {
-    const schema = node.safeParse(req.body);
+    const body = await getBody(req);
+
+    const schema = node.safeParse(body);
     if (!schema.success) {
-      return res.status(400).end();
+      return new Response("Bad Request", { status: 400 });
     }
 
-    const redisPath = `file:${session!.user!.email}:${schema.data.path}`;
+    const redisPath = `file:${token.email}:${schema.data.path}`;
     await redis.set(redisPath, schema.data);
-    res.status(200).end();
+    return new Response("OK", { status: 200 });
   }
 
   if (req.method === "DELETE") {
-    const schema = deleteFile.safeParse(req.query.path);
+    const schema = deleteFile.safeParse(req.nextUrl.searchParams.get("path"));
     if (!schema.success) {
-      return res.status(400).end();
+      return new Response("Bad Request", { status: 400 });
     }
 
-    const redisPath = `file:${session!.user!.email}:${schema.data}`;
+    const redisPath = `file:${token.email}:${schema.data}`;
 
     await redis.del(redisPath);
-    res.status(200).end();
+    return new Response("OK", { status: 200 });
   }
 }
+
+export const config = {
+  runtime: "experimental-edge",
+};
