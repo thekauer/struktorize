@@ -121,6 +121,7 @@ export const Explorer = () => {
       } as Ast;
 
       load(newAst, path);
+      document.querySelector<HTMLDivElement>("#root-container")?.focus();
     },
     onEscape: () => {
       setNewPath(null);
