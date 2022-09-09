@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useAst } from "../../../../hooks/useAST";
+import { useAst, useAstState } from "../../../../hooks/useAST";
 import { Ast } from "../../../../lib/ast";
 import { debounce } from "../../../../lib/debounce";
 import { FileDTO, NodeDTO, NodesDTO } from "../../../../pages/api/files";
@@ -9,7 +9,8 @@ import * as S from "./Explorer.atoms";
 import { File, FileProps } from "./File/File";
 
 export const Explorer = () => {
-  const { functionName, ast, load, addChangeListener } = useAst();
+  const { functionName, ast } = useAstState();
+  const { load, addChangeListener } = useAst();
   const [activePath, setActivePath] = useState<string>("/main");
   const [newPath, setNewPath] = useState<string | null>(null);
 

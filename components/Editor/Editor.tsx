@@ -1,12 +1,23 @@
 import { useEffect, useRef, useState } from "react";
-import { useAst } from "../../hooks/useAST";
+import { useAst, useAstState } from "../../hooks/useAST";
 import { useTheme } from "../../hooks/useTheme";
 import { Render } from "../Ast/Render/Render";
 import * as S from "./Editor.atoms";
 import { KeyboardEvent } from "react";
 
 export const Editor = () => {
-  const ast = useAst();
+  const { ast } = useAstState();
+  const {
+    up,
+    down,
+    left,
+    right,
+    edit,
+    backspace,
+    addStatement,
+    addIf,
+    addLoop,
+  } = useAst();
   const [buffer, setBuffer] = useState("");
   const [insertMode, setInsertMode] = useState<
     "normal" | "superscript" | "subscript"
@@ -28,47 +39,47 @@ export const Editor = () => {
       case "ArrowUp":
         if (insertMode === "subscript") {
           setInsertMode("normal");
-          ast.edit("", "normal");
+          edit("", "normal");
           return;
         }
 
-        ast.up();
+        up();
         return;
       case "ArrowDown":
         if (insertMode === "superscript") {
           setInsertMode("normal");
-          ast.edit("", "normal");
+          edit("", "normal");
           return;
         }
 
-        ast.down();
+        down();
         return;
       case "ArrowLeft":
-        ast.left();
+        left();
         return;
       case "ArrowRight":
         if (insertMode !== "normal") {
           setInsertMode("normal");
-          ast.edit("", "normal");
+          edit("", "normal");
           return;
         }
 
-        ast.right();
+        right();
         return;
       case "Backspace":
         setInsertMode("normal");
-        ast.backspace();
+        backspace();
         return;
       case "Enter":
-        ast.addStatement();
+        addStatement();
         return;
       case "^":
         setInsertMode("superscript");
-        ast.edit("", "superscript");
+        edit("", "superscript");
         return;
       case "_":
         setInsertMode("subscript");
-        ast.edit("", "subscript");
+        edit("", "subscript");
         return;
     }
 
@@ -79,18 +90,18 @@ export const Editor = () => {
 
       switch (true) {
         case (buffer + key).endsWith("if"):
-          ast.backspace();
-          ast.addIf();
+          backspace();
+          addIf();
           return;
         case (buffer + key).endsWith("loop"):
-          ast.backspace(3);
-          ast.addLoop();
-          ast.edit("for", insertMode);
+          backspace(3);
+          addLoop();
+          edit("for", insertMode);
           return;
       }
 
       const finalKey = e.shiftKey ? key.toUpperCase() : key;
-      ast.edit(finalKey, insertMode);
+      edit(finalKey, insertMode);
     }
   };
 
@@ -107,7 +118,7 @@ export const Editor = () => {
       tabIndex={0}
     >
       <S.Root>
-        <Render head={ast.ast} />
+        <Render head={ast} />
       </S.Root>
     </S.Container>
   );
