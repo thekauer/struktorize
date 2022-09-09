@@ -22,7 +22,6 @@ export const File = ({
   onEscape,
   onSubmit,
 }: FileProps) => {
-  const [isCreating, setIsCreating] = useState(isNew);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -37,7 +36,6 @@ export const File = ({
         if (inputRef.current?.value === "") return;
 
         onSubmit?.(path + inputRef.current?.value!);
-        setIsCreating(false);
         break;
 
       case "Delete":
@@ -47,7 +45,6 @@ export const File = ({
 
       case "Escape":
         onEscape?.();
-        setIsCreating(false);
         break;
     }
   };
