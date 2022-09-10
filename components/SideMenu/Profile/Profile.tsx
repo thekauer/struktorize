@@ -11,6 +11,7 @@ export const Profile = () => {
       <S.Container>
         <S.Profile src={session!.user?.image!} />
         <SM.Span>{session!.user?.name}</SM.Span>
+        <SM.Span>{session!.user?.email}</SM.Span>
         <SM.Button onClick={() => signOut()}>Sign out</SM.Button>
       </S.Container>
     </SM.Container>
