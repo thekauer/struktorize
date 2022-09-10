@@ -26,6 +26,7 @@ type StateContext = {
   ast: Ast;
   scope: string[];
   functionName: string;
+  changed: boolean;
 };
 
 export const AstContext = createContext<Dispatch<Action>>(null as any);
@@ -36,6 +37,7 @@ type State = {
   scope: string[];
   path: string;
   changeListeners: ChangeListener[];
+  changed: boolean;
 };
 
 type Action =
@@ -49,7 +51,8 @@ type Action =
   | { type: "setScope"; payload: string[] }
   | { type: "load"; payload: { ast: Ast; path: string } }
   | { type: "addChangeListener"; payload: ChangeListener }
-  | { type: "callChangeListeners" };
+  | { type: "callChangeListeners" }
+  | { type: "save" };
 
 function reducer(state: State, action: Action): State {
   const { ast, scope } = state;
@@ -79,7 +82,7 @@ function reducer(state: State, action: Action): State {
       };
 
     case "add":
-      return { ...state, ...add(scope, ast, action.payload) };
+      return { ...state, ...add(scope, ast, action.payload), changed: true };
 
     case "text":
       return {
@@ -89,6 +92,7 @@ function reducer(state: State, action: Action): State {
           ast,
           addText(action.payload.text, action.payload.insertMode)
         ),
+        changed: true,
       };
 
     case "backspace":
@@ -97,11 +101,16 @@ function reducer(state: State, action: Action): State {
 
       const removed = remove(scope, ast, true);
       const newScope = up(removed.scope, removed.ast);
-      return { ...state, scope: newScope, ast: removed.ast };
+      return { ...state, scope: newScope, ast: removed.ast, changed: true };
     case "setScope":
       return { ...state, ast, scope: action.payload };
     case "load":
-      return { ...state, ...action.payload, scope: ["signature"] };
+      return {
+        ...state,
+        ...action.payload,
+        scope: ["signature"],
+        changed: false,
+      };
     case "addChangeListener":
       return {
         ...state,
@@ -110,6 +119,8 @@ function reducer(state: State, action: Action): State {
     case "callChangeListeners":
       state.changeListeners.forEach((listener) => listener(state));
       return state;
+    case "save":
+      return { ...state, changed: false };
 
     default:
       return state;
@@ -121,6 +132,7 @@ const defaultState: State = {
   ast: DEFAULT_FUNCTION,
   path: "/main",
   changeListeners: [],
+  changed: false,
 };
 
 interface AstProviderProps {
@@ -131,10 +143,15 @@ interface AstProviderProps {
 export const AstProvider = ({ children, showScope }: AstProviderProps) => {
   const [state, dispatch] = useReducer(reducer, defaultState);
 
-  const { ast, scope } = state;
+  const { ast, scope, changed } = state;
 
   const functionName = getFunctionName((ast as FunctionAst).signature?.text);
-  const stateContext = { ast, scope: showScope ? scope : [], functionName };
+  const stateContext = {
+    ast,
+    scope: showScope ? scope : [],
+    functionName,
+    changed,
+  };
 
   return (
     <AstContext.Provider value={dispatch}>
@@ -195,6 +212,7 @@ export const useAst = () => {
   };
   const addChangeListener = (listener: ChangeListener) =>
     dispatch({ type: "addChangeListener", payload: listener });
+  const save = () => dispatch({ type: "save" });
 
   return {
     up,
@@ -209,6 +227,7 @@ export const useAst = () => {
     setScope,
     load,
     addChangeListener,
+    save,
   };
 };
 
