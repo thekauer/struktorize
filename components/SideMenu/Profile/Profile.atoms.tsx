@@ -2,6 +2,8 @@ import styled from "styled-components";
 
 export const Profile = styled.img`
   border-radius: 50%;
+  max-width: 6em;
+  max-height: 6em;
 `;
 
 export const Container = styled.div`
