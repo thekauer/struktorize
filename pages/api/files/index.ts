@@ -41,7 +41,7 @@ const newNode = z.object({
 
 export type newNodeDTO = z.infer<typeof newNode>;
 
-const deleteFile = z.string();
+const pathParam = z.string();
 
 const getBody = async (req: NextRequest) => {
   const blob = await req.blob();
@@ -64,17 +64,38 @@ export default async function handler(req: NextRequest) {
   const key = `files:${token.email}`;
 
   if (req.method === "GET") {
-    const hash = await redis.hgetall(key);
-    if (!hash) {
-      return new Response("Not found", { status: 404 });
+    const param = req.nextUrl.searchParams.get("path");
+    if (param !== null) {
+      const path = pathParam.safeParse(param);
+      if (!path.success) {
+        return new Response("Invalid path", { status: 400 });
+      }
+
+      const file = await redis.hget(key, path.data);
+      if (file === null) {
+        return new Response("File not found", { status: 404 });
+      }
+
+      return new Response(JSON.stringify({ file }), { status: 200 });
     }
 
-    const files = Object.values(hash);
-    return new Response(JSON.stringify({ files }), { status: 200 });
+    const hash = await redis.hgetall(key);
+    if (!hash) {
+      return new Response(JSON.stringify({ files: [], file: undefined }), {
+        status: 200,
+      });
+    }
+
+    const files = Object.entries(hash)
+      .filter(([key]) => key !== "recent")
+      .map(([, value]) => value)
+      .sort((a, b) => b.path.localeCompare(a.path));
+    const file = hash[hash.recent as string] || Object.values(hash)[0];
+
+    return new Response(JSON.stringify({ files, file }), { status: 200 });
   }
 
   if (req.method === "PUT") {
-    console.log("hit");
     const body = await getBody(req);
     const newFileSchema = newNode.safeParse(body);
 
@@ -105,7 +126,7 @@ export default async function handler(req: NextRequest) {
       ast: type === "file" ? (ast as any) : undefined,
     };
 
-    await redis.hmset(key, { path: newEntity });
+    await redis.hset(key, { [path]: newEntity });
 
     return new Response("OK", { status: 200 });
   }
@@ -118,12 +139,15 @@ export default async function handler(req: NextRequest) {
       return new Response("Bad Request", { status: 400 });
     }
 
-    await redis.hset(key, { [schema.data.path]: schema.data });
+    await redis.hset(key, {
+      [schema.data.path]: schema.data,
+      recent: schema.data.path,
+    });
     return new Response("OK", { status: 200 });
   }
 
   if (req.method === "DELETE") {
-    const schema = deleteFile.safeParse(req.nextUrl.searchParams.get("path"));
+    const schema = pathParam.safeParse(req.nextUrl.searchParams.get("path"));
     if (!schema.success) {
       return new Response("Bad Request", { status: 400 });
     }
