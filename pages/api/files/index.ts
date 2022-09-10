@@ -86,7 +86,7 @@ export default async function handler(req: NextRequest) {
       });
     }
 
-    const files = Object.entries(hash)
+    const files = Object.entries<{ path: string } & any>(hash)
       .filter(([key]) => key !== "recent")
       .map(([, value]) => value)
       .sort((a, b) => b.path.localeCompare(a.path));
