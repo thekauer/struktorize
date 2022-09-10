@@ -2,7 +2,7 @@ import { deleteLast, parse } from "./textTransform";
 
 describe("textTransform", () => {
   it.each([
-    ["in", "\\in{}"],
+    ["in", "\\text{in}"],
     [" ", ""],
     ["pi", "\\pi{}"],
     ["n:=1", "\\text{n}:=1"],

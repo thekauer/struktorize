@@ -7,6 +7,10 @@ export const Container = styled.div`
   justify-content: flex-start;
   width: 100%;
   height: 100%;
+
+  &:focus {
+    outline: none;
+  }
 `;
 
 export const Root = styled.div`

@@ -1,18 +1,19 @@
 import * as SM from "../SideMenu.atoms";
-import * as S from "./Files.atoms";
 import { useSession, signIn } from "next-auth/react";
+import dynamic from "next/dynamic";
+
+const Explorer = dynamic(
+  () => import("./Explorer/Explorer").then((mod) => mod.Explorer as any),
+  { ssr: false }
+);
 
 export const Files = () => {
   const { status } = useSession();
+
   return (
     <SM.Container>
       <SM.Title>Files</SM.Title>
-      <S.Menu>
-        <S.MenuItem src={"/new_file.png"} />
-        <S.MenuItem src={"/new_folder.png"} />
-        <S.MenuItem src={"/refresh.png"} />
-        <S.MenuItem src={"/collapse_all.png"} />
-      </S.Menu>
+
       {status === "unauthenticated" && (
         <>
           <SM.Span>Sign in to save your structograms:</SM.Span>
@@ -20,7 +21,7 @@ export const Files = () => {
           <SM.Button onClick={() => signIn("github")}>Github</SM.Button>
         </>
       )}
-      {status === "authenticated" && <span>Your files will be here</span>}
+      {status === "authenticated" && <Explorer />}
     </SM.Container>
   );
 };
