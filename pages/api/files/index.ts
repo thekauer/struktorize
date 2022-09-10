@@ -126,7 +126,7 @@ export default async function handler(req: NextRequest) {
       ast: type === "file" ? (ast as any) : undefined,
     };
 
-    await redis.hset(key, { [path]: newEntity });
+    await redis.hset(key, { [path]: newEntity, recent: path });
 
     return new Response("OK", { status: 200 });
   }
