@@ -61,16 +61,20 @@ export default async function handler(req: NextRequest) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  if (req.method === "GET") {
-    const keys = await redis.keys(`file:${token.email}:*`);
-    const files = await Promise.all(
-      keys.map(async (key) => await redis.get(key))
-    );
+  const key = `files:${token.email}`;
 
+  if (req.method === "GET") {
+    const hash = await redis.hgetall(key);
+    if (!hash) {
+      return new Response("Not found", { status: 404 });
+    }
+
+    const files = Object.values(hash);
     return new Response(JSON.stringify({ files }), { status: 200 });
   }
 
   if (req.method === "PUT") {
+    console.log("hit");
     const body = await getBody(req);
     const newFileSchema = newNode.safeParse(body);
 
@@ -78,10 +82,9 @@ export default async function handler(req: NextRequest) {
       return new Response("Bad Request", { status: 400 });
     }
     const { path, type } = newFileSchema.data;
-    const redisPath = `file:${token.email}:${path}`;
     const name = path.split("/").pop();
 
-    if (await redis.exists(redisPath)) {
+    if (await redis.hexists(key, path)) {
       return new Response("Conflict", { status: 409 });
     }
 
@@ -102,7 +105,7 @@ export default async function handler(req: NextRequest) {
       ast: type === "file" ? (ast as any) : undefined,
     };
 
-    await redis.set(redisPath, newEntity);
+    await redis.hmset(key, { path: newEntity });
 
     return new Response("OK", { status: 200 });
   }
@@ -115,8 +118,7 @@ export default async function handler(req: NextRequest) {
       return new Response("Bad Request", { status: 400 });
     }
 
-    const redisPath = `file:${token.email}:${schema.data.path}`;
-    await redis.set(redisPath, schema.data);
+    await redis.hset(key, { [schema.data.path]: schema.data });
     return new Response("OK", { status: 200 });
   }
 
@@ -126,9 +128,7 @@ export default async function handler(req: NextRequest) {
       return new Response("Bad Request", { status: 400 });
     }
 
-    const redisPath = `file:${token.email}:${schema.data}`;
-
-    await redis.del(redisPath);
+    await redis.hdel(key, schema.data);
     return new Response("OK", { status: 200 });
   }
 }
