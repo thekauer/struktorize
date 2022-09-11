@@ -20,6 +20,23 @@ export const authOptions: NextAuthOptions = {
   jwt: {
     maxAge: 60 * 60 * 24 * 30, // 30 days
   },
+  callbacks: {
+    session: async ({ session, token }) => {
+      const { id, locale } = token;
+
+      return { ...session, user: { ...session.user, id, locale } };
+    },
+    jwt: async ({ token, user, profile }) => {
+      if (user) {
+        token.id = user.id;
+      }
+      if (profile) {
+        token.locale = profile.locale;
+      }
+
+      return token;
+    },
+  },
 };
 
 export default NextAuth(authOptions);

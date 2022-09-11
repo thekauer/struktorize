@@ -61,7 +61,7 @@ export default async function handler(req: NextRequest) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const key = `files:${token.email}`;
+  const key = `files:${token.id}`;
 
   if (req.method === "GET") {
     const param = req.nextUrl.searchParams.get("path");
