@@ -8,4 +8,4 @@ export default withAuth({
   },
 });
 
-export const config = { matcher: ["/api"] };
+export const config = { matcher: ["/api"], runtime: "experimental-edge" };
