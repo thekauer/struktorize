@@ -417,16 +417,28 @@ export const remove = (
   strict = false
 ): { scope: string[]; ast: Ast } => {
   if (isOnSignature(scope)) return { scope, ast };
+
   if (strict) {
     const node = get(scope, ast);
     const parent = grandParent(scope, ast);
     const { length } = getBody(scope, parent);
-    if (length === 1 && node.path.at(-1)! === "0") {
-      if (node.type === "statement") {
-        return remove(scope, ast);
+
+    const isFirstNodeInBody = length === 1 && node.path.at(-1)! === "0";
+    if (isFirstNodeInBody) {
+      const firstStatementInLoopOrBranch =
+        node.type === "statement" &&
+        (parent.type === "loop" || parent.type === "branch");
+
+      if (firstStatementInLoopOrBranch) {
+        // then do not remove it
+        return { scope, ast };
       }
 
       const removed = remove(scope, ast);
+      if (parent.type === "function") {
+        return removed;
+      }
+
       return add(scope, removed.ast, {
         type: "statement",
         text: " ",
