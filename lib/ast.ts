@@ -293,6 +293,11 @@ const isAddingToPlaceholder = (scope: string[], ast: Ast, node: Ast) => {
   return false;
 };
 
+const isOnCondition = (scope: string[], ast: Ast) => {
+  const current = get(scope, ast);
+  return current.type === "branch" || current.type === "loop";
+};
+
 export const up = (scope: string[], ast: Ast): string[] => {
   const last = scope.at(-1);
   if (last === "0") {
@@ -460,7 +465,10 @@ export const add = (
   const newNode = prepare(scope, node);
   const newBody = createBody(scope, ast, newNode);
   const newAst = setBody(scope, ast, newBody);
-  const newScope = down(scope, newAst);
+
+  const newScope = isOnCondition(scope, ast)
+    ? incrementScope(scope)
+    : down(scope, newAst);
 
   if (isAddingToPlaceholder(scope, ast, node)) {
     return remove(scope, newAst);
