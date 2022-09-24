@@ -1,0 +1,33 @@
+{
+  "menu": {
+    "files": {
+      "title": "Files",
+      "signInToSaveYourStructograms": "Sign in to save your structograms:"
+    },
+    "export": {
+      "title": "Export",
+      "theme": {
+        "title": "Theme:",
+        "themes": {
+          "dark": "Dark",
+          "light": "Light",
+          "blackOnWhite": "Black on White",
+          "whiteOnBlack": "White on Black"
+        }
+      },
+      "download": "Download",
+      "copyToClipboard": "Copy to clipboard"
+    }
+  },
+  "main": {
+    "emptyBody": {
+      "getStarted": ["Press", "or type", "or", "to get started"],
+      "openCheatSheet": ["Press", "to open the", "cheat sheet"]
+    }
+  },
+  "cheatSheet": {
+    "statement": "Statement",
+    "branch": "Branch",
+    "loop": "Loop"
+  }
+}
