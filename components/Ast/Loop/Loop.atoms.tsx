@@ -46,6 +46,14 @@ export const Loop = styled.div<StyleProps>`
         background-color: var(--s-active);
       }
     `}
+    ${({ selected }) =>
+    selected &&
+    css`
+      &,
+      & + div {
+        background-color: var(--s-selected);
+      }
+    `}
 `;
 export const Left = styled.div`
   grid-row: 2;

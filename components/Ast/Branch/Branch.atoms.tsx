@@ -33,6 +33,11 @@ export const Condition = styled.div<StyleProps>`
     css`
       background-color: var(--s-active);
     `}
+    ${({ selected }) =>
+    selected &&
+    css`
+      background-color: var(--s-selected);
+    `}
 `;
 
 export const True = styled.div`

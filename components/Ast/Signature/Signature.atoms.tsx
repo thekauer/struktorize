@@ -31,6 +31,11 @@ export const Container = styled.div<StyleProps>`
     css`
       border: 1px solid var(--s-active);
     `}
+    ${({ selected }) =>
+    selected &&
+    css`
+      background-color: var(--s-selected);
+    `}
 `;
 
 export const Line = styled.div`

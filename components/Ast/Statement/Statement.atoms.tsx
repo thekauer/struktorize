@@ -29,4 +29,9 @@ export const Container = styled.div<StyleProps>`
     css`
       background-color: var(--s-active);
     `}
+    ${({ selected }) =>
+    selected &&
+    css`
+      background-color: var(--s-selected);
+    `}
 `;
