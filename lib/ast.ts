@@ -298,6 +298,32 @@ const isOnCondition = (scope: string[], ast: Ast) => {
   return current.type === "branch" || current.type === "loop";
 };
 
+const getChildScopes = (scope: string[], ast: Ast): string[][] => {
+  const node = get(scope, ast);
+  switch (node.type) {
+    case "branch":
+      const branch = node as BranchAst;
+      return [
+        scope,
+        ...(branch.ifBranch?.flatMap((child) =>
+          getChildScopes(child.path.split("."), ast)
+        ) || []),
+        ...(branch.elseBranch?.flatMap((child) =>
+          getChildScopes(child.path.split("."), ast)
+        ) || []),
+      ];
+    case "loop":
+      const loop = node as LoopAst;
+      return [
+        scope,
+        ...(loop.body.flatMap((child) =>
+          getChildScopes(child.path.split("."), ast)
+        ) || []),
+      ];
+    default:
+      return [scope];
+  }
+};
 export const up = (scope: string[], ast: Ast): string[] => {
   const last = scope.at(-1);
   if (last === "0") {
@@ -490,4 +516,26 @@ export const edit = (
 export const isEmpty = (scope: string[], ast: Ast) => {
   const { text } = get(scope, ast);
   return text === " " || text === "\\;" || text === "";
+};
+
+export const select = (
+  selected: string[][],
+  selection: string[][],
+  ast: Ast
+): string[][] => {
+  return [
+    ...selected,
+    ...selection.flatMap((scope) => getChildScopes(scope, ast)),
+  ];
+};
+
+export const deselect = (
+  selected: string[][],
+  deselection: string[][],
+  ast: Ast
+): string[][] => {
+  const toDeselect = deselection
+    .flatMap((scope) => getChildScopes(scope, ast))
+    .map((path) => path.join("."));
+  return selected.filter((scope) => !toDeselect.includes(scope.join(".")));
 };

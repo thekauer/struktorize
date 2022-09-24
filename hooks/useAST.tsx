@@ -18,6 +18,8 @@ import {
   isEmpty,
   remove,
   FunctionAst,
+  select,
+  deselect,
 } from "../lib/ast";
 import { addText, deleteLast, getFunctionName } from "../lib/textTransform";
 
@@ -129,18 +131,19 @@ function reducer(state: State, action: Action): State {
     case "save":
       return { ...state, changed: false };
     case "select":
-      return { ...state, selected: [...state.selected, ...action.payload] };
+      return {
+        ...state,
+        selected: select(state.selected, action.payload, state.ast),
+      };
     case "selectCurrent":
-      return { ...state, selected: [...state.selected, state.scope] };
+      return {
+        ...state,
+        selected: select(state.selected, [scope], state.ast),
+      };
     case "deselect":
       return {
         ...state,
-        selected: state.selected.filter(
-          (selection) =>
-            !action.payload
-              .map((path) => path.join("."))
-              .includes(selection.join("."))
-        ),
+        selected: deselect(state.selected, action.payload, state.ast),
       };
     case "deselectAll":
       return { ...state, selected: [] };
