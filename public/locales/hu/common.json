@@ -27,10 +27,11 @@
         "vagy",
         "a kezdéshez"
       ],
-      "openCheatSheet": ["Nyomd meg a", ",hogy megnyisd a", "puskát"]
+      "openCheatSheet": ["Nyomj", ", hogy megnyisd a", "puskát"]
     }
   },
   "cheatSheet": {
+    "title": "Puska",
     "statement": "Állítás",
     "branch": "Elágazás",
     "loop": "Ciklus"

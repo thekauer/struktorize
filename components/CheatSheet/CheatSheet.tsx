@@ -1,3 +1,4 @@
+import { useTranslation } from "next-i18next";
 import * as S from "./CheatSheet.atoms";
 import { Item, ItemProps } from "./Item/Item";
 
@@ -8,9 +9,11 @@ interface CheatSheetProps {
 }
 
 export const CheatSheet = ({ items, active, onClose }: CheatSheetProps) => {
+  const { t } = useTranslation(["common"], { keyPrefix: "cheatSheet" });
+
   return (
     <S.Container>
-      <S.Title>Cheat sheet</S.Title>
+      <S.Title>{t("title")}</S.Title>
       <S.Close onClick={onClose}>
         <S.Cross src="/cross.png" />
       </S.Close>
