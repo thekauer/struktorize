@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useTranslation } from "next-i18next";
+import { useEffect, useMemo, useState } from "react";
 import { ItemProps } from "../components/CheatSheet/Item/Item";
 
 const ITEMS: ItemProps[] = [
@@ -32,6 +33,14 @@ export const useActiveItems = () => {
     ITEMS.reduce((acc, item) => ({ ...acc, [item.id]: false }), {})
   );
   const [buffer, setBuffer] = useState("");
+  const { t } = useTranslation(["common"], { keyPrefix: "cheatSheet" });
+
+  const translatedItems = useMemo(() => {
+    return ITEMS.map((item) => ({
+      ...item,
+      name: t(item.id),
+    }));
+  }, []);
 
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
@@ -55,5 +64,5 @@ export const useActiveItems = () => {
     };
   }, [buffer]);
 
-  return { ITEMS, MARK_ITEMS, active };
+  return { ITEMS: translatedItems, MARK_ITEMS, active };
 };

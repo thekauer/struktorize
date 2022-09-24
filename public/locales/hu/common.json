@@ -1,0 +1,44 @@
+{
+  "menu": {
+    "files": {
+      "title": "Fájlok",
+      "signInToSaveYourStructograms": "Jelentkezz be, hogy el tudd menteni a structogramjaidat:"
+    },
+    "export": {
+      "title": "Exportálás",
+      "theme": {
+        "title": "Témák:",
+        "themes": {
+          "dark": "Sötét",
+          "light": "Világos",
+          "blackOnWhite": "Feketén fehér",
+          "whiteOnBlack": "Fehéren fekete"
+        }
+      },
+      "download": "Letöltés",
+      "copyToClipboard": "Másolás a vágólapra"
+    },
+    "profile": {
+      "title": "Profil",
+      "language": "Nyelv:",
+      "signOut": "Kijelenkezés"
+    }
+  },
+  "main": {
+    "emptyBody": {
+      "getStarted": [
+        "Nyomd meg az",
+        "vagy írd azt, hogy",
+        "vagy",
+        "a kezdéshez"
+      ],
+      "openCheatSheet": ["Nyomj", ", hogy megnyisd a", "puskát"]
+    }
+  },
+  "cheatSheet": {
+    "title": "Puska",
+    "statement": "Állítás",
+    "branch": "Elágazás",
+    "loop": "Ciklus"
+  }
+}

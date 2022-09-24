@@ -1,6 +1,7 @@
 import * as SM from "../SideMenu.atoms";
 import { useSession, signIn } from "next-auth/react";
 import dynamic from "next/dynamic";
+import { useTranslation } from "next-i18next";
 
 const Explorer = dynamic(
   () => import("./Explorer/Explorer").then((mod) => mod.Explorer as any),
@@ -9,14 +10,15 @@ const Explorer = dynamic(
 
 export const Files = () => {
   const { status } = useSession();
+  const { t } = useTranslation(["common"], { keyPrefix: "menu.files" });
 
   return (
     <SM.Container>
-      <SM.Title>Files</SM.Title>
+      <SM.Title>{t("title")}</SM.Title>
 
       {status === "unauthenticated" && (
         <>
-          <SM.Span>Sign in to save your structograms:</SM.Span>
+          <SM.Span>{t("signInToSaveYourStructograms")}</SM.Span>
           <SM.Button onClick={() => signIn("google")}>Google</SM.Button>
           <SM.Button onClick={() => signIn("github")}>Github</SM.Button>
         </>
