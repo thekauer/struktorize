@@ -17,6 +17,11 @@
       },
       "download": "Download",
       "copyToClipboard": "Copy to clipboard"
+    },
+    "profile": {
+      "title": "Profile",
+      "language": "Language:",
+      "signOut": "Sign out"
     }
   },
   "main": {
