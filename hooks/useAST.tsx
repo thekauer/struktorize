@@ -4,6 +4,7 @@ import React, {
   ReactNode,
   useContext,
   useReducer,
+  MouseEvent,
 } from "react";
 import { DEFAULT_FUNCTION } from "../constants/defaultFunction";
 import {
@@ -27,6 +28,7 @@ type StateContext = {
   scope: string[];
   functionName: string;
   changed: boolean;
+  selected: string[][];
 };
 
 export const AstContext = createContext<Dispatch<Action>>(null as any);
@@ -38,6 +40,7 @@ type State = {
   path: string;
   changeListeners: ChangeListener[];
   changed: boolean;
+  selected: string[][];
 };
 
 type Action =
@@ -52,7 +55,11 @@ type Action =
   | { type: "load"; payload: { ast: Ast; path: string } }
   | { type: "addChangeListener"; payload: ChangeListener }
   | { type: "callChangeListeners" }
-  | { type: "save" };
+  | { type: "save" }
+  | { type: "select"; payload: string[][] }
+  | { type: "selectCurrent" }
+  | { type: "deselect"; payload: string[][] }
+  | { type: "deselectAll" };
 
 function reducer(state: State, action: Action): State {
   const { ast, scope } = state;
@@ -121,6 +128,22 @@ function reducer(state: State, action: Action): State {
       return state;
     case "save":
       return { ...state, changed: false };
+    case "select":
+      return { ...state, selected: [...state.selected, ...action.payload] };
+    case "selectCurrent":
+      return { ...state, selected: [...state.selected, state.scope] };
+    case "deselect":
+      return {
+        ...state,
+        selected: state.selected.filter(
+          (selection) =>
+            !action.payload
+              .map((path) => path.join("."))
+              .includes(selection.join("."))
+        ),
+      };
+    case "deselectAll":
+      return { ...state, selected: [] };
 
     default:
       return state;
@@ -133,6 +156,7 @@ const defaultState: State = {
   path: "/main",
   changeListeners: [],
   changed: false,
+  selected: [],
 };
 
 interface AstProviderProps {
@@ -143,7 +167,7 @@ interface AstProviderProps {
 export const AstProvider = ({ children, showScope }: AstProviderProps) => {
   const [state, dispatch] = useReducer(reducer, defaultState);
 
-  const { ast, scope, changed } = state;
+  const { ast, scope, changed, selected } = state;
 
   const functionName = getFunctionName((ast as FunctionAst).signature?.text);
   const stateContext = {
@@ -151,6 +175,7 @@ export const AstProvider = ({ children, showScope }: AstProviderProps) => {
     scope: showScope ? scope : [],
     functionName,
     changed,
+    selected,
   };
 
   return (
@@ -213,6 +238,12 @@ export const useAst = () => {
   const addChangeListener = (listener: ChangeListener) =>
     dispatch({ type: "addChangeListener", payload: listener });
   const save = () => dispatch({ type: "save" });
+  const select = (selection: string[][]) =>
+    dispatch({ type: "select", payload: selection });
+  const selectCurrent = () => dispatch({ type: "selectCurrent" });
+  const deselect = (selection: string[][]) =>
+    dispatch({ type: "deselect", payload: selection });
+  const deselectAll = () => dispatch({ type: "deselectAll" });
 
   return {
     up,
@@ -228,17 +259,35 @@ export const useAst = () => {
     load,
     addChangeListener,
     save,
+    select,
+    selectCurrent,
+    deselect,
+    deselectAll,
   };
 };
 
 export const useNode = (path: string | null) => {
-  const { scope } = useContext(AstStateContext);
+  const { scope, selected } = useContext(AstStateContext);
 
   const hovered = scope.join(".") === path;
-  const { setScope } = useAst();
-  const onClick = () => {
-    setScope(path?.split(".") || []);
+  const isSelected = selected.some((selection) => selection.join(".") === path);
+  const { setScope, select, deselect, deselectAll } = useAst();
+  const onClick = (e: MouseEvent<HTMLDivElement>) => {
+    const scopeToSet = path?.split(".") || [];
+    setScope(scopeToSet);
+
+    if (!(e.ctrlKey || e.shiftKey)) {
+      deselectAll();
+      return;
+    }
+    if (e.ctrlKey) {
+      if (selected.some((selection) => selection.join(".") === path)) {
+        deselect([scopeToSet]);
+      } else {
+        select([scopeToSet]);
+      }
+    }
   };
 
-  return { hovered, onClick };
+  return { hovered, selected: isSelected, onClick };
 };
