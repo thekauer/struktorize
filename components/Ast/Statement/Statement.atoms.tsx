@@ -34,4 +34,10 @@ export const Container = styled.div<StyleProps>`
     css`
       background-color: var(--s-selected);
     `}
+  ${({ selected, hovered }) =>
+    selected &&
+    hovered &&
+    css`
+      background-color: var(--s-selected-hovered);
+    `}
 `;

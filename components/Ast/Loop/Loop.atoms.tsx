@@ -54,6 +54,15 @@ export const Loop = styled.div<StyleProps>`
         background-color: var(--s-selected);
       }
     `}
+  ${({ selected, hovered }) =>
+    selected &&
+    hovered &&
+    css`
+      &,
+      & + div {
+        background-color: var(--s-selected-hovered);
+      }
+    `}
 `;
 export const Left = styled.div`
   grid-row: 2;
