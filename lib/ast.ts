@@ -114,7 +114,7 @@ const tryIncrementScope = (
 
   const parentScope = parent.path.split(".");
   return !isTheLast
-    ? parentScope
+    ? incrementScope(scope)
     : tryIncrementScope(parentScope, ast, depth++, originalScope);
 };
 
