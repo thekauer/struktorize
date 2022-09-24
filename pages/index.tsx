@@ -10,7 +10,7 @@ export async function getStaticProps({ locale }: { locale: string }) {
   };
 }
 
-export default function Home(props) {
+export default function Home() {
   return (
     <>
       <Head>
