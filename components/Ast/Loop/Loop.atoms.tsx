@@ -19,9 +19,9 @@ export const Loop = styled.div<StyleProps>`
   place-content: center;
   &:hover,
   &:hover + div,
-  &.selected,
-  &.selected + div {
-    background-color: var(--s-selected);
+  &.hovered,
+  &.hovered + div {
+    background-color: var(--s-hovered);
     cursor: pointer;
   }
   &.active,
@@ -29,12 +29,12 @@ export const Loop = styled.div<StyleProps>`
     background-color: var(--s-active);
   }
 
-  ${({ selected }) =>
-    selected &&
+  ${({ hovered }) =>
+    hovered &&
     css`
       &,
       & + div {
-        background-color: var(--s-selected);
+        background-color: var(--s-hovered);
         cursor: pointer;
       }
     `}

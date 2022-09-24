@@ -14,18 +14,18 @@ export const Condition = styled.div<StyleProps>`
   min-height: 0.5em;
 
   &:hover,
-  &.selected {
-    background-color: var(--s-selected);
+  &.hovered {
+    background-color: var(--s-hovered);
     cursor: pointer;
   }
   &.active {
     background-color: var(--s-active);
   }
 
-  ${({ selected }) =>
-    selected &&
+  ${({ hovered }) =>
+    hovered &&
     css`
-      background-color: var(--s-selected);
+      background-color: var(--s-hovered);
       cursor: pointer;
     `}
   ${({ active }) =>

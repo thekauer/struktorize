@@ -234,11 +234,11 @@ export const useAst = () => {
 export const useNode = (path: string | null) => {
   const { scope } = useContext(AstStateContext);
 
-  const selected = scope.join(".") === path;
+  const hovered = scope.join(".") === path;
   const { setScope } = useAst();
   const onClick = () => {
     setScope(path?.split(".") || []);
   };
 
-  return { selected, onClick };
+  return { hovered, onClick };
 };
