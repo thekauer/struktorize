@@ -466,7 +466,7 @@ export const add = (
   const newBody = createBody(scope, ast, newNode);
   const newAst = setBody(scope, ast, newBody);
 
-  const newScope = isOnCondition(scope, ast)
+  const newScope = isOnCondition(scope, newAst)
     ? incrementScope(scope)
     : down(scope, newAst);
 
