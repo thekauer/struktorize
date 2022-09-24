@@ -1,7 +1,16 @@
 import Head from "next/head";
 import { Editor } from "@/components/Editor/Editor";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-export default function Home() {
+export async function getStaticProps({ locale }: { locale: string }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common", "footer"])),
+    },
+  };
+}
+
+export default function Home(props) {
   return (
     <>
       <Head>
