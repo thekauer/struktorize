@@ -13,7 +13,6 @@ export const useEditor = () => {
     addStatement,
     addIf,
     addLoop,
-    selectCurrent,
     deselectAll,
   } = useAst();
   const [buffer, setBuffer] = useState("");
@@ -40,10 +39,8 @@ export const useEditor = () => {
           edit("", "normal");
           return;
         }
-        if (e.shiftKey) selectCurrent();
-        up();
-        if (e.shiftKey) selectCurrent();
-        else deselectAll();
+        up(e.shiftKey);
+        if (!e.shiftKey) deselectAll();
         return;
       case "ArrowDown":
         if (insertMode === "superscript") {
@@ -52,16 +49,12 @@ export const useEditor = () => {
           return;
         }
 
-        if (e.shiftKey) selectCurrent();
-        down();
-        if (e.shiftKey) selectCurrent();
-        else deselectAll();
+        down(e.shiftKey);
+        if (!e.shiftKey) deselectAll();
         return;
       case "ArrowLeft":
-        if (e.shiftKey) selectCurrent();
-        left();
-        if (e.shiftKey) selectCurrent();
-        else deselectAll();
+        left(e.shiftKey);
+        if (!e.shiftKey) deselectAll();
         return;
       case "ArrowRight":
         if (insertMode !== "normal") {
@@ -70,10 +63,8 @@ export const useEditor = () => {
           return;
         }
 
-        if (e.shiftKey) selectCurrent();
-        right();
-        if (e.shiftKey) selectCurrent();
-        else deselectAll();
+        right(e.shiftKey);
+        if (!e.shiftKey) deselectAll();
         return;
       case "Backspace":
         setInsertMode("normal");

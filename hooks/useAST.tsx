@@ -20,6 +20,7 @@ import {
   FunctionAst,
   select,
   deselect,
+  navigateAndToggleSelection,
 } from "../lib/ast";
 import { addText, deleteLast, getFunctionName } from "../lib/textTransform";
 
@@ -30,7 +31,7 @@ type StateContext = {
   scope: string[];
   functionName: string;
   changed: boolean;
-  selected: string[][];
+  selected: Set<string>;
 };
 
 export const AstContext = createContext<Dispatch<Action>>(null as any);
@@ -42,14 +43,14 @@ type State = {
   path: string;
   changeListeners: ChangeListener[];
   changed: boolean;
-  selected: string[][];
+  selected: Set<string>;
 };
 
 type Action =
-  | { type: "up" }
-  | { type: "down" }
-  | { type: "left" }
-  | { type: "right" }
+  | { type: "up"; payload: boolean }
+  | { type: "down"; payload: boolean }
+  | { type: "left"; payload: boolean }
+  | { type: "right"; payload: boolean }
   | { type: "add"; payload: Ast }
   | { type: "text"; payload: { text: string; insertMode: string } }
   | { type: "backspace" }
@@ -59,37 +60,41 @@ type Action =
   | { type: "callChangeListeners" }
   | { type: "save" }
   | { type: "select"; payload: string[][] }
-  | { type: "selectCurrent" }
   | { type: "deselect"; payload: string[][] }
   | { type: "deselectAll" };
+
+function navigate(
+  moveScope: (scope: string[], ast: Ast) => string[],
+  state: State,
+  action: Action & { payload: boolean }
+) {
+  const { scope, ast } = state;
+
+  const newScope = moveScope(scope, ast);
+  if (action.payload) {
+    return {
+      ...state,
+      ...navigateAndToggleSelection(state.selected, scope, newScope, state.ast),
+    };
+  }
+
+  return {
+    ...state,
+    scope: newScope,
+  };
+}
 
 function reducer(state: State, action: Action): State {
   const { ast, scope } = state;
   switch (action.type) {
     case "up":
-      return {
-        ...state,
-        scope: up(scope, ast),
-      };
-
+      return navigate(up, state, action);
     case "down":
-      return {
-        ...state,
-        scope: down(scope, ast),
-      };
-
+      return navigate(down, state, action);
     case "left":
-      return {
-        ...state,
-        scope: left(scope, ast),
-      };
-
+      return navigate(left, state, action);
     case "right":
-      return {
-        ...state,
-        scope: right(scope, ast),
-      };
-
+      return navigate(right, state, action);
     case "add":
       return { ...state, ...add(scope, ast, action.payload), changed: true };
 
@@ -135,18 +140,13 @@ function reducer(state: State, action: Action): State {
         ...state,
         selected: select(state.selected, action.payload, state.ast),
       };
-    case "selectCurrent":
-      return {
-        ...state,
-        selected: select(state.selected, [scope], state.ast),
-      };
     case "deselect":
       return {
         ...state,
         selected: deselect(state.selected, action.payload, state.ast),
       };
     case "deselectAll":
-      return { ...state, selected: [] };
+      return { ...state, selected: new Set<string>() };
 
     default:
       return state;
@@ -159,7 +159,7 @@ const defaultState: State = {
   path: "/main",
   changeListeners: [],
   changed: false,
-  selected: [],
+  selected: new Set<string>(),
 };
 
 interface AstProviderProps {
@@ -196,10 +196,13 @@ export const useAst = () => {
   const dispatch = useContext(AstContext);
   const callChangeListeners = () => dispatch({ type: "callChangeListeners" });
 
-  const up = () => dispatch({ type: "up" });
-  const down = () => dispatch({ type: "down" });
-  const left = () => dispatch({ type: "left" });
-  const right = () => dispatch({ type: "right" });
+  const up = (payload: boolean = false) => dispatch({ type: "up", payload });
+  const down = (payload: boolean = false) =>
+    dispatch({ type: "down", payload });
+  const left = (payload: boolean = false) =>
+    dispatch({ type: "left", payload });
+  const right = (payload: boolean = false) =>
+    dispatch({ type: "right", payload });
   const addStatement = () => {
     dispatch({
       type: "add",
@@ -243,7 +246,6 @@ export const useAst = () => {
   const save = () => dispatch({ type: "save" });
   const select = (selection: string[][]) =>
     dispatch({ type: "select", payload: selection });
-  const selectCurrent = () => dispatch({ type: "selectCurrent" });
   const deselect = (selection: string[][]) =>
     dispatch({ type: "deselect", payload: selection });
   const deselectAll = () => dispatch({ type: "deselectAll" });
@@ -263,7 +265,6 @@ export const useAst = () => {
     addChangeListener,
     save,
     select,
-    selectCurrent,
     deselect,
     deselectAll,
   };
@@ -273,7 +274,7 @@ export const useNode = (path: string | null) => {
   const { scope, selected } = useContext(AstStateContext);
 
   const hovered = scope.join(".") === path;
-  const isSelected = selected.some((selection) => selection.join(".") === path);
+  const isSelected = selected.has(path || "");
   const { setScope, select, deselect, deselectAll } = useAst();
   const onClick = (e: MouseEvent<HTMLDivElement>) => {
     const scopeToSet = path?.split(".") || [];
@@ -284,7 +285,7 @@ export const useNode = (path: string | null) => {
       return;
     }
     if (e.ctrlKey) {
-      if (selected.some((selection) => selection.join(".") === path)) {
+      if (isSelected) {
         deselect([scopeToSet]);
       } else {
         select([scopeToSet]);

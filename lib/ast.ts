@@ -519,23 +519,55 @@ export const isEmpty = (scope: string[], ast: Ast) => {
 };
 
 export const select = (
-  selected: string[][],
+  selected: Set<string>,
   selection: string[][],
   ast: Ast
-): string[][] => {
-  return [
-    ...selected,
-    ...selection.flatMap((scope) => getChildScopes(scope, ast)),
-  ];
+): Set<string> => {
+  const newSet = new Set(selected);
+  selection.forEach((scope) => {
+    getChildScopes(scope, ast).forEach((child) => newSet.add(child.join(".")));
+  });
+  return newSet;
 };
 
 export const deselect = (
-  selected: string[][],
+  selected: Set<string>,
   deselection: string[][],
   ast: Ast
-): string[][] => {
+): Set<string> => {
   const toDeselect = deselection
     .flatMap((scope) => getChildScopes(scope, ast))
     .map((path) => path.join("."));
-  return selected.filter((scope) => !toDeselect.includes(scope.join(".")));
+
+  const newSet = new Set(selected);
+  toDeselect.forEach((path) => newSet.delete(path));
+  return newSet;
+};
+
+export const navigateAndToggleSelection = (
+  selected: Set<string>,
+  scope: string[],
+  newScope: string[],
+  ast: Ast
+) => {
+  const isNextSelected = selected.has(newScope.join("."));
+  if (isNextSelected) {
+    //deselect
+    const parent = grandParent(scope, ast);
+    const isParentSelected = selected.has(parent.path);
+    if (isParentSelected) {
+      return { scope: newScope, selected };
+    }
+
+    return {
+      scope: newScope,
+      selected: deselect(selected, [scope], ast),
+    };
+  }
+
+  //select
+  return {
+    scope: newScope,
+    selected: select(selected, [scope, newScope], ast),
+  };
 };
