@@ -32,6 +32,7 @@ export const useEditor = () => {
 
     if (e.ctrlKey) return;
 
+    const navigationPayload = { select: e.shiftKey, move: e.altKey };
     switch (key) {
       case "ArrowUp":
         if (insertMode === "subscript") {
@@ -39,7 +40,7 @@ export const useEditor = () => {
           edit("", "normal");
           return;
         }
-        up(e.shiftKey);
+        up(navigationPayload);
         if (!e.shiftKey) deselectAll();
         return;
       case "ArrowDown":
@@ -49,11 +50,11 @@ export const useEditor = () => {
           return;
         }
 
-        down(e.shiftKey);
+        down(navigationPayload);
         if (!e.shiftKey) deselectAll();
         return;
       case "ArrowLeft":
-        left(e.shiftKey);
+        left(navigationPayload);
         if (!e.shiftKey) deselectAll();
         return;
       case "ArrowRight":
@@ -63,7 +64,7 @@ export const useEditor = () => {
           return;
         }
 
-        right(e.shiftKey);
+        right(navigationPayload);
         if (!e.shiftKey) deselectAll();
         return;
       case "Backspace":

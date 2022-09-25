@@ -47,10 +47,10 @@ type State = {
 };
 
 type Action =
-  | { type: "up"; payload: boolean }
-  | { type: "down"; payload: boolean }
-  | { type: "left"; payload: boolean }
-  | { type: "right"; payload: boolean }
+  | { type: "up"; payload: { select?: boolean; move?: boolean } }
+  | { type: "down"; payload: { select?: boolean; move?: boolean } }
+  | { type: "left"; payload: { select?: boolean; move?: boolean } }
+  | { type: "right"; payload: { select?: boolean; move?: boolean } }
   | { type: "add"; payload: Ast }
   | { type: "text"; payload: { text: string; insertMode: string } }
   | { type: "backspace" }
@@ -66,12 +66,12 @@ type Action =
 function navigate(
   moveScope: (scope: string[], ast: Ast) => string[],
   state: State,
-  action: Action & { payload: boolean }
+  action: Action & { payload: { select?: boolean; move?: boolean } }
 ) {
   const { scope, ast } = state;
 
   const newScope = moveScope(scope, ast);
-  if (action.payload) {
+  if (action.payload.select) {
     return {
       ...state,
       ...navigateAndToggleSelection(state.selected, scope, newScope, state.ast),
@@ -195,13 +195,18 @@ export const useAstState = () => useContext(AstStateContext);
 export const useAst = () => {
   const dispatch = useContext(AstContext);
   const callChangeListeners = () => dispatch({ type: "callChangeListeners" });
+  const defaultNavigationPayload = {
+    select: false,
+    move: false,
+  };
 
-  const up = (payload: boolean = false) => dispatch({ type: "up", payload });
-  const down = (payload: boolean = false) =>
+  const up = (payload = defaultNavigationPayload) =>
+    dispatch({ type: "up", payload });
+  const down = (payload = defaultNavigationPayload) =>
     dispatch({ type: "down", payload });
-  const left = (payload: boolean = false) =>
+  const left = (payload = defaultNavigationPayload) =>
     dispatch({ type: "left", payload });
-  const right = (payload: boolean = false) =>
+  const right = (payload = defaultNavigationPayload) =>
     dispatch({ type: "right", payload });
   const addStatement = () => {
     dispatch({
