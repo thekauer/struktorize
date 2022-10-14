@@ -78,24 +78,21 @@ export const Container = styled.div`
   flex: 1;
 `;
 
-export const TrueBranch = styled.div`
+const Branch = styled.div`
   outline: solid 2px var(--s-border);
   outline-offset: -1px;
   min-width: 6em;
   min-height: 0.5em;
-  justify-self: flex-start;
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  flex: 1 1 auto;
 `;
 
-export const FalseBranch = styled.div`
-  outline: solid 2px var(--s-border);
-  outline-offset: -1px;
-  min-width: 6em;
-  min-height: 0.5em;
+export const TrueBranch = styled(Branch)`
+  justify-self: flex-start;
+`;
+
+export const FalseBranch = styled(Branch)`
   justify-self: flex-end;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
 `;

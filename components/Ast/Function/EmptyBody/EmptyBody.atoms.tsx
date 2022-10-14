@@ -6,6 +6,7 @@ export const Container = styled.div`
   border: dashed 3px var(--s-selected);
   color: var(--s-text);
   line-height: 2;
+  justify-self: center;
 `;
 
 export const Kbd = styled.kbd`
