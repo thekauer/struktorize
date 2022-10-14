@@ -73,6 +73,7 @@ export const useEditor = () => {
       case "Backspace":
         setInsertMode("normal");
         backspace();
+        setBuffer((p) => p.slice(0, -1));
         return;
       case "Enter":
         addStatement();
@@ -90,15 +91,17 @@ export const useEditor = () => {
     const allowedChars =
       /^[a-zA-Z0-9_:\+\/\(\)\*\- \"\^=\.\&\|<>!\^\×\,\[\]\;]{1}$/;
     if (allowedChars.test(key)) {
-      setBuffer((prev) => prev.substring(prev.length - 3) + key);
+      setBuffer((prev) =>
+        prev.length == 5 ? prev.slice(1) + key : prev + key
+      );
 
       switch (true) {
-        case (buffer + key).endsWith("if"):
-          backspace();
+        case (buffer + key).endsWith("if "):
+          backspace(2);
           addIf();
           return;
-        case (buffer + key).endsWith("loop"):
-          backspace(3);
+        case (buffer + key).endsWith("loop "):
+          backspace(4);
           addLoop();
           edit("for", insertMode);
           return;
