@@ -298,6 +298,32 @@ const isOnCondition = (scope: string[], ast: Ast) => {
   return current.type === "branch" || current.type === "loop";
 };
 
+const getChildScopes = (scope: string[], ast: Ast): string[][] => {
+  const node = get(scope, ast);
+  switch (node.type) {
+    case "branch":
+      const branch = node as BranchAst;
+      return [
+        scope,
+        ...(branch.ifBranch?.flatMap((child) =>
+          getChildScopes(child.path.split("."), ast)
+        ) || []),
+        ...(branch.elseBranch?.flatMap((child) =>
+          getChildScopes(child.path.split("."), ast)
+        ) || []),
+      ];
+    case "loop":
+      const loop = node as LoopAst;
+      return [
+        scope,
+        ...(loop.body.flatMap((child) =>
+          getChildScopes(child.path.split("."), ast)
+        ) || []),
+      ];
+    default:
+      return [scope];
+  }
+};
 export const up = (scope: string[], ast: Ast): string[] => {
   const last = scope.at(-1);
   if (last === "0") {
@@ -490,4 +516,58 @@ export const edit = (
 export const isEmpty = (scope: string[], ast: Ast) => {
   const { text } = get(scope, ast);
   return text === " " || text === "\\;" || text === "";
+};
+
+export const select = (
+  selected: Set<string>,
+  selection: string[][],
+  ast: Ast
+): Set<string> => {
+  const newSet = new Set(selected);
+  selection.forEach((scope) => {
+    getChildScopes(scope, ast).forEach((child) => newSet.add(child.join(".")));
+  });
+  return newSet;
+};
+
+export const deselect = (
+  selected: Set<string>,
+  deselection: string[][],
+  ast: Ast
+): Set<string> => {
+  const toDeselect = deselection
+    .flatMap((scope) => getChildScopes(scope, ast))
+    .map((path) => path.join("."));
+
+  const newSet = new Set(selected);
+  toDeselect.forEach((path) => newSet.delete(path));
+  return newSet;
+};
+
+export const navigateAndToggleSelection = (
+  selected: Set<string>,
+  scope: string[],
+  newScope: string[],
+  ast: Ast
+) => {
+  const isNextSelected = selected.has(newScope.join("."));
+  if (isNextSelected) {
+    //deselect
+    const parent = grandParent(scope, ast);
+    const isParentSelected = selected.has(parent.path);
+    if (isParentSelected) {
+      return { scope: newScope, selected };
+    }
+
+    return {
+      scope: newScope,
+      selected: deselect(selected, [scope], ast),
+    };
+  }
+
+  //select
+  return {
+    scope: newScope,
+    selected: select(selected, [scope, newScope], ast),
+  };
 };

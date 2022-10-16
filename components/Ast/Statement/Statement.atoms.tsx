@@ -15,18 +15,29 @@ export const Container = styled.div<StyleProps>`
   min-width: 6em;
   min-height: 0.5em;
   &:hover {
-    background-color: var(--s-selected);
+    background-color: var(--s-hovered);
     cursor: pointer;
   }
-  ${({ selected }) =>
-    selected &&
+  ${({ hovered }) =>
+    hovered &&
     css`
-      background-color: var(--s-selected);
+      background-color: var(--s-hovered);
       cursor: pointer;
     `}
   ${({ active }) =>
     active &&
     css`
       background-color: var(--s-active);
+    `}
+    ${({ selected }) =>
+    selected &&
+    css`
+      background-color: var(--s-selected);
+    `}
+  ${({ selected, hovered }) =>
+    selected &&
+    hovered &&
+    css`
+      background-color: var(--s-selected-hovered);
     `}
 `;

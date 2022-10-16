@@ -8,8 +8,6 @@ export const Profile = () => {
   const { data: session } = useSession();
   const { t, i18n } = useTranslation(["common"], { keyPrefix: "menu.profile" });
   const [language, setLanguage] = useState(i18n.language);
-  console.log("🚀 - language", language);
-  console.log("🚀 - i18n.language", i18n.language);
   const onLanguageChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const { value } = e.target;
     setLanguage(value);
