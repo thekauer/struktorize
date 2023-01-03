@@ -43,18 +43,22 @@ export type newNodeDTO = z.infer<typeof newNode>;
 
 const pathParam = z.string();
 
-const getBody = async (req: NextRequest) => {
+export const getBody = async (req: NextRequest) => {
   const blob = await req.blob();
   const text = await blob.text();
   const body = JSON.parse(text);
   return body;
 };
 
-export default async function handler(req: NextRequest) {
-  const redis = new Redis({
+export const getRedis = () => {
+  return new Redis({
     url: process.env.UPSTASH_REDIS_REST_URL!,
     token: process.env.UPSTASH_REDIS_REST_TOKEN!,
   });
+};
+
+export default async function handler(req: NextRequest) {
+  const redis = getRedis();
   const token = await getToken({ req });
 
   if (!token) {
