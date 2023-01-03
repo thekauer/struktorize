@@ -1,9 +1,10 @@
 import { NextRequest } from "next/server";
-import { getBody, getRedis } from ".";
+import { getBody, getRedis, jsonSchema } from ".";
 import { getToken } from "next-auth/jwt";
 import z from "zod";
 
 const move = z.object({
+  ast: jsonSchema,
   from: z.string(),
   to: z.string(),
 });
@@ -29,11 +30,10 @@ export default async function handler(req: NextRequest) {
     return new Response("Invalid schema", { status: 400 });
   }
 
-  const from = moveSchema.data.from.replace(/^\//, "");
-  const to = moveSchema.data.to.replace(/^\//, "");
+  const { from, to, ast } = moveSchema.data;
 
-  const file = await redis.hget(key, from);
-  if (file === null) {
+  const oldFile = await redis.hget(key, from);
+  if (oldFile === null) {
     return new Response("File not found", { status: 404 });
   }
 
@@ -42,7 +42,9 @@ export default async function handler(req: NextRequest) {
     return new Response("File already exists", { status: 409 });
   }
 
-  await redis.hset(key, { [to]: file });
+  const newFile = { ast, path: to };
+
+  await redis.hset(key, { [to]: newFile, recent: to });
   await redis.hdel(key, from);
 
   return new Response("OK", { status: 200 });

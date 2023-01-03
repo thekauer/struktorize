@@ -99,10 +99,11 @@ export const useFiles = (
     });
   };
 
-  const moveFile = (from: string, to: string) => {
+  const moveFile = (file: any, from: string, to: string) => {
     mutate({
       file: {
         from,
+        ast: file.ast as any,
         to,
       },
       method: "post",

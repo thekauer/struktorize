@@ -103,14 +103,11 @@ export const useExplorer = () => {
     deleteFile(path);
   };
 
-  const onFileSubmit = (path: string) => {
-    if (changed) {
-      saveFile({ ...activeFile, ast });
-      save();
-    }
-    moveFile(activePath, path);
+  const onFileMove = (path: string) => {
+    moveFile({ ...activeFile, ast }, activePath, path);
+    save();
+
     setActivePath(path);
-    focusRoot();
   };
 
   const getFileProps = (file: any) => ({
@@ -119,7 +116,7 @@ export const useExplorer = () => {
     isActive: file.path === activePath,
     onClick: onFileClick,
     onDelete: onFileDelete,
-    onSubmit: onFileSubmit,
+    onMove: onFileMove,
   });
 
   return { getFileProps, newFileClick, refreshClick, files: filesWithNewFile };
