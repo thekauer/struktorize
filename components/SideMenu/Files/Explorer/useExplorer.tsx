@@ -12,15 +12,14 @@ export const useExplorer = () => {
   const [activePath, setActivePath] = useState<string>("/main");
   const [newPath, setNewPath] = useState<string | null>(null);
 
-  const { createFile, deleteFile, saveFile, refetch, files } = useFiles(
-    ({ files, file }) => {
+  const { createFile, deleteFile, saveFile, moveFile, refetch, files } =
+    useFiles(({ files, file }) => {
       if (files?.length === 0) {
         createFile(`/${functionName}`);
         return;
       }
       load(file.ast as Ast, file.path);
-    }
-  );
+    });
 
   useEffect(() => {
     addChangeListener(
@@ -43,6 +42,9 @@ export const useExplorer = () => {
     (f: FileDTO) => f.path === activePath && f.type === "file"
   ) as FileDTO;
 
+  const focusRoot = () =>
+    document.querySelector<HTMLDivElement>("#root-container")?.focus();
+
   const newFile: FileProps = {
     path: newPath!,
     isNew: true,
@@ -64,7 +66,7 @@ export const useExplorer = () => {
       } as Ast;
 
       load(newAst, path);
-      document.querySelector<HTMLDivElement>("#root-container")?.focus();
+      focusRoot();
     },
     onEscape: () => {
       setNewPath(null);
@@ -86,7 +88,7 @@ export const useExplorer = () => {
       }
       load(nextFile.ast as any, nextFile.path);
       setActivePath(path);
-      document.querySelector<HTMLDivElement>("#root-container")?.focus();
+      focusRoot();
     }
   };
 
@@ -101,12 +103,23 @@ export const useExplorer = () => {
     deleteFile(path);
   };
 
+  const onFileSubmit = (path: string) => {
+    if (changed) {
+      saveFile({ ...activeFile, ast });
+      save();
+    }
+    moveFile(activePath, path);
+    setActivePath(path);
+    focusRoot();
+  };
+
   const getFileProps = (file: any) => ({
     ...file,
     name: file.path.substring(file.path.lastIndexOf("/") + 1),
     isActive: file.path === activePath,
     onClick: onFileClick,
     onDelete: onFileDelete,
+    onSubmit: onFileSubmit,
   });
 
   return { getFileProps, newFileClick, refreshClick, files: filesWithNewFile };
