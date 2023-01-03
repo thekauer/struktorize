@@ -3,13 +3,13 @@ import { getBody, getRedis, jsonSchema } from ".";
 import { getToken } from "next-auth/jwt";
 import z from "zod";
 
-const move = z.object({
+const rename = z.object({
   ast: jsonSchema,
   from: z.string(),
   to: z.string(),
 });
 
-export type MoveDTO = z.infer<typeof move>;
+export type RenameDTO = z.infer<typeof rename>;
 
 export default async function handler(req: NextRequest) {
   const redis = getRedis();
@@ -25,7 +25,7 @@ export default async function handler(req: NextRequest) {
     return new Response("Method not allowed", { status: 405 });
 
   const body = await getBody(req);
-  const moveSchema = move.safeParse(body);
+  const moveSchema = rename.safeParse(body);
   if (!moveSchema.success) {
     return new Response("Invalid schema", { status: 400 });
   }
@@ -42,7 +42,7 @@ export default async function handler(req: NextRequest) {
     return new Response("File already exists", { status: 409 });
   }
 
-  const newFile = { ast, path: to };
+  const newFile = { path: to, type: "file", ast };
 
   await redis.hset(key, { [to]: newFile, recent: to });
   await redis.hdel(key, from);

@@ -12,7 +12,7 @@ export const useExplorer = () => {
   const [activePath, setActivePath] = useState<string>("/main");
   const [newPath, setNewPath] = useState<string | null>(null);
 
-  const { createFile, deleteFile, saveFile, moveFile, refetch, files } =
+  const { createFile, deleteFile, saveFile, renameFile, refetch, files } =
     useFiles(({ files, file }) => {
       if (files?.length === 0) {
         createFile(`/${functionName}`);
@@ -104,7 +104,7 @@ export const useExplorer = () => {
   };
 
   const onFileMove = (path: string) => {
-    moveFile({ ...activeFile, ast }, activePath, path);
+    renameFile({ ...activeFile, ast }, activePath, path);
     save();
 
     setActivePath(path);

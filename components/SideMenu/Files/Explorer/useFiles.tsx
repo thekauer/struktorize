@@ -29,17 +29,17 @@ export const useFiles = (
     ({
       file,
       method,
-      isMove,
+      isRename,
     }: {
       file: any;
       method: "post" | "delete" | "put";
-      isMove?: boolean;
+      isRename?: boolean;
     }) => {
       if (method === "delete") {
         return axios.delete(`/api/files?path=${file.path}`);
       }
-      if (method === "post" && isMove) {
-        return axios.post(`/api/files/move`, file);
+      if (method === "post" && isRename) {
+        return axios.post(`/api/files/rename`, file);
       }
 
       return axios[method]("/api/files", file);
@@ -99,7 +99,7 @@ export const useFiles = (
     });
   };
 
-  const moveFile = (file: any, from: string, to: string) => {
+  const renameFile = (file: any, from: string, to: string) => {
     mutate({
       file: {
         from,
@@ -107,11 +107,11 @@ export const useFiles = (
         to,
       },
       method: "post",
-      isMove: true,
+      isRename: true,
     });
   };
 
   const files = data?.files || [];
 
-  return { createFile, deleteFile, saveFile, moveFile, refetch, files };
+  return { createFile, deleteFile, saveFile, renameFile, refetch, files };
 };
