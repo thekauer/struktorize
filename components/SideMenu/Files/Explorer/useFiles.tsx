@@ -2,17 +2,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useRef } from "react";
 import { Ast } from "../../../../lib/ast";
-import { FileDTO, NodeDTO } from "../../../../pages/api/files";
+import { FileDTO, Files, NodeDTO } from "../../../../pages/api/files";
 
-export const useFiles = (
-  onFirstLoad?: ({ files, file }: { files: string[]; file: FileDTO }) => void
-) => {
+export const useFiles = (onFirstLoad?: ({ files, file }: Files) => void) => {
   const loadedRef = useRef(false);
   const queryClient = useQueryClient();
 
   const { data, refetch } = useQuery(
     ["files"],
-    () => axios.get("/api/files").then((res) => res.data),
+    () => axios.get<Files>("/api/files").then((res) => res.data),
     {
       onSuccess: ({ files, file }) => {
         if (!loadedRef.current) {
