@@ -7,7 +7,7 @@ import { Ast } from "../../../lib/ast";
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 type Literal = z.infer<typeof literalSchema>;
 type Json = Literal | { [key: string]: Json } | Json[];
-const jsonSchema: z.ZodType<Json> = z.lazy(() =>
+export const jsonSchema: z.ZodType<Json> = z.lazy(() =>
   z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)])
 );
 
@@ -43,18 +43,22 @@ export type newNodeDTO = z.infer<typeof newNode>;
 
 const pathParam = z.string();
 
-const getBody = async (req: NextRequest) => {
+export const getBody = async (req: NextRequest) => {
   const blob = await req.blob();
   const text = await blob.text();
   const body = JSON.parse(text);
   return body;
 };
 
-export default async function handler(req: NextRequest) {
-  const redis = new Redis({
+export const getRedis = () => {
+  return new Redis({
     url: process.env.UPSTASH_REDIS_REST_URL!,
     token: process.env.UPSTASH_REDIS_REST_TOKEN!,
   });
+};
+
+export default async function handler(req: NextRequest) {
+  const redis = getRedis();
   const token = await getToken({ req });
 
   if (!token) {

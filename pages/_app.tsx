@@ -6,10 +6,14 @@ import { ThemeProvider } from "../hooks/useTheme";
 import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { appWithTranslation } from "next-i18next";
+import { Session } from "next-auth";
 
 const queryClient = new QueryClient();
 
-function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
+function MyApp({
+  Component,
+  pageProps: { session, ...pageProps },
+}: AppProps<{ session: Session }>) {
   return (
     <SessionProvider session={session}>
       <QueryClientProvider client={queryClient}>
@@ -23,4 +27,4 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   );
 }
 
-export default appWithTranslation(MyApp);
+export default appWithTranslation(MyApp as any);

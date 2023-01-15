@@ -26,10 +26,22 @@ export const useFiles = (
   );
 
   const { mutate } = useMutation(
-    ({ file, method }: { file: any; method: "post" | "delete" | "put" }) => {
+    ({
+      file,
+      method,
+      isRename,
+    }: {
+      file: any;
+      method: "post" | "delete" | "put";
+      isRename?: boolean;
+    }) => {
       if (method === "delete") {
         return axios.delete(`/api/files?path=${file.path}`);
       }
+      if (method === "post" && isRename) {
+        return axios.post(`/api/files/rename`, file);
+      }
+
       return axios[method]("/api/files", file);
     },
     {
@@ -87,7 +99,19 @@ export const useFiles = (
     });
   };
 
+  const renameFile = (file: any, from: string, to: string) => {
+    mutate({
+      file: {
+        from,
+        ast: file.ast as any,
+        to,
+      },
+      method: "post",
+      isRename: true,
+    });
+  };
+
   const files = data?.files || [];
 
-  return { createFile, deleteFile, saveFile, refetch, files };
+  return { createFile, deleteFile, saveFile, renameFile, refetch, files };
 };
