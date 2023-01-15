@@ -1,4 +1,12 @@
-import { useEffect, useState, useCallback } from "react";
+import {
+  useEffect,
+  useState,
+  createContext,
+  Dispatch,
+  SetStateAction,
+  ReactNode,
+  useContext,
+} from "react";
 import { useAst, useAstState } from "../../../../hooks/useAST";
 import { debounce } from "../../../../lib/debounce";
 import { FileDTO } from "../../../../pages/api/files";
@@ -6,10 +14,24 @@ import { Ast } from "../../../../lib/ast";
 import { useFiles } from "./useFiles";
 import { FileProps } from "./File/File";
 
+const explorerContext = createContext<{
+  activePath: string;
+  setActivePath: Dispatch<SetStateAction<string>>;
+}>({} as any);
+
+export const ExplorerProvider = ({ children }: { children: ReactNode }) => {
+  const [activePath, setActivePath] = useState<string>("/main");
+  return (
+    <explorerContext.Provider value={{ activePath, setActivePath }}>
+      {children}
+    </explorerContext.Provider>
+  );
+};
+
 export const useExplorer = () => {
   const { functionName, ast, changed } = useAstState();
   const { load, addChangeListener, save } = useAst();
-  const [activePath, setActivePath] = useState<string>("/main");
+  const { activePath, setActivePath } = useContext(explorerContext);
   const [newPath, setNewPath] = useState<string | null>(null);
 
   const { createFile, deleteFile, saveFile, renameFile, refetch, files } =
@@ -75,7 +97,9 @@ export const useExplorer = () => {
 
   const filesWithNewFile = !newPath
     ? files
-    : [...files, newFile].sort((a, b) => b.path.localeCompare(a.path));
+    : [...files, newFile as FileDTO].sort((a, b) =>
+        b.path.localeCompare(a.path)
+      );
 
   const onFileClick = (path: string) => {
     if (path === activePath) return;
@@ -119,5 +143,11 @@ export const useExplorer = () => {
     onMove: onFileMove,
   });
 
-  return { getFileProps, newFileClick, refreshClick, files: filesWithNewFile };
+  return {
+    getFileProps,
+    newFileClick,
+    refreshClick,
+    files: filesWithNewFile,
+    onFileClick,
+  };
 };

@@ -3,6 +3,8 @@ import { useActiveItems } from "../../hooks/useActiveItems";
 import { AstProvider } from "../../hooks/useAST";
 import { useTheme } from "../../hooks/useTheme";
 import { CheatSheet } from "../CheatSheet/CheatSheet";
+import { CommandPalette } from "../CommandPalette/CommandPalette";
+import { ExplorerProvider } from "../SideMenu/Files/Explorer/useExplorer";
 import { SideMenu } from "../SideMenu/SideMenu";
 import * as S from "./Layout.atoms";
 
@@ -13,6 +15,7 @@ interface LayoutProps {
 export const Layout = ({ children }: LayoutProps) => {
   const { theme, showScope } = useTheme();
   const [showCheatSheet, setShowCheatSheet] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
   const { ITEMS, active } = useActiveItems();
 
   useEffect(() => {
@@ -22,10 +25,23 @@ export const Layout = ({ children }: LayoutProps) => {
       }
     };
 
+    const commandPaletteToggle = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "p") {
+        e.preventDefault();
+        setShowCommandPalette((prev) => !prev);
+      }
+
+      if (e.key === "Escape") {
+        setShowCommandPalette(false);
+      }
+    };
+
+    document.addEventListener("keydown", commandPaletteToggle);
     document.addEventListener("keydown", infoToggle);
 
     return () => {
       document.removeEventListener("keydown", infoToggle);
+      document.removeEventListener("keydown", commandPaletteToggle);
     };
   }, []);
 
@@ -33,19 +49,26 @@ export const Layout = ({ children }: LayoutProps) => {
 
   return (
     <AstProvider showScope={showScope}>
-      <S.Container className={theme}>
-        <SideMenu />
-        <S.MainContainer>
-          <S.Main>{children}</S.Main>
-          {showCheatSheet && (
-            <CheatSheet
-              onClose={onCheatSheetClose}
-              items={ITEMS}
-              active={active}
-            />
-          )}
-        </S.MainContainer>
-      </S.Container>
+      <ExplorerProvider>
+        <S.Container className={theme}>
+          <SideMenu />
+          <S.MainContainer>
+            <S.Main>{children}</S.Main>
+            {showCommandPalette && (
+              <CommandPalette
+                hidePalette={() => setShowCommandPalette(false)}
+              />
+            )}
+            {showCheatSheet && (
+              <CheatSheet
+                onClose={onCheatSheetClose}
+                items={ITEMS}
+                active={active}
+              />
+            )}
+          </S.MainContainer>
+        </S.Container>
+      </ExplorerProvider>
     </AstProvider>
   );
 };
