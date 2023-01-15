@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import * as S from "./File.atoms";
 
 export interface FileProps {
@@ -36,14 +37,21 @@ export const File = ({
     switch (e.key) {
       case "Enter":
         if (inputRef.current?.value === "") return;
-        if (!editing) {
-          setEditing(true);
-          setTimeout(() => inputRef.current?.focus());
+        const pressedEnterToStartRenaming = !editing;
+        if (pressedEnterToStartRenaming) {
+          flushSync(() => {
+            setEditing(true);
+          });
+          inputRef.current?.focus();
         }
-        if (!isNew && editing) {
-          const newPath = path.substring(0, path.lastIndexOf("/") + 1);
-          onMove?.(newPath + inputRef.current?.value!);
+
+        const finishedRenaming = !isNew && editing;
+        if (finishedRenaming) {
+          const oldPath = path.substring(0, path.lastIndexOf("/") + 1);
+          const newName = inputRef.current?.value!;
+          onMove?.(oldPath + newName);
         }
+
         if (isNew) onSubmit?.(path + inputRef.current?.value!);
         break;
 
