@@ -14,24 +14,6 @@ interface LayoutProps {
 
 export const Layout = ({ children }: LayoutProps) => {
   const { theme, showScope } = useTheme();
-  const [showCheatSheet, setShowCheatSheet] = useState(false);
-  const { ITEMS, active } = useActiveItems();
-
-  useEffect(() => {
-    const infoToggle = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === "i") {
-        setShowCheatSheet((prev) => !prev);
-      }
-    };
-
-    document.addEventListener("keydown", infoToggle);
-
-    return () => {
-      document.removeEventListener("keydown", infoToggle);
-    };
-  }, []);
-
-  const onCheatSheetClose = () => setShowCheatSheet(false);
 
   return (
     <AstProvider showScope={showScope}>
@@ -41,13 +23,7 @@ export const Layout = ({ children }: LayoutProps) => {
           <S.MainContainer>
             <S.Main>{children}</S.Main>
             <CommandPalette />
-            {showCheatSheet && (
-              <CheatSheet
-                onClose={onCheatSheetClose}
-                items={ITEMS}
-                active={active}
-              />
-            )}
+            <CheatSheet />
           </S.MainContainer>
         </S.Container>
       </ExplorerProvider>
