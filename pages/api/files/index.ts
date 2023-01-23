@@ -39,6 +39,11 @@ const newNode = z.object({
   path: z.string().min(2),
 });
 
+export type Files = {
+  file: FileDTO;
+  files: FileDTO[];
+};
+
 export type newNodeDTO = z.infer<typeof newNode>;
 
 const pathParam = z.string();
