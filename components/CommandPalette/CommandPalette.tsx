@@ -4,11 +4,8 @@ import { useExplorer } from "../SideMenu/Files/Explorer/useExplorer";
 import { useFiles } from "../SideMenu/Files/Explorer/useFiles";
 import * as S from "./CommandPalette.atoms";
 
-interface CommandPaletteProps {
-  hidePalette: () => void;
-}
-
-export const CommandPalette = ({ hidePalette }: CommandPaletteProps) => {
+export const CommandPalette = () => {
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [input, setInput] = useState<string>("");
   const [selected, setSelected] = useState<number>(0);
   const [filter, setFilter] = useState<string[]>();
@@ -16,14 +13,39 @@ export const CommandPalette = ({ hidePalette }: CommandPaletteProps) => {
   const { onFileClick, files } = useExplorer();
 
   useEffect(() => {
-    inputRef.current?.focus();
+    const commandPaletteToggle = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "p") {
+        e.preventDefault();
+        setShowCommandPalette((prev) => !prev);
+      }
+
+      if (e.key === "Escape") {
+        setShowCommandPalette(false);
+      }
+    };
+
+    document.addEventListener("keydown", commandPaletteToggle);
+
+    return () => {
+      document.removeEventListener("keydown", commandPaletteToggle);
+    };
   }, []);
+
+  useEffect(() => {
+    const focusRoot = () =>
+      document.querySelector<HTMLDivElement>("#root-container")?.focus();
+
+    if (showCommandPalette) inputRef.current?.focus();
+    else focusRoot();
+  }, [showCommandPalette]);
 
   const nodes = files.filter(
     (node) =>
       node.type === "file" &&
       (filter?.find((path) => path === node.path) || filter === undefined)
   );
+
+  if (!showCommandPalette) return null;
 
   return (
     <S.Container
@@ -40,7 +62,7 @@ export const CommandPalette = ({ hidePalette }: CommandPaletteProps) => {
           const selectedFile = nodes[selected];
           if (selectedFile) {
             onFileClick(selectedFile.path);
-            hidePalette();
+            setShowCommandPalette(false);
           }
         }
       }}

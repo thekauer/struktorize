@@ -15,7 +15,6 @@ interface LayoutProps {
 export const Layout = ({ children }: LayoutProps) => {
   const { theme, showScope } = useTheme();
   const [showCheatSheet, setShowCheatSheet] = useState(false);
-  const [showCommandPalette, setShowCommandPalette] = useState(false);
   const { ITEMS, active } = useActiveItems();
 
   useEffect(() => {
@@ -25,23 +24,10 @@ export const Layout = ({ children }: LayoutProps) => {
       }
     };
 
-    const commandPaletteToggle = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === "p") {
-        e.preventDefault();
-        setShowCommandPalette((prev) => !prev);
-      }
-
-      if (e.key === "Escape") {
-        setShowCommandPalette(false);
-      }
-    };
-
-    document.addEventListener("keydown", commandPaletteToggle);
     document.addEventListener("keydown", infoToggle);
 
     return () => {
       document.removeEventListener("keydown", infoToggle);
-      document.removeEventListener("keydown", commandPaletteToggle);
     };
   }, []);
 
@@ -54,11 +40,7 @@ export const Layout = ({ children }: LayoutProps) => {
           <SideMenu />
           <S.MainContainer>
             <S.Main>{children}</S.Main>
-            {showCommandPalette && (
-              <CommandPalette
-                hidePalette={() => setShowCommandPalette(false)}
-              />
-            )}
+            <CommandPalette />
             {showCheatSheet && (
               <CheatSheet
                 onClose={onCheatSheetClose}
