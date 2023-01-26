@@ -36,6 +36,11 @@ export type Ast =
   | LoopAst
   | StatementAst;
 
+export type CST = {
+  ast: Ast,
+  scope: string[]
+}
+
 const get = (scope: string[], ast: Ast) =>
   scope[0] === "" ? ast : scope.reduce((acc: any, curr) => acc[curr], ast);
 
@@ -126,19 +131,19 @@ const insert = (scope: string[], body: Ast[], index: number, node: Ast) => {
   if (index === -1) {
     return [node, ...body].map(
       (node, i) =>
-        ({
-          ...node,
-          path: setIndex(oldPath, i),
-        } as Ast)
+      ({
+        ...node,
+        path: setIndex(oldPath, i),
+      } as Ast)
     );
   }
 
   return [...body.slice(0, index + 1), node, ...body.slice(index + 1)].map(
     (node, i) =>
-      ({
-        ...node,
-        path: setIndex(oldPath, i),
-      } as Ast)
+    ({
+      ...node,
+      path: setIndex(oldPath, i),
+    } as Ast)
   );
 };
 
@@ -446,7 +451,7 @@ export const remove = (
   scope: string[],
   ast: Ast,
   strict = false
-): { scope: string[]; ast: Ast } => {
+): CST => {
   if (isOnSignature(scope)) return { scope, ast };
 
   if (strict) {
@@ -487,7 +492,7 @@ export const add = (
   scope: string[],
   ast: Ast,
   node: Ast
-): { scope: string[]; ast: Ast } => {
+): CST => {
   const newNode = prepare(scope, node);
   const newBody = createBody(scope, ast, newNode);
   const newAst = setBody(scope, ast, newBody);
@@ -506,7 +511,7 @@ export const edit = (
   scope: string[],
   ast: Ast,
   textTransform: (text?: string) => string | undefined
-) => {
+): CST => {
   const node = get(scope, ast);
   const newNode = { ...node, text: textTransform(node.text) };
   const newAst = set(scope, ast, newNode);

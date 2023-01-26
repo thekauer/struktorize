@@ -14,6 +14,8 @@ export const useEditor = () => {
     addIf,
     addLoop,
     deselectAll,
+    undo,
+    redo
   } = useAst();
   const [buffer, setBuffer] = useState("");
   const [insertMode, setInsertMode] = useState<
@@ -27,9 +29,20 @@ export const useEditor = () => {
     return e.key;
   };
 
+  const handleUndoRedo = (e: KeyboardEvent<HTMLDivElement>) => {
+
+    if (e.ctrlKey && e.shiftKey && e.key === "Z") {
+      redo();
+    }
+    if (e.ctrlKey && e.key === "z") {
+      undo();
+    }
+  }
+
   const handleKeydown = (e: KeyboardEvent<HTMLDivElement>) => {
     const key = getKey(e);
 
+    handleUndoRedo(e);
     if (e.ctrlKey) return;
 
     const navigationPayload = { select: e.shiftKey, move: e.altKey };

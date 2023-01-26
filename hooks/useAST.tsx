@@ -21,6 +21,7 @@ import {
   select,
   deselect,
   navigateAndToggleSelection,
+  CST,
 } from "../lib/ast";
 import { addText, deleteLast, getFunctionName } from "../lib/textTransform";
 
@@ -44,6 +45,8 @@ type State = {
   changeListeners: ChangeListener[];
   changed: boolean;
   selected: Set<string>;
+  history: CST[];
+  history_index: number;
 };
 
 type Action =
@@ -61,7 +64,9 @@ type Action =
   | { type: "save" }
   | { type: "select"; payload: string[][] }
   | { type: "deselect"; payload: string[][] }
-  | { type: "deselectAll" };
+  | { type: "deselectAll" }
+  | { type: "undo" }
+  | { type: "redo" };
 
 function navigate(
   moveScope: (scope: string[], ast: Ast) => string[],
@@ -84,6 +89,28 @@ function navigate(
   };
 }
 
+/** Add current ast to the history */
+function pushHistory(state: State): State {
+  const cst = { ast: state.ast, scope: state.scope };
+  const historyBeforePush = state.history.slice(0, state.history_index + 1);
+  return {
+    ...state,
+    history: [...historyBeforePush, cst], history_index: state.history_index + 1
+  };
+}
+
+/** Update last ast in history */
+function updateHistory(state: State): State {
+  const history = state.history.slice(0, state.history_index + 1);
+  const cst = { ast: state.ast, scope: state.scope };
+  history[state.history_index] = cst;
+
+  return {
+    ...state,
+    history
+  }
+}
+
 function reducer(state: State, action: Action): State {
   const { ast, scope } = state;
   switch (action.type) {
@@ -95,19 +122,23 @@ function reducer(state: State, action: Action): State {
       return navigate(left, state, action);
     case "right":
       return navigate(right, state, action);
-    case "add":
-      return { ...state, ...add(scope, ast, action.payload), changed: true };
+    case "add": {
+      return pushHistory({ ...state, ...add(scope, ast, action.payload), changed: true, });
+    }
 
-    case "text":
-      return {
+    case "text": {
+      const cst = edit(
+        scope,
+        ast,
+        addText(action.payload.text, action.payload.insertMode)
+      );
+
+      return updateHistory({
         ...state,
-        ...edit(
-          scope,
-          ast,
-          addText(action.payload.text, action.payload.insertMode)
-        ),
+        ...cst,
         changed: true,
-      };
+      });
+    }
 
     case "backspace":
       if (!isEmpty(scope, ast))
@@ -148,18 +179,35 @@ function reducer(state: State, action: Action): State {
     case "deselectAll":
       return { ...state, selected: new Set<string>() };
 
+    case "undo": {
+      const index = Math.max(state.history_index - 1, 0);
+      const cst = state.history[index];
+      return { ...state, ...cst, history_index: index };
+    }
+
+    case "redo": {
+      const index = Math.min(state.history_index + 1, state.history.length - 1);
+      const cst = state.history[index];
+      return { ...state, ...cst, history_index: index }
+    }
     default:
       return state;
   }
 }
 
-const defaultState: State = {
+const defaultCST = {
   scope: ["signature"],
   ast: DEFAULT_FUNCTION,
+};
+
+const defaultState: State = {
+  ...defaultCST,
   path: "/main",
   changeListeners: [],
   changed: false,
   selected: new Set<string>(),
+  history: [defaultCST],
+  history_index: 0,
 };
 
 interface AstProviderProps {
@@ -254,6 +302,8 @@ export const useAst = () => {
   const deselect = (selection: string[][]) =>
     dispatch({ type: "deselect", payload: selection });
   const deselectAll = () => dispatch({ type: "deselectAll" });
+  const undo = () => dispatch({ type: "undo" });
+  const redo = () => dispatch({ type: "redo" });
 
   return {
     up,
@@ -272,6 +322,8 @@ export const useAst = () => {
     select,
     deselect,
     deselectAll,
+    undo,
+    redo
   };
 };
 
