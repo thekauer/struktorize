@@ -1,3 +1,4 @@
+import FocusTrap from "focus-trap-react";
 import { ReactNode, useEffect, useState } from "react";
 import { useActiveItems } from "../../hooks/useActiveItems";
 import { AstProvider } from "../../hooks/useAST";
@@ -18,14 +19,16 @@ export const Layout = ({ children }: LayoutProps) => {
   return (
     <AstProvider showScope={showScope}>
       <ExplorerProvider>
-        <S.Container className={theme}>
-          <SideMenu />
-          <S.MainContainer>
-            <S.Main>{children}</S.Main>
-            <CommandPalette />
-            <CheatSheet />
-          </S.MainContainer>
-        </S.Container>
+        <FocusTrap>
+          <S.Container className={theme}>
+            <SideMenu />
+            <S.MainContainer>
+              <S.Main>{children}</S.Main>
+              <CommandPalette />
+              <CheatSheet />
+            </S.MainContainer>
+          </S.Container>
+        </FocusTrap>
       </ExplorerProvider>
     </AstProvider>
   );

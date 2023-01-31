@@ -49,6 +49,12 @@ export const Menu = styled.aside`
   flex-direction: column;
   justify-content: space-between;
   gap: 1rem;
+  border: 1px solid var(--light);
+
+  &:focus-visible {
+    border: 1px solid var(--blue);
+    outline: none;
+  }
 `;
 
 export const MenuTray = styled.div`
@@ -61,9 +67,9 @@ export const MenuTray = styled.div`
 export const ToggleMenu = styled.div`
   width: 14rem;
   background: var(--mid);
-  border: 1px solid transparent;
+  border: 1px solid var(--mid);
 
-  &:focus {
+  &:focus-visible {
     border: 1px solid var(--blue);
     outline: none;
   }
