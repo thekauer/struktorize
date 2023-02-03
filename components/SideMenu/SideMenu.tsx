@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "../../hooks/useTheme";
 import { Export } from "./Export/Export";
 import { Files } from "./Files/Files";
@@ -9,8 +9,20 @@ import * as S from "./SideMenu.atoms";
 
 export const SideMenu = () => {
   const [activeMenu, setActiveMenu] = useState<string | undefined>("files");
+  const [showMenu, setShowMenu] = useState<boolean>(true);
   const { theme, setTheme, setAstTheme } = useTheme();
   const { data: session, status } = useSession();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "b" && e.ctrlKey) {
+        setShowMenu(sm => !sm);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => { window.removeEventListener("keydown", handleKeyDown); }
+  }, []);
 
   const moonSrc = theme === "dark" ? "./moon.png" : "./moon_filled.png";
   const moonClick = () => {
@@ -25,9 +37,9 @@ export const SideMenu = () => {
   };
 
   const topMenuItems = ["files", "export"];
-  const open = activeMenu !== undefined;
   const menuItemClick = (name: string) => () => {
-    setActiveMenu((prev) => (prev === name ? undefined : name));
+    setShowMenu(sm => activeMenu === name ? !sm : true);
+    setActiveMenu(name);
   };
 
   const ActiveMenu: any = useMemo(
@@ -37,7 +49,7 @@ export const SideMenu = () => {
 
   return (
     <>
-      <S.Menu>
+      <S.Menu tabIndex={0}>
         <S.MenuTray>
           {topMenuItems.map((item) => (
             <MenuItem
@@ -59,7 +71,7 @@ export const SideMenu = () => {
           <MenuItem src={moonSrc} onClick={moonClick} />
         </S.MenuTray>
       </S.Menu>
-      {open && (
+      {showMenu && (
         <S.ToggleMenu tabIndex={0}>
           <ActiveMenu />
         </S.ToggleMenu>

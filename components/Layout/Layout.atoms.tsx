@@ -11,6 +11,12 @@ export const MainContainer = styled.div`
   flex-direction: column;
   flex: 1;
   overflow: auto;
+  border: 1px solid var(--mid);
+
+  &:focus-visible {
+    border: 1px solid var(--blue); 
+    outline: none;
+  }
 `;
 
 export const Main = styled.main`

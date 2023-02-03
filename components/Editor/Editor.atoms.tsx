@@ -7,10 +7,13 @@ export const Container = styled.div`
   justify-content: flex-start;
   width: 100%;
   height: 100%;
-
-  &:focus {
+  border: 1px solid var(--dark);
+  
+  &:focus-visible {
+    border: 1px solid var(--blue);
     outline: none;
   }
+  
 `;
 
 export const Root = styled.div`
