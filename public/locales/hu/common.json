@@ -2,7 +2,9 @@
   "menu": {
     "files": {
       "title": "Fájlok",
-      "signInToSaveYourStructograms": "Jelentkezz be, hogy el tudd menteni a structogramjaidat:"
+      "signInToSaveYourStructograms": "Jelentkezz be, hogy el tudd menteni a structogramjaidat:",
+      "rename": "Átnevezés",
+      "delete": "Törlés"
     },
     "export": {
       "title": "Exportálás",
@@ -32,7 +34,11 @@
         "vagy",
         "a kezdéshez"
       ],
-      "openCheatSheet": ["Nyomj", ", hogy megnyisd a", "puskát"]
+      "openCheatSheet": [
+        "Nyomj",
+        ", hogy megnyisd a",
+        "puskát"
+      ]
     }
   },
   "cheatSheet": {
