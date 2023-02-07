@@ -1,5 +1,9 @@
 import styled, { css } from "styled-components";
 
+export const FileMenu = styled.div`
+  display: none;
+`;
+
 export const Container = styled.div<{ active?: boolean }>`
   display: flex;
   align-items: center;
@@ -18,6 +22,14 @@ export const Container = styled.div<{ active?: boolean }>`
   &:hover {
     background-color: var(--light);
     cursor: pointer;
+  }
+
+  &:hover ${FileMenu} {
+    display: flex;
+    flex:1;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.125rem;
   }
 
   &:focus {
