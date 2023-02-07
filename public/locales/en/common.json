@@ -2,7 +2,9 @@
   "menu": {
     "files": {
       "title": "Files",
-      "signInToSaveYourStructograms": "Sign in to save your structograms:"
+      "signInToSaveYourStructograms": "Sign in to save your structograms:",
+      "rename": "Rename",
+      "delete": "Delete"
     },
     "export": {
       "title": "Export",
@@ -26,8 +28,17 @@
   },
   "main": {
     "emptyBody": {
-      "getStarted": ["Press", "or type", "or", "to get started"],
-      "openCheatSheet": ["Press", "to open the", "cheat sheet"]
+      "getStarted": [
+        "Press",
+        "or type",
+        "or",
+        "to get started"
+      ],
+      "openCheatSheet": [
+        "Press",
+        "to open the",
+        "cheat sheet"
+      ]
     }
   },
   "cheatSheet": {

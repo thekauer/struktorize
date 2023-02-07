@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import * as S from "./File.atoms";
+import * as ES from "../Explorer.atoms";
+import { useTranslation } from "next-i18next";
 
 export interface FileProps {
   name?: string;
@@ -27,37 +29,46 @@ export const File = ({
 }: FileProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(isNew);
+  const { t } = useTranslation(["common"], { keyPrefix: "menu.files" });
+
   useEffect(() => {
     if (isNew) {
       inputRef.current?.focus();
     }
   }, []);
 
+  const handleDelete = () => {
+    if (isNew) return;
+    onDelete?.(path);
+  };
+
+  const handleRename = () => {
+    if (inputRef.current?.value === "") return;
+    const pressedEnterToStartRenaming = !editing;
+    if (pressedEnterToStartRenaming) {
+      flushSync(() => {
+        setEditing(true);
+      });
+      inputRef.current?.focus();
+    }
+
+    const finishedRenaming = !isNew && editing;
+    if (finishedRenaming) {
+      const oldPath = path.substring(0, path.lastIndexOf("/") + 1);
+      const newName = inputRef.current?.value!;
+      onMove?.(oldPath + newName);
+    }
+  }
+
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     switch (e.key) {
       case "Enter":
-        if (inputRef.current?.value === "") return;
-        const pressedEnterToStartRenaming = !editing;
-        if (pressedEnterToStartRenaming) {
-          flushSync(() => {
-            setEditing(true);
-          });
-          inputRef.current?.focus();
-        }
-
-        const finishedRenaming = !isNew && editing;
-        if (finishedRenaming) {
-          const oldPath = path.substring(0, path.lastIndexOf("/") + 1);
-          const newName = inputRef.current?.value!;
-          onMove?.(oldPath + newName);
-        }
-
+        handleRename();
         if (isNew) onSubmit?.(path + inputRef.current?.value!);
         break;
 
       case "Delete":
-        if (isNew) return;
-        onDelete?.(path);
+        handleDelete();
         break;
 
       case "Escape":
@@ -75,7 +86,13 @@ export const File = ({
       tabIndex={-1}
     >
       <S.Image src={"/structogram.png"} />
-      {editing ? <S.Input ref={inputRef} /> : <S.Name>{name}</S.Name>}
+      {editing ? <S.Input ref={inputRef} /> :
+        <>
+          <S.Name>{name}</S.Name><S.FileMenu>
+            <ES.MenuItem src="/rename.svg" onClick={handleRename} title={t("rename")} />
+            <ES.MenuItem src="/bin.svg" onClick={handleDelete} title={t("delete")} />
+          </S.FileMenu>
+        </>}
     </S.Container>
   );
 };
