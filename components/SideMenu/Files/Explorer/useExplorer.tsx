@@ -9,7 +9,7 @@ import {
 } from "react";
 import { useAst, useAstState } from "../../../../hooks/useAST";
 import { debounce } from "../../../../lib/debounce";
-import { FileDTO } from "../../../../pages/api/files";
+import { File, FileDTO } from "../../../../pages/api/files";
 import { Ast } from "../../../../lib/ast";
 import { useFiles } from "./useFiles";
 import { FileProps } from "./File/File";
@@ -117,9 +117,9 @@ export const useExplorer = () => {
   };
 
   const onFileDelete = (path: string) => {
-    const nextFile: any = files.filter(
+    const nextFile: any = files.find(
       (f: FileDTO) => f.path !== path && f.type === "file"
-    )[0];
+    );
     if (nextFile) {
       setActivePath(nextFile.path);
       load(nextFile.ast as any, nextFile.path);
@@ -135,7 +135,7 @@ export const useExplorer = () => {
   };
 
   const onFileShare = async (path: string) => {
-    const id = files.find((f: any) => f.path === path)?.id;
+    const id = files.find((f: File) => f.path === path)?.id;
     if (!id) throw new Error("File not found");
     await navigator.clipboard.writeText(id);
   }

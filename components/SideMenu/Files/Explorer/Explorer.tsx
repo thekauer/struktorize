@@ -9,7 +9,6 @@ export const Explorer = () => {
     <S.Container>
       <S.Menu>
         <S.MenuItem src={"/new_file.png"} onClick={newFileClick} />
-        <S.MenuItem src={"/new_folder.png"} />
         <S.MenuItem src={"/refresh.png"} onClick={refreshClick} />
         <S.MenuItem src={"/collapse_all.png"} />
       </S.Menu>

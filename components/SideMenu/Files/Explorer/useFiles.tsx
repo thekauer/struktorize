@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useRef } from "react";
-import { Files, NodeDTO } from "../../../../pages/api/files";
+import { Files, FileDTO} from "../../../../pages/api/files";
 
 export const useFiles = (onFirstLoad?: ({ files, file }: Files) => void) => {
   const loadedRef = useRef(false);
@@ -73,7 +73,7 @@ export const useFiles = (onFirstLoad?: ({ files, file }: Files) => void) => {
         path: file.path,
         ast: file.ast as any,
         type: "file",
-      } as NodeDTO,
+    } as FileDTO,
       method: "post",
     });
 

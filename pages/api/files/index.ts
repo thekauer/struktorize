@@ -11,35 +11,27 @@ const file = z.object({
   ast: jsonSchema,
 });
 
-const folder = z.object({
-  type: z.literal("folder"),
-  path: z.string(),
-});
-
-const node = z.union([file, folder]);
-
-export type FileDTO = {
+export type File = {
   ast: Ast;
   type: "file";
   path: string;
   id: string
-};
-export type FolderDTO = z.infer<typeof folder>;
-export type NodeDTO = FileDTO | FolderDTO;
+}
 
-export type NodesDTO = NodeDTO[];
+export type FileDTO = Omit<File, "id">;
+export type FilesDTO = FileDTO[];
 
-const newNode = z.object({
-  type: z.union([z.literal("file"), z.literal("folder")]),
+const newFile = z.object({
+  type: z.literal("file"),
   path: z.string().min(2),
 });
 
-export type Files = {
-  file: FileDTO;
-  files: FileDTO[];
-};
+export type NewFileDto = z.infer<typeof newFile>;
 
-export type newNodeDTO = z.infer<typeof newNode>;
+export type Files = {
+  file: File;
+  files: File[];
+};
 
 const pathParam = z.string();
 
@@ -82,7 +74,7 @@ const put = async (req: NextRequest, token: JWT, redis: Redis) => {
   const key = `files:${token.id}`;
 
   const body = await getBody(req);
-  const newFileSchema = newNode.safeParse(body);
+  const newFileSchema = newFile.safeParse(body);
 
   if (!newFileSchema.success) {
     return BadRequest();
@@ -105,7 +97,7 @@ const put = async (req: NextRequest, token: JWT, redis: Redis) => {
     path: "",
   };
 
-  const newEntity: NodeDTO = {
+  const newEntity: File = {
     path,
     type,
     ast: type === "file" ? (ast as any) : undefined,
@@ -121,7 +113,7 @@ const post = async (req: NextRequest, token: JWT, redis: Redis) => {
   const key = `files:${token.id}`;
   const body = await getBody(req);
 
-  const schema = node.safeParse(body);
+  const schema = file.safeParse(body);
   if (!schema.success) {
     return BadRequest();
   }
