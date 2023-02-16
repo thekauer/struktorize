@@ -10,16 +10,20 @@ export function BadRequest(reason?: string) {
   return new Response(reason || "Bad Request", { status: 400 });
 }
 
-export function Unauthorized() {
-  return new Response("Unauthorized", { status: 401 });
+export function Unauthorized(reason?: string) {
+  return new Response(reason || "Unauthorized", { status: 401 });
 }
 
-export function NotFound() {
-  return new Response("Not Found", { status: 404 });
+export function NotFound(reason?: string) {
+  return new Response(reason || "Not Found", { status: 404 });
 }
 
-export function Conflict() {
-  return new Response("Conflict", { status: 409 })
+export function Conflict(reason?: string) {
+  return new Response(reason || "Conflict", { status: 409 })
+}
+
+export function NotAllowed(reason?: string) {
+  return new Response(reason || "Method not allowed", { status: 405 })
 }
 
 export async function getBody(req: NextRequest) {

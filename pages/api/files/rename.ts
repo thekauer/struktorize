@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
-import { getBody, getRedis, jsonSchema } from ".";
 import { getToken } from "next-auth/jwt";
 import z from "zod";
+import { BadRequest, Conflict, getBody, getRedis, jsonSchema, NotAllowed, NotFound, Ok } from "lib/serverUtils";
 
 const rename = z.object({
   ast: jsonSchema,
@@ -22,24 +22,24 @@ export default async function handler(req: NextRequest) {
   const key = `files:${token.id}`;
 
   if (req.method !== "POST")
-    return new Response("Method not allowed", { status: 405 });
+    return NotAllowed();
 
   const body = await getBody(req);
   const moveSchema = rename.safeParse(body);
   if (!moveSchema.success) {
-    return new Response("Invalid schema", { status: 400 });
+    return BadRequest("Invalid schema");
   }
 
   const { from, to, ast } = moveSchema.data;
 
   const oldFile = await redis.hget(key, from);
   if (oldFile === null) {
-    return new Response("File not found", { status: 404 });
+    return NotFound("File not found");
   }
 
   const fileExists = await redis.hget(key, to);
   if (fileExists !== null) {
-    return new Response("File already exists", { status: 409 });
+    return Conflict("File already exists");
   }
 
   const newFile = { path: to, type: "file", ast };
@@ -47,7 +47,7 @@ export default async function handler(req: NextRequest) {
   await redis.hset(key, { [to]: newFile, recent: to });
   await redis.hdel(key, from);
 
-  return new Response("OK", { status: 200 });
+  return Ok();
 }
 
 export const config = {
