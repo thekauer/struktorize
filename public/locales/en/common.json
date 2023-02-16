@@ -3,6 +3,9 @@
     "files": {
       "title": "Files",
       "signInToSaveYourStructograms": "Sign in to save your structograms:",
+      "copyToClipboard": "Link copied to clipboard",
+      "generatingLink": "Generating link...",
+      "errorGeneratingLink": "Something went wrong while generating your link",
       "rename": "Rename",
       "delete": "Delete"
     },

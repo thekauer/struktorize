@@ -3,6 +3,7 @@ import { flushSync } from "react-dom";
 import * as S from "./File.atoms";
 import * as ES from "../Explorer.atoms";
 import { useTranslation } from "next-i18next";
+import toast from 'react-hot-toast';
 
 export interface FileProps {
   name?: string;
@@ -14,6 +15,7 @@ export interface FileProps {
   onEscape?: () => void;
   onSubmit?: (path: string) => void;
   onMove?: (path: string) => void;
+  onShare?: (path: string) => Promise<void>;
 }
 
 export const File = ({
@@ -26,6 +28,7 @@ export const File = ({
   onEscape,
   onSubmit,
   onMove,
+  onShare
 }: FileProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(isNew);
@@ -41,6 +44,18 @@ export const File = ({
     if (isNew) return;
     onDelete?.(path);
   };
+
+  const handleShare = () => {
+    if (!onShare || !path) {
+      toast.error(t("errorGeneratingLink"));
+      return;
+    };
+    toast.promise(onShare(path), {
+      loading: t("generatingLink"),
+      success: t('copyToClipboard'),
+      error: t("errorGeneratingLink")
+    });
+  }
 
   const handleRename = () => {
     if (inputRef.current?.value === "") return;
@@ -89,6 +104,7 @@ export const File = ({
       {editing ? <S.Input ref={inputRef} /> :
         <>
           <S.Name>{name}</S.Name><S.FileMenu>
+            <ES.MenuItem src="/share.svg" onClick={handleShare} title={t("share")} />
             <ES.MenuItem src="/rename.svg" onClick={handleRename} title={t("rename")} />
             <ES.MenuItem src="/bin.svg" onClick={handleDelete} title={t("delete")} />
           </S.FileMenu>

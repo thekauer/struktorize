@@ -98,8 +98,8 @@ export const useExplorer = () => {
   const filesWithNewFile = !newPath
     ? files
     : [...files, newFile as FileDTO].sort((a, b) =>
-        b.path.localeCompare(a.path)
-      );
+      b.path.localeCompare(a.path)
+    );
 
   const onFileClick = (path: string) => {
     if (path === activePath) return;
@@ -134,6 +134,12 @@ export const useExplorer = () => {
     setActivePath(path);
   };
 
+  const onFileShare = async (path: string) => {
+    const id = files.find((f: any) => f.path === path)?.id;
+    if (!id) throw new Error("File not found");
+    await navigator.clipboard.writeText(id);
+  }
+
   const getFileProps = (file: any) => ({
     ...file,
     name: file.path.substring(file.path.lastIndexOf("/") + 1),
@@ -141,6 +147,7 @@ export const useExplorer = () => {
     onClick: onFileClick,
     onDelete: onFileDelete,
     onMove: onFileMove,
+    onShare: onFileShare,
   });
 
   return {
