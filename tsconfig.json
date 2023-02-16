@@ -32,7 +32,12 @@
       "@hooks/*": [
         "hooks/*"
       ],
-    }
+    },
+    "plugins": [
+      {
+        "name": "typescript-styled-plugin"
+      }
+    ]
   },
   "include": [
     "next-env.d.ts",
