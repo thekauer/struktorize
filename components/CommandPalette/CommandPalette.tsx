@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { FileDTO } from "../../pages/api/files";
+import { File, FileDTO } from "../../pages/api/files";
 import { useExplorer } from "../SideMenu/Files/Explorer/useExplorer";
-import { useFiles } from "../SideMenu/Files/Explorer/useFiles";
 import * as S from "./CommandPalette.atoms";
 
 export const CommandPalette = () => {
@@ -39,8 +38,8 @@ export const CommandPalette = () => {
     else focusRoot();
   }, [showCommandPalette]);
 
-  const nodes = files.filter(
-    (node) =>
+  const nodes: File[] = files.filter(
+    (node: File) =>
       node.type === "file" &&
       (filter?.find((path) => path === node.path) || filter === undefined)
   );

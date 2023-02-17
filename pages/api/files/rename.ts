@@ -1,10 +1,10 @@
 import { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
 import z from "zod";
-import { BadRequest, Conflict, getBody, getRedis, jsonSchema, NotAllowed, NotFound, Ok } from "lib/serverUtils";
+import { astSchmea, BadRequest, Conflict, getBody, getToken, NotAllowed, NotFound, Ok, Unauthorized } from "lib/serverUtils";
+import { deleteFile, doesFileExist, getFile, updateFileAndRecent } from "lib/repository";
 
 const rename = z.object({
-  ast: jsonSchema,
+  ast: astSchmea,
   from: z.string(),
   to: z.string(),
 });
@@ -12,14 +12,13 @@ const rename = z.object({
 export type RenameDTO = z.infer<typeof rename>;
 
 export default async function handler(req: NextRequest) {
-  const redis = getRedis();
-  const token = await getToken({ req });
+  const token = await getToken(req);
 
   if (!token) {
-    return new Response("Unauthorized", { status: 401 });
+    return Unauthorized();
   }
 
-  const key = `files:${token.id}`;
+  const userId = token.id;
 
   if (req.method !== "POST")
     return NotAllowed();
@@ -32,20 +31,19 @@ export default async function handler(req: NextRequest) {
 
   const { from, to, ast } = moveSchema.data;
 
-  const oldFile = await redis.hget(key, from);
+  const oldFile = await getFile(userId, from);
   if (oldFile === null) {
     return NotFound("File not found");
   }
 
-  const fileExists = await redis.hget(key, to);
-  if (fileExists !== null) {
+  if (await doesFileExist(userId, to)) {
     return Conflict("File already exists");
   }
 
-  const newFile = { path: to, type: "file", ast };
+  const newFile = { path: to, type: "file" as const, ast };
 
-  await redis.hset(key, { [to]: newFile, recent: to });
-  await redis.hdel(key, from);
+  await updateFileAndRecent(userId, newFile)
+  await deleteFile(userId, from);
 
   return Ok();
 }

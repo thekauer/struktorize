@@ -1,20 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useRef } from "react";
-import { Files, FileDTO} from "../../../../pages/api/files";
+import { UserDataDTO, FileDTO } from "../../../../pages/api/files";
 
-export const useFiles = (onFirstLoad?: ({ files, file }: Files) => void) => {
+export const useFiles = (onFirstLoad?: ({ files, recent }: UserDataDTO) => void) => {
   const loadedRef = useRef(false);
   const queryClient = useQueryClient();
 
   const { data, refetch } = useQuery(
     ["files"],
-    () => axios.get<Files>("/api/files").then((res) => res.data),
+    () => axios.get<UserDataDTO>("/api/files").then((res) => res.data),
     {
-      onSuccess: ({ files, file }) => {
+      onSuccess: ({ files, recent }) => {
         if (!loadedRef.current) {
           loadedRef.current = true;
-          onFirstLoad?.({ files, file });
+          onFirstLoad?.({ files, recent });
         }
       },
       staleTime: Infinity,
@@ -73,7 +73,7 @@ export const useFiles = (onFirstLoad?: ({ files, file }: Files) => void) => {
         path: file.path,
         ast: file.ast as any,
         type: "file",
-    } as FileDTO,
+      } as FileDTO,
       method: "post",
     });
 

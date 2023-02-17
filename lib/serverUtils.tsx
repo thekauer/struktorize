@@ -1,6 +1,7 @@
-import { Redis } from "@upstash/redis";
 import { NextRequest } from "next/server";
+import { getToken as authGetToken } from "next-auth/jwt";
 import { z } from "zod";
+import { Ast } from "./ast";
 
 export function Ok(payload?: Object) {
   return new Response(JSON.stringify(payload) || "ok", { status: 200 });
@@ -26,6 +27,18 @@ export function NotAllowed(reason?: string) {
   return new Response(reason || "Method not allowed", { status: 405 })
 }
 
+export type Token = {
+  name: string;
+  email: string;
+  picture: string;
+  id: string;
+  locale: string;
+}
+
+export async function getToken(req: NextRequest): Promise<Token | null> {
+  return await authGetToken({ req }) as Token;
+}
+
 export async function getBody(req: NextRequest) {
   const blob = await req.blob();
   const text = await blob.text();
@@ -37,18 +50,11 @@ export function makeId(userId: string) {
   return btoa(userId + Date.now().toString(36));
 }
 
-
-export function getRedis() {
-  return new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL!,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-  });
-};
-
-
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 type Literal = z.infer<typeof literalSchema>;
 export type Json = Literal | { [key: string]: Json } | Json[];
 export const jsonSchema: z.ZodType<Json> = z.lazy(() =>
   z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)])
-);
+)
+export const astSchmea: z.ZodType<Ast> = jsonSchema as any;
+

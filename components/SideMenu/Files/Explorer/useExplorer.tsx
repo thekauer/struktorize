@@ -9,7 +9,8 @@ import {
 } from "react";
 import { useAst, useAstState } from "../../../../hooks/useAST";
 import { debounce } from "../../../../lib/debounce";
-import { File, FileDTO } from "../../../../pages/api/files";
+import { FileDTO } from "../../../../pages/api/files";
+import { File } from "lib/repository";
 import { Ast } from "../../../../lib/ast";
 import { useFiles } from "./useFiles";
 import { FileProps } from "./File/File";
@@ -35,12 +36,12 @@ export const useExplorer = () => {
   const [newPath, setNewPath] = useState<string | null>(null);
 
   const { createFile, deleteFile, saveFile, renameFile, refetch, files } =
-    useFiles(({ files, file }) => {
+    useFiles(({ files, recent }) => {
       if (files?.length === 0) {
         createFile(`/${functionName}`);
         return;
       }
-      load(file.ast as Ast, file.path);
+      load(recent.ast as Ast, recent.path);
     });
 
   useEffect(() => {
@@ -97,7 +98,7 @@ export const useExplorer = () => {
 
   const filesWithNewFile = !newPath
     ? files
-    : [...files, newFile as FileDTO].sort((a, b) =>
+    : [...files, newFile as File].sort((a, b) =>
       b.path.localeCompare(a.path)
     );
 
