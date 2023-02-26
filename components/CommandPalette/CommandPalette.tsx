@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { File, FileDTO } from "../../pages/api/files";
+import { FileDTO } from "../../pages/api/files";
+import { File } from "lib/repository"
 import { useExplorer } from "../SideMenu/Files/Explorer/useExplorer";
 import * as S from "./CommandPalette.atoms";
 
