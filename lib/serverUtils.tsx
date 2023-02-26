@@ -7,6 +7,10 @@ export function Ok(payload?: Object) {
   return new Response(JSON.stringify(payload) || "ok", { status: 200 });
 }
 
+export function Created(payload?: Object) {
+  return new Response(JSON.stringify(payload) || "created", { status: 201 });
+}
+
 export function BadRequest(reason?: string) {
   return new Response(reason || "Bad Request", { status: 400 });
 }
@@ -47,7 +51,13 @@ export async function getBody(req: NextRequest) {
 };
 
 export function makeId(userId: string) {
-  return btoa(userId + Date.now().toString(36));
+  const firstPartNo = (Math.random() * 46656) | 0;
+  const secondPartNo = (Math.random() * 46656) | 0;
+
+  const firstPart = ("000" + firstPartNo.toString(36)).slice(-3);
+  const secondPart = ("000" + secondPartNo.toString(36)).slice(-3);
+
+  return firstPart + secondPart;
 }
 
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
