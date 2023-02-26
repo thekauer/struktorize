@@ -14,8 +14,12 @@ const Root = () => {
   );
 };
 
-export const Editor = () => {
-  const { containerProps, rootRef } = useEditor();
+interface EditorProps {
+  readonly?: boolean;
+}
+
+export const Editor = ({ readonly }: EditorProps) => {
+  const { containerProps, rootRef } = useEditor(readonly);
 
   useEffect(() => {
     rootRef.current?.focus();
