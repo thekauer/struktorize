@@ -14,7 +14,7 @@ interface LayoutProps {
 }
 
 export const Layout = ({ children }: LayoutProps) => {
-  const { theme, showScope } = useTheme();
+  const { theme } = useTheme();
   const toastOptions = {
     style: {
       background: 'var(--mid)',
@@ -23,20 +23,18 @@ export const Layout = ({ children }: LayoutProps) => {
   }
 
   return (
-    <AstProvider showScope={showScope}>
-      <ExplorerProvider>
-        <Toaster position="bottom-center" toastOptions={toastOptions} />
-        <FocusTrap>
-          <S.Container className={theme}>
-            <SideMenu />
-            <S.MainContainer>
-              <S.Main>{children}</S.Main>
-              <CommandPalette />
-              <CheatSheet />
-            </S.MainContainer>
-          </S.Container>
-        </FocusTrap>
-      </ExplorerProvider>
-    </AstProvider>
+    <ExplorerProvider>
+      <Toaster position="bottom-center" toastOptions={toastOptions} />
+      <FocusTrap>
+        <S.Container className={theme}>
+          <SideMenu />
+          <S.MainContainer>
+            <S.Main>{children}</S.Main>
+            <CommandPalette />
+            <CheatSheet />
+          </S.MainContainer>
+        </S.Container>
+      </FocusTrap>
+    </ExplorerProvider>
   );
 };

@@ -24,6 +24,7 @@ import {
   CST,
 } from "../lib/ast";
 import { addText, deleteLast, getFunctionName } from "../lib/textTransform";
+import { useTheme } from "./useTheme";
 
 type ChangeListener = (state: State) => void;
 
@@ -212,11 +213,11 @@ const defaultState: State = {
 
 interface AstProviderProps {
   children: ReactNode;
-  showScope?: boolean;
 }
 
-export const AstProvider = ({ children, showScope }: AstProviderProps) => {
+export const AstProvider = ({ children }: AstProviderProps) => {
   const [state, dispatch] = useReducer(reducer, defaultState);
+  const { showScope } = useTheme();
 
   const { ast, scope, changed, selected } = state;
 

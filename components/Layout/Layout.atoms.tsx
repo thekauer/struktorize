@@ -20,7 +20,15 @@ export const MainContainer = styled.div`
 `;
 
 export const Main = styled.main`
+  display: flex;
   flex: 1;
   background: var(--dark);
   color: var(--text);
+`;
+
+export const Center = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
 `;

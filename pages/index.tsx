@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { Editor } from "@/components/Editor/Editor";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { Layout } from "@/components/Layout/Layout";
 
 export async function getStaticProps({ locale }: { locale: string }) {
   return {
@@ -17,8 +18,9 @@ export default function Home() {
         <title>Structorizer</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <Editor />
+      <Layout>
+        <Editor />
+      </Layout>
     </>
   );
 }
