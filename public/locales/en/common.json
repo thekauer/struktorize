@@ -6,6 +6,7 @@
       "copyToClipboard": "Link copied to clipboard",
       "generatingLink": "Generating link...",
       "errorGeneratingLink": "Something went wrong while generating your link",
+      "share": "Share",
       "rename": "Rename",
       "delete": "Delete"
     },
