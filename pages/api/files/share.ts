@@ -1,19 +1,20 @@
-import { getRedis } from "lib/repository";
-import { BadRequest, getBody, getToken, NotAllowed, Ok, Unauthorized } from "lib/serverUtils";
+import { getFile, shareFile } from "lib/repository";
+import { BadRequest, Created, getBody, getToken, NotAllowed, NotFound, Ok, Unauthorized } from "lib/serverUtils";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 
 const shareValidator = z.object({
   path: z.string(),
-  id: z.string()
 });
 
 export type ShareBody = z.infer<typeof shareValidator>;
 export type ShareResponse = { code: string };
 
+export type ShareDTO = {
+  id: string;
+}
 
 export default async function handler(req: NextRequest) {
-  const redis = getRedis();
   const token = await getToken(req);
 
   if (!token) {
@@ -32,14 +33,20 @@ export default async function handler(req: NextRequest) {
   if (!shareSchema.success) {
     return BadRequest();
   }
-  const { id, path } = shareSchema.data;
+  const { path } = shareSchema.data;
   const userId = token.id;
 
-  const ast = await redis.hget(`user:${userId}`, 'files');
+  const file = await getFile(userId, path);
+  if (!file) {
+    return NotFound();
+  }
 
+  if (file.sharedId) {
+    return Ok({ id: file.sharedId });
+  }
 
-  return BadRequest();
-
+  const id = await shareFile(userId, path)
+  return Created({ id });
 }
 
 export const config = {

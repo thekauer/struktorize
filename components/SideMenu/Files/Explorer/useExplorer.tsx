@@ -14,6 +14,8 @@ import { File } from "lib/repository";
 import { Ast } from "../../../../lib/ast";
 import { useFiles } from "./useFiles";
 import { FileProps } from "./File/File";
+import axios from "axios";
+import { ShareDTO } from "@/pages/api/files/share";
 
 const explorerContext = createContext<{
   activePath: string;
@@ -136,9 +138,8 @@ export const useExplorer = () => {
   };
 
   const onFileShare = async (path: string) => {
-    const id = files.find((f: File) => f.path === path)?.id;
-    if (!id) throw new Error("File not found");
-    await navigator.clipboard.writeText(id);
+    const { data: { id } } = await axios.post<ShareDTO>(`/api/files/share/`, { path });
+    await navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_SITE_URL}/${id}`);
   }
 
   const getFileProps = (file: any) => ({
