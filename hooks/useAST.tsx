@@ -43,7 +43,7 @@ type State = {
   ast: Ast;
   scope: string[];
   path: string;
-  changeListeners: ChangeListener[];
+  changeListeners: Record<string, ChangeListener>;
   changed: boolean;
   selected: Set<string>;
   history: CST[];
@@ -60,7 +60,7 @@ type Action =
   | { type: "backspace" }
   | { type: "setScope"; payload: string[] }
   | { type: "load"; payload: { ast: Ast; path: string } }
-  | { type: "addChangeListener"; payload: ChangeListener }
+  | { type: "addChangeListener"; payload: { key: string, listener: ChangeListener } }
   | { type: "callChangeListeners" }
   | { type: "save" }
   | { type: "select"; payload: string[][] }
@@ -160,10 +160,10 @@ function reducer(state: State, action: Action): State {
     case "addChangeListener":
       return {
         ...state,
-        changeListeners: [...state.changeListeners, action.payload],
+        changeListeners: { ...state.changeListeners, [action.payload.key]: action.payload.listener }
       };
     case "callChangeListeners":
-      state.changeListeners.forEach((listener) => listener(state));
+      Object.values(state.changeListeners).forEach((listener) => listener?.(state));
       return state;
     case "save":
       return { ...state, changed: false };
@@ -204,7 +204,7 @@ const defaultCST = {
 const defaultState: State = {
   ...defaultCST,
   path: "/main",
-  changeListeners: [],
+  changeListeners: {},
   changed: false,
   selected: new Set<string>(),
   history: [defaultCST],
@@ -295,9 +295,12 @@ export const useAst = () => {
   const load = (ast: Ast, path: string) => {
     dispatch({ type: "load", payload: { ast, path } });
   };
-  const addChangeListener = (listener: ChangeListener) =>
-    dispatch({ type: "addChangeListener", payload: listener });
-  const save = () => dispatch({ type: "save" });
+  const addChangeListener = (listener: ChangeListener, key = `${Date.now()}_${Math.random()}`) =>
+    dispatch({ type: "addChangeListener", payload: { key, listener } });
+  const save = () => {
+    dispatch({ type: "save" });
+    callChangeListeners();
+  }
   const select = (selection: string[][]) =>
     dispatch({ type: "select", payload: selection });
   const deselect = (selection: string[][]) =>

@@ -50,11 +50,10 @@ export const useExplorer = () => {
     addChangeListener(
       debounce((state) => {
         if (state.changed) {
-          saveFile(state);
+          saveFile({ ...state, type: "file" });
           save();
         }
-      }, 10000)
-    );
+      }, 10000), "save");
   }, []);
 
   const newFileClick = () => {
