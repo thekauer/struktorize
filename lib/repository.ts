@@ -90,6 +90,7 @@ type SharedFile = { key: string; path: string; };
 
 export async function shareFile(userId: string, path: string) {
   const id = makeId(`${userId} ${path}`);
+  const id = makeId();
 
   const pipeline = getRedis().multi();
   pipeline.json.set(`user:${userId}`, `$.files["${path}"].sharedId`, addQuotes(id));

@@ -50,7 +50,7 @@ export async function getBody(req: NextRequest) {
   return body;
 };
 
-export function makeId(userId: string) {
+export function makeId() {
   const firstPartNo = (Math.random() * 46656) | 0;
   const secondPartNo = (Math.random() * 46656) | 0;
 
