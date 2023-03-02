@@ -1,11 +1,10 @@
-import { getFile, getUserData, File, newFile, NewFile, doesFileExist, updateFileAndRecent, deleteFile } from "lib/repository";
-import { BadRequest, NotFound, Ok, Unauthorized, getBody, Conflict, Token, getToken, astSchmea } from "lib/serverUtils";
+import { Ast } from "lib/ast";
+import { getFile, getUserData, File, doesFileExist, updateFileAndRecent, deleteFile } from "lib/repository";
+import { BadRequest, NotFound, Ok, Unauthorized, getBody, Conflict, Token, getToken, astSchmea, Created } from "lib/serverUtils";
 import { NextRequest } from "next/server";
 import z from "zod";
-import { Ast } from "../../../lib/ast";
 
 
-export type FileDTO = Omit<File, "id">;
 export type FilesDTO = FileDTO[];
 
 const pathParam = z.string();
@@ -46,27 +45,52 @@ const get = async (req: NextRequest, token: Token) => {
 
 }
 
+const fileValidator = z.object({
+  type: z.literal("file"),
+  path: z.string(),
+  ast: astSchmea,
+});
+
+export type FileDTO = z.infer<typeof fileValidator>
+
 const put = async (req: NextRequest, token: Token) => {
   const userId = token.id;
   const body = await getBody(req);
 
-  const newFileValidator = z.object({
-    type: z.literal("file"),
-    path: z.string().min(2),
-  });
-
-  const newFileSchema = newFileValidator.safeParse(body);
-
-  if (!newFileSchema.success) {
+  const schema = fileValidator.safeParse(body);
+  if (!schema.success) {
     return BadRequest();
   }
-  const { path, type } = newFileSchema.data;
-  const name = path.split("/").pop();
 
-  if (await doesFileExist(userId, path)) {
+  await updateFileAndRecent(userId, schema.data)
+  return Ok();
+}
+
+const newFileValidator = z.object({
+  type: z.literal("file"),
+  path: z.string(),
+  ast: astSchmea.optional(),
+});
+
+export type NewFileDTO = z.infer<typeof newFileValidator>
+
+const post = async (req: NextRequest, token: Token) => {
+  const userId = token.id;
+  const body = await getBody(req);
+
+
+  const schema = newFileValidator.safeParse(body);
+  if (!schema.success) {
+    return BadRequest();
+  }
+
+  const { data: file } = schema;
+
+  if (await doesFileExist(userId, file.path)) {
     return Conflict();
   }
 
+  const name = file.path.split("/").pop();
   const ast = {
     signature: {
       text: `\\text{${name}}()`,
@@ -78,33 +102,8 @@ const put = async (req: NextRequest, token: Token) => {
     path: "",
   } as Ast;
 
-  const newEntity: NewFile = {
-    path,
-    type,
-    ast,
-  };
-
-  await newFile(userId, newEntity);
-  return Ok();
-}
-
-const post = async (req: NextRequest, token: Token) => {
-  const userId = token.id;
-  const body = await getBody(req);
-
-  const file = z.object({
-    type: z.literal("file"),
-    path: z.string(),
-    ast: astSchmea,
-  });
-
-  const schema = file.safeParse(body);
-  if (!schema.success) {
-    return BadRequest();
-  }
-
-  await updateFileAndRecent(userId, schema.data)
-  return Ok();
+  await updateFileAndRecent(userId, { ...file, ast: file.ast || ast });
+  return Created();
 }
 
 const del = async (req: NextRequest, token: Token) => {

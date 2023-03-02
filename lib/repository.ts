@@ -10,7 +10,6 @@ export function getRedis() {
       url: process.env.UPSTASH_REDIS_REST_URL!,
       token: process.env.UPSTASH_REDIS_REST_TOKEN!,
     })
-
   }
   return redis;
 };
@@ -62,19 +61,12 @@ async function createDefaultUserIfNotExists(userId: string) {
   return await getRedis().json.set(`user:${userId}`, '$', DEFAULT_USERDATA, { nx: true });
 }
 
-export async function newFile(userId: string, newFileEntity: NewFile) {
+export async function updateFileAndRecent(userId: string, file: NewFile) {
   const result = await createDefaultUserIfNotExists(userId);
   if (result === "OK") {
     return result;
   }
 
-  const path = newFileEntity.path;
-  const newFile = await getRedis().json.set(`user:${userId}`, `$.files["${path}"]`, newFileEntity);
-  await getRedis().json.set(`user:${userId}`, `$.recent`, path);
-  return newFile;
-}
-
-export async function updateFileAndRecent(userId: string, file: NewFile) {
   const path = file.path;
 
   const updatedFile = await getRedis().json.set(`user:${userId}`, `$.files["${path}"]`, file);
@@ -89,7 +81,6 @@ export async function deleteFile(userId: string, path: string) {
 type SharedFile = { key: string; path: string; };
 
 export async function shareFile(userId: string, path: string) {
-  const id = makeId(`${userId} ${path}`);
   const id = makeId();
 
   const pipeline = getRedis().multi();

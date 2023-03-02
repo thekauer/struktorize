@@ -11,40 +11,40 @@ import { useAst, useAstState } from "../../../../hooks/useAST";
 import { debounce } from "../../../../lib/debounce";
 import { FileDTO } from "../../../../pages/api/files";
 import { File } from "lib/repository";
-import { Ast } from "../../../../lib/ast";
 import { useFiles } from "./useFiles";
 import { FileProps } from "./File/File";
-import axios from "axios";
-import { ShareDTO } from "@/pages/api/files/share";
+
+const warnBeforeExit = (e: any) => {
+  const confirmationMessage = 'It looks like you have been editing something. '
+    + 'If you leave before saving, your changes will be lost.';
+
+  (e || window.event).returnValue = confirmationMessage; //Gecko + IE
+  return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
+}
 
 const explorerContext = createContext<{
   activePath: string;
   setActivePath: Dispatch<SetStateAction<string>>;
+  newPath: string | null;
+  setNewPath: Dispatch<SetStateAction<string | null>>;
 }>({} as any);
 
 export const ExplorerProvider = ({ children }: { children: ReactNode }) => {
   const [activePath, setActivePath] = useState<string>("/main");
+  const [newPath, setNewPath] = useState<string | null>(null);
+
   return (
-    <explorerContext.Provider value={{ activePath, setActivePath }}>
+    <explorerContext.Provider value={{ activePath, setActivePath, newPath, setNewPath }}>
       {children}
     </explorerContext.Provider>
   );
 };
 
 export const useExplorer = () => {
-  const { functionName, ast, changed } = useAstState();
-  const { load, addChangeListener, save } = useAst();
-  const { activePath, setActivePath } = useContext(explorerContext);
-  const [newPath, setNewPath] = useState<string | null>(null);
+  const { addChangeListener, save } = useAst();
+  const { activePath, setActivePath, newPath, setNewPath } = useContext(explorerContext);
 
-  const { createFile, deleteFile, saveFile, renameFile, refetch, files } =
-    useFiles(({ files, recent }) => {
-      if (files?.length === 0) {
-        createFile(`/${functionName}`);
-        return;
-      }
-      load(recent.ast as Ast, recent.path);
-    });
+  const { saveFile, refetch, files } = useFiles();
 
   useEffect(() => {
     addChangeListener(
@@ -54,6 +54,14 @@ export const useExplorer = () => {
           save();
         }
       }, 10000), "save");
+
+    addChangeListener((state) => {
+      if (state.changed) {
+        window.addEventListener("beforeunload", warnBeforeExit);
+      } else {
+        window.removeEventListener("beforeunload", warnBeforeExit);
+      }
+    }, "warnExit")
   }, []);
 
   const newFileClick = () => {
@@ -66,35 +74,10 @@ export const useExplorer = () => {
     (f: FileDTO) => f.path === activePath && f.type === "file"
   ) as FileDTO;
 
-  const focusRoot = () =>
-    document.querySelector<HTMLDivElement>("#root-container")?.focus();
 
   const newFile: FileProps = {
     path: newPath!,
     isNew: true,
-    onSubmit: (path) => {
-      createFile(path);
-      setNewPath(null);
-      setActivePath(path);
-
-      const name = path.substring(path.lastIndexOf("/") + 1);
-      const newAst = {
-        signature: {
-          text: `\\text{${name}}()`,
-          type: "signature",
-          path: "signature",
-        },
-        body: [],
-        type: "function",
-        path: "",
-      } as Ast;
-
-      load(newAst, path);
-      focusRoot();
-    },
-    onEscape: () => {
-      setNewPath(null);
-    },
   };
 
   const filesWithNewFile = !newPath
@@ -103,59 +86,13 @@ export const useExplorer = () => {
       b.path.localeCompare(a.path)
     );
 
-  const onFileClick = (path: string) => {
-    if (path === activePath) return;
-
-    const nextFile = files.find((f: any) => f.path === path);
-    if (nextFile?.type === "file") {
-      if (changed) {
-        saveFile({ ...activeFile, ast });
-        save();
-      }
-      load(nextFile.ast as any, nextFile.path);
-      setActivePath(path);
-      focusRoot();
-    }
-  };
-
-  const onFileDelete = (path: string) => {
-    const nextFile: any = files.find(
-      (f: FileDTO) => f.path !== path && f.type === "file"
-    );
-    if (nextFile) {
-      setActivePath(nextFile.path);
-      load(nextFile.ast as any, nextFile.path);
-    }
-    deleteFile(path);
-  };
-
-  const onFileMove = (path: string) => {
-    renameFile({ ...activeFile, ast }, activePath, path);
-    save();
-
-    setActivePath(path);
-  };
-
-  const onFileShare = async (path: string) => {
-    const { data: { id } } = await axios.post<ShareDTO>(`/api/files/share/`, { path });
-    await navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_SITE_URL}/${id}`);
-  }
-
-  const getFileProps = (file: any) => ({
-    ...file,
-    name: file.path.substring(file.path.lastIndexOf("/") + 1),
-    isActive: file.path === activePath,
-    onClick: onFileClick,
-    onDelete: onFileDelete,
-    onMove: onFileMove,
-    onShare: onFileShare,
-  });
-
   return {
-    getFileProps,
     newFileClick,
     refreshClick,
     files: filesWithNewFile,
-    onFileClick,
+    activePath,
+    activeFile,
+    setActivePath,
+    setNewPath
   };
 };

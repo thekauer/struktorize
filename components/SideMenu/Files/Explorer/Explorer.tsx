@@ -3,7 +3,7 @@ import { File } from "./File/File";
 import { useExplorer } from "./useExplorer";
 
 export const Explorer = () => {
-  const { getFileProps, newFileClick, refreshClick, files } = useExplorer();
+  const { newFileClick, refreshClick, files } = useExplorer();
 
   return (
     <S.Container>
@@ -13,8 +13,8 @@ export const Explorer = () => {
         <S.MenuItem src={"/collapse_all.png"} />
       </S.Menu>
       <S.FileContainer>
-        {files.map((file: any) => (
-          <File {...getFileProps(file)} key={file.path} />
+        {files.map((file) => (
+          <File {...file} key={file.path} />
         ))}
       </S.FileContainer>
     </S.Container>
