@@ -29,8 +29,11 @@
       "@/styles/*": [
         "styles/*"
       ],
-      "@hooks/*": [
+      "@/hooks/*": [
         "hooks/*"
+      ],
+      "@/lib/*": [
+        "lib/*"
       ]
     },
     "plugins": [

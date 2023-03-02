@@ -1,10 +1,10 @@
 import { Editor } from "@/components/Editor/Editor";
-import { useAst } from "@hooks/useAST";
+import { useAst } from "@/hooks/useAST";
 import { getSharedFile } from "lib/repository";
 import { InferGetServerSidePropsType, NextPageContext } from "next";
 import { useEffect } from "react";
 import * as S from "@/components/Layout/Layout.atoms"
-import { useTheme } from "@hooks/useTheme";
+import { useTheme } from "@/hooks/useTheme";
 import Head from "next/head";
 
 export const getServerSideProps = async ({ query }: { query: NextPageContext["query"] }) => {
