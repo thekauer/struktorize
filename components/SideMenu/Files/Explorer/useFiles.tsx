@@ -81,7 +81,7 @@ export const useFiles = () => {
             };
             case "put": return {
               recent,
-              files: [...files, payload.file]
+              files: [...files.filter(f => f.path !== payload.file.path), payload.file]
             };
           }
         };
