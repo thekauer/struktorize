@@ -1,9 +1,12 @@
 import * as S from "./Explorer.atoms";
 import { File } from "./File/File";
 import { useExplorer } from "./useExplorer";
+import { File as FileType } from '@/lib/repository'
 
 export const Explorer = () => {
   const { newFileClick, refreshClick, files } = useExplorer();
+  const getName = (file: FileType) => file.path.split("/").pop()!;
+  const sortedFiles = files.sort((a, b) => getName(a).localeCompare(getName(b)))
 
   return (
     <S.Container>
@@ -13,7 +16,7 @@ export const Explorer = () => {
         <S.MenuItem src={"/collapse_all.png"} />
       </S.Menu>
       <S.FileContainer>
-        {files.map((file) => (
+        {sortedFiles.map((file) => (
           <File {...file} key={file.path} />
         ))}
       </S.FileContainer>
