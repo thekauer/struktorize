@@ -72,6 +72,10 @@ export const File = ({ path, isNew }: FileProps) => {
   };
 
   const createNewFile = (path: string) => {
+    if (changed) {
+      saveFile({ ...activeFile, ast });
+      save();
+    }
     createFile(path);
     setNewPath(null);
     setActivePath(path);
