@@ -30,24 +30,29 @@ export type UserData = {
   files: Files;
 }
 
-function unwrap<T>(result: T[] | null) {
-  return result?.[0] || null;
-}
+type UserDataInRedis = { recent: string; } & Record<`/${string}`, File>;
 
 function addQuotes(text: string) {
   return `"${text}"`;
 }
 
 export async function getUserData(userId: string) {
-  return await getRedis().json.get(`user:${userId}`, "$").then(unwrap<UserData>);
+  const userData = await getRedis().hgetall(`user:${userId}`) as UserDataInRedis;
+  if (!userData) return null;
+  return {
+    recent: userData.recent,
+    files: Object.fromEntries(Object.entries(userData).filter(([key]) => key !== "recent"))
+  } as UserData;
 }
 
 export async function getFiles(userId: string): Promise<Files | null> {
-  return await getRedis().json.get(`user:${userId}`, "$.files");
+  const userData = await getUserData(userId);
+  return userData?.files || null;
 }
 
 export async function getFile(userId: string, path: string) {
-  return await getRedis().json.get(`user:${userId}`, `$.files["${path}"]`).then(unwrap<File>);
+  const files = await getFiles(userId);
+  return files?.[path] || null;
 }
 
 export async function doesFileExist(userId: string, path: string) {
@@ -55,27 +60,31 @@ export async function doesFileExist(userId: string, path: string) {
 }
 
 async function createDefaultUserIfNotExists(userId: string) {
+  const userData = await getUserData(userId);
+  if (userData !== null) return null;
   const DEFAULT_FILE = { ast: DEFAULT_FUNCTION, type: "file", path: "/main" } as File;
-  const DEFAULT_USERDATA = { files: { ["/main"]: DEFAULT_FILE }, recent: "/main" } as UserData;
+  const DEFAULT_USERDATA = { ["/main"]: DEFAULT_FILE, recent: "/main" } as UserDataInRedis;
 
-  return await getRedis().json.set(`user:${userId}`, '$', DEFAULT_USERDATA, { nx: true });
+  return await getRedis().hset(`user:${userId}`, DEFAULT_USERDATA);
 }
 
 export async function updateFileAndRecent(userId: string, file: NewFile) {
-  const result = await createDefaultUserIfNotExists(userId);
-  if (result === "OK") {
-    return result;
-  }
+  const newFile = await createDefaultUserIfNotExists(userId);
+  if (newFile) return newFile;
 
   const path = file.path;
 
-  const updatedFile = await getRedis().json.set(`user:${userId}`, `$.files["${path}"]`, file);
-  await getRedis().json.set(`user:${userId}`, `$.recent`, addQuotes(path));
+  const updatedFile = await getRedis().hset(`user:${userId}`, { [path]: file, recent: path });
   return updatedFile;
 }
 
 export async function deleteFile(userId: string, path: string) {
-  return await getRedis().json.del(`user:${userId}`, `$.files["${path}"]`);
+  const filesInRedis = await getFiles(userId);
+  const paths = Object.keys(filesInRedis || {});
+  if (paths.length === 1) return false;
+  await getRedis().hdel(`user:${userId}`, path);
+  await getRedis().hset(`user:${userId}`, { recent: paths[0] })
+  return true;
 }
 
 type SharedFile = { key: string; path: string; };
@@ -83,10 +92,9 @@ type SharedFile = { key: string; path: string; };
 export async function shareFile(userId: string, path: string) {
   const id = makeId();
 
-  const pipeline = getRedis().multi();
-  pipeline.json.set(`user:${userId}`, `$.files["${path}"].sharedId`, addQuotes(id));
-  pipeline.json.set(`shared:${id}`, "$", { key: `user:${userId}`, path });
-  await pipeline.exec();
+  const file = await getFile(userId, path);
+  getRedis().hset(`user:${userId}`, { [path]: { ...file, sharedId: id } });
+  getRedis().json.set(`shared:${id}`, "$", { key: `user:${userId}`, path });
 
   return id;
 }
@@ -96,7 +104,7 @@ export async function getSharedFile(id: string) {
   if (!sharedFile) return null;
   const { key, path } = sharedFile;
 
-  return await getRedis().json.get(key, `$.files["${path}"]`).then(unwrap<File>);
+  return await getRedis().hget(key, path) as File;
 }
 
 
