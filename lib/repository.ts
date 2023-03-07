@@ -32,10 +32,6 @@ export type UserData = {
 
 type UserDataInRedis = { recent: string; } & Record<`/${string}`, File>;
 
-function addQuotes(text: string) {
-  return `"${text}"`;
-}
-
 export async function getUserData(userId: string) {
   const userData = await getRedis().hgetall(`user:${userId}`) as UserDataInRedis;
   if (!userData) return null;
