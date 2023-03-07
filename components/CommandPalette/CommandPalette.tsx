@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { FileDTO } from "../../pages/api/files";
-import { File } from "lib/repository"
+import { File } from "@/lib/repository"
 import { useExplorer } from "../SideMenu/Files/Explorer/useExplorer";
 import * as S from "./CommandPalette.atoms";
 import FuzzySearch from "fuzzy-search"
-
 
 export const CommandPalette = () => {
   const [showCommandPalette, setShowCommandPalette] = useState(false);

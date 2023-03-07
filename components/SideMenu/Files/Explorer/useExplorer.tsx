@@ -1,4 +1,4 @@
-import {
+import React, {
   useEffect,
   useState,
   createContext,
@@ -10,7 +10,7 @@ import {
 import { useAst, useAstState } from "../../../../hooks/useAST";
 import { debounce } from "../../../../lib/debounce";
 import { FileDTO } from "../../../../pages/api/files";
-import { File } from "lib/repository";
+import { File } from "@/lib/repository";
 import { useFiles } from "./useFiles";
 import { FileProps } from "./File/File";
 
@@ -41,8 +41,9 @@ export const ExplorerProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useExplorer = () => {
-  const { addChangeListener, save } = useAst();
+  const { addChangeListener, save, load } = useAst();
   const { activePath, setActivePath, newPath, setNewPath } = useContext(explorerContext);
+  const { ast, changed } = useAstState();
 
   const { saveFile, refetch, files } = useFiles();
 
@@ -68,6 +69,24 @@ export const useExplorer = () => {
     setNewPath(activePath.substring(0, activePath.lastIndexOf("/") + 1));
   };
 
+  const focusRoot = () =>
+    document.querySelector<HTMLDivElement>("#root-container")?.focus();
+
+  const onFileClick = (path: string) => {
+    if (activePath === path) return;
+
+    const nextFile = files.find((f: any) => f.path === path);
+    if (nextFile?.type === "file") {
+      if (changed) {
+        saveFile({ ...activeFile, ast });
+        save();
+      }
+      load(nextFile.ast as any, nextFile.path);
+      setActivePath(path);
+      focusRoot();
+    }
+  };
+
   const refreshClick = () => refetch();
 
   const activeFile = files.find(
@@ -89,6 +108,7 @@ export const useExplorer = () => {
   return {
     newFileClick,
     refreshClick,
+    onFileClick,
     files: filesWithNewFile,
     activePath,
     activeFile,
