@@ -78,6 +78,10 @@ export async function deleteFile(userId: string, path: string) {
   const filesInRedis = await getFiles(userId);
   const paths = Object.keys(filesInRedis || {});
   if (paths.length === 1) return false;
+  const file = filesInRedis![path];
+  if (file.sharedId) {
+    await getRedis().json.del(`shared:${file.sharedId}`);
+  }
   await getRedis().hdel(`user:${userId}`, path);
   await getRedis().hset(`user:${userId}`, { recent: paths[0] })
   return true;
