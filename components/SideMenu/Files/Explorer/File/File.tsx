@@ -154,6 +154,8 @@ export const File = ({ path, isNew }: FileProps) => {
     }
   };
 
+  const isChanged = changed && path === activePath;
+
   return (
     <S.Container
       active={path === activePath}
@@ -164,7 +166,7 @@ export const File = ({ path, isNew }: FileProps) => {
       <S.Image src={"/structogram.png"} />
       {editing ? <S.Input ref={inputRef} /> :
         <>
-          <S.Name>{path.split("/").pop()}</S.Name><S.FileMenu>
+          <S.Name>{isChanged && "*"}{path.split("/").pop()}</S.Name><S.FileMenu>
             <ES.MenuItem src="/share.svg" onClick={handleShare} title={t("share")} />
             <ES.MenuItem src="/rename.svg" onClick={handleRename} title={t("rename")} />
             <ES.MenuItem src="/bin.svg" onClick={handleDelete} title={t("delete")} />
