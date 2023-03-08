@@ -24,11 +24,11 @@ export function NotFound(reason?: string) {
 }
 
 export function Conflict(reason?: string) {
-  return new Response(reason || "Conflict", { status: 409 })
+  return new Response(reason || "Conflict", { status: 409 });
 }
 
 export function NotAllowed(reason?: string) {
-  return new Response(reason || "Method not allowed", { status: 405 })
+  return new Response(reason || "Method not allowed", { status: 405 });
 }
 
 export type Token = {
@@ -37,10 +37,10 @@ export type Token = {
   picture: string;
   id: string;
   locale: string;
-}
+};
 
 export async function getToken(req: NextRequest): Promise<Token | null> {
-  return await authGetToken({ req }) as Token;
+  return (await authGetToken({ req })) as Token;
 }
 
 export async function getBody(req: NextRequest) {
@@ -48,7 +48,7 @@ export async function getBody(req: NextRequest) {
   const text = await blob.text();
   const body = JSON.parse(text);
   return body;
-};
+}
 
 export function makeId() {
   const firstPartNo = (Math.random() * 46656) | 0;
@@ -65,6 +65,5 @@ type Literal = z.infer<typeof literalSchema>;
 export type Json = Literal | { [key: string]: Json } | Json[];
 export const jsonSchema: z.ZodType<Json> = z.lazy(() =>
   z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)])
-)
+);
 export const astSchmea: z.ZodType<Ast> = jsonSchema as any;
-

@@ -1,24 +1,21 @@
 import { useTranslation } from "next-i18next";
 import * as S from "./EmptyBody.atoms";
-const GET_STARTED_FALLBACK = [
-  "Press",
-  "or type",
-  "or",
-  "to get started"
-];
+const GET_STARTED_FALLBACK = ["Press", "or type", "or", "to get started"];
 
-const OPEN_CHEATSHEET_FALLBACK = [
-  "Press",
-  "to open the",
-  "cheat sheet"
-]
+const OPEN_CHEATSHEET_FALLBACK = ["Press", "to open the", "cheat sheet"];
 
 export const EmptyBody = () => {
-  const { t, i18n } = useTranslation(["common"], { keyPrefix: "main.emptyBody" });
+  const { t, i18n } = useTranslation(["common"], {
+    keyPrefix: "main.emptyBody",
+  });
   const shouldFallback = !i18n.language;
 
-  const getStarted = shouldFallback ? GET_STARTED_FALLBACK : t("getStarted", { returnObjects: true });
-  const openCheatSheet = shouldFallback ? OPEN_CHEATSHEET_FALLBACK : t("openCheatSheet", { returnObjects: true });
+  const getStarted = shouldFallback
+    ? GET_STARTED_FALLBACK
+    : t("getStarted", { returnObjects: true });
+  const openCheatSheet = shouldFallback
+    ? OPEN_CHEATSHEET_FALLBACK
+    : t("openCheatSheet", { returnObjects: true });
 
   return (
     <S.Container>

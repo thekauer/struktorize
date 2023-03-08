@@ -15,7 +15,7 @@ export const useEditor = (readonly?: boolean) => {
     addLoop,
     deselectAll,
     undo,
-    redo
+    redo,
   } = useAst();
   const [buffer, setBuffer] = useState("");
   const [insertMode, setInsertMode] = useState<
@@ -30,14 +30,13 @@ export const useEditor = (readonly?: boolean) => {
   };
 
   const handleUndoRedo = (e: KeyboardEvent<HTMLDivElement>) => {
-
     if (e.ctrlKey && e.shiftKey && e.key === "Z") {
       redo();
     }
     if (e.ctrlKey && e.key === "z") {
       undo();
     }
-  }
+  };
 
   const handleKeydown = (e: KeyboardEvent<HTMLDivElement>) => {
     const key = getKey(e);
@@ -102,7 +101,6 @@ export const useEditor = (readonly?: boolean) => {
         setInsertMode("subscript");
         edit("", "subscript");
         return;
-
     }
 
     const allowedChars =

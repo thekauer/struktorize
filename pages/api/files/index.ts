@@ -1,9 +1,26 @@
 import { Ast } from "lib/ast";
-import { getFile, getUserData, File, doesFileExist, updateFileAndRecent, deleteFile } from "lib/repository";
-import { BadRequest, NotFound, Ok, Unauthorized, getBody, Conflict, Token, getToken, astSchmea, Created } from "lib/serverUtils";
+import {
+  getFile,
+  getUserData,
+  File,
+  doesFileExist,
+  updateFileAndRecent,
+  deleteFile,
+} from "lib/repository";
+import {
+  BadRequest,
+  NotFound,
+  Ok,
+  Unauthorized,
+  getBody,
+  Conflict,
+  Token,
+  getToken,
+  astSchmea,
+  Created,
+} from "lib/serverUtils";
 import { NextRequest } from "next/server";
 import z from "zod";
-
 
 export type FilesDTO = FileDTO[];
 
@@ -37,13 +54,14 @@ const get = async (req: NextRequest, token: Token) => {
     return Ok({ files: [], recent: undefined });
   }
 
-  const files = Object.values(userData.files)
-    .sort((a, b) => b.path.localeCompare(a.path));
-  const recent = userData.files[userData.recent] || Object.values(userData.files)[0];
+  const files = Object.values(userData.files).sort((a, b) =>
+    b.path.localeCompare(a.path)
+  );
+  const recent =
+    userData.files[userData.recent] || Object.values(userData.files)[0];
 
   return Ok({ files, recent });
-
-}
+};
 
 const fileValidator = z.object({
   type: z.literal("file"),
@@ -51,7 +69,7 @@ const fileValidator = z.object({
   ast: astSchmea,
 });
 
-export type FileDTO = z.infer<typeof fileValidator>
+export type FileDTO = z.infer<typeof fileValidator>;
 
 const put = async (req: NextRequest, token: Token) => {
   const userId = token.id;
@@ -62,9 +80,9 @@ const put = async (req: NextRequest, token: Token) => {
     return BadRequest();
   }
 
-  await updateFileAndRecent(userId, schema.data)
+  await updateFileAndRecent(userId, schema.data);
   return Ok();
-}
+};
 
 const newFileValidator = z.object({
   type: z.literal("file"),
@@ -72,12 +90,11 @@ const newFileValidator = z.object({
   ast: astSchmea.optional(),
 });
 
-export type NewFileDTO = z.infer<typeof newFileValidator>
+export type NewFileDTO = z.infer<typeof newFileValidator>;
 
 const post = async (req: NextRequest, token: Token) => {
   const userId = token.id;
   const body = await getBody(req);
-
 
   const schema = newFileValidator.safeParse(body);
   if (!schema.success) {
@@ -104,21 +121,23 @@ const post = async (req: NextRequest, token: Token) => {
 
   await updateFileAndRecent(userId, { ...file, ast: file.ast || ast });
   return Created();
-}
+};
 
 const del = async (req: NextRequest, token: Token) => {
   const userId = token.id;
 
-  const pathValidator = pathParam.safeParse(req.nextUrl.searchParams.get("path"));
+  const pathValidator = pathParam.safeParse(
+    req.nextUrl.searchParams.get("path")
+  );
   if (!pathValidator.success) {
     return BadRequest();
   }
 
   const path = pathValidator.data;
 
-  await deleteFile(userId, path)
+  await deleteFile(userId, path);
   return Ok();
-}
+};
 
 export default async function handler(req: NextRequest) {
   const token = await getToken(req);
@@ -128,10 +147,14 @@ export default async function handler(req: NextRequest) {
   }
 
   switch (req.method) {
-    case "GET": return get(req, token);
-    case "PUT": return put(req, token);
-    case "POST": return post(req, token);
-    case "DELETE": return del(req, token);
+    case "GET":
+      return get(req, token);
+    case "PUT":
+      return put(req, token);
+    case "POST":
+      return post(req, token);
+    case "DELETE":
+      return del(req, token);
   }
 
   return BadRequest();

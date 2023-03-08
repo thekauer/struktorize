@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { FileDTO } from "../../pages/api/files";
-import { File } from "@/lib/repository"
+import { File } from "@/lib/repository";
 import { useExplorer } from "../SideMenu/Files/Explorer/useExplorer";
 import * as S from "./CommandPalette.atoms";
-import FuzzySearch from "fuzzy-search"
+import FuzzySearch from "fuzzy-search";
 
 export const CommandPalette = () => {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
@@ -15,12 +15,13 @@ export const CommandPalette = () => {
   const searcher = new FuzzySearch(files, ["path"], {
     caseSensitive: false,
   });
-  const filter: string[] = searcher.search(input).map(({ path }: FileDTO) => path);
+  const filter: string[] = searcher
+    .search(input)
+    .map(({ path }: FileDTO) => path);
 
   const nodes: File[] = files.filter(
     (node: File) =>
-      node.type === "file" &&
-      (filter.find((path) => path === node.path))
+      node.type === "file" && filter.find((path) => path === node.path)
   );
 
   useEffect(() => {
@@ -49,7 +50,6 @@ export const CommandPalette = () => {
     if (showCommandPalette) inputRef.current?.focus();
     else focusRoot();
   }, [showCommandPalette]);
-
 
   if (!showCommandPalette) return null;
 

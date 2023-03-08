@@ -26,7 +26,7 @@ export const Container = styled.div<{ active?: boolean }>`
 
   &:hover ${FileMenu} {
     display: flex;
-    flex:1;
+    flex: 1;
     align-items: center;
     justify-content: flex-end;
     gap: 0.125rem;

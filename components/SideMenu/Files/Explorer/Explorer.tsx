@@ -1,12 +1,14 @@
 import * as S from "./Explorer.atoms";
 import { File } from "./File/File";
 import { useExplorer } from "./useExplorer";
-import { File as FileType } from '@/lib/repository'
+import { File as FileType } from "@/lib/repository";
 
 export const Explorer = () => {
   const { newFileClick, refreshClick, files } = useExplorer();
   const getName = (file: FileType) => file.path.split("/").pop()!;
-  const sortedFiles = files.sort((a, b) => getName(a).localeCompare(getName(b)))
+  const sortedFiles = files.sort((a, b) =>
+    getName(a).localeCompare(getName(b))
+  );
 
   return (
     <S.Container>

@@ -3,29 +3,35 @@ import { useAst } from "@/hooks/useAST";
 import { getSharedFile } from "lib/repository";
 import { InferGetServerSidePropsType, NextPageContext } from "next";
 import { useEffect } from "react";
-import * as S from "@/components/Layout/Layout.atoms"
+import * as S from "@/components/Layout/Layout.atoms";
 import { useTheme } from "@/hooks/useTheme";
 import Head from "next/head";
 
-export const getServerSideProps = async ({ query }: { query: NextPageContext["query"] }) => {
+export const getServerSideProps = async ({
+  query,
+}: {
+  query: NextPageContext["query"];
+}) => {
   const { fileId } = query;
   const file = await getSharedFile(fileId as string);
 
   return {
     props: {
-      file
-    }
-  }
-}
+      file,
+    },
+  };
+};
 
-export default function Page({ file }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function Page({
+  file,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { theme } = useTheme();
 
   const { load } = useAst();
   useEffect(() => {
     if (!file) return;
     load(file.ast, file.path);
-  }, [])
+  }, []);
 
   const name = file?.path.split("/").pop();
 
@@ -39,17 +45,16 @@ export default function Page({ file }: InferGetServerSidePropsType<typeof getSer
       <S.Container theme={theme}>
         <S.MainContainer>
           <S.Main>
-            {file
-              ? (<Editor readonly />)
-              : (
-                <S.Center>
-                  <h1>Structogram not found</h1>
-                </S.Center>
-              )
-            }
+            {file ? (
+              <Editor readonly />
+            ) : (
+              <S.Center>
+                <h1>Structogram not found</h1>
+              </S.Center>
+            )}
           </S.Main>
         </S.MainContainer>
       </S.Container>
     </>
-  )
-} 
+  );
+}

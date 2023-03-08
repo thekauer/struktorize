@@ -25,6 +25,7 @@ import {
 } from "../lib/ast";
 import { addText, deleteLast, getFunctionName } from "../lib/textTransform";
 import { useTheme } from "./useTheme";
+import { File } from "@/lib/repository";
 
 type ChangeListener = (state: State) => void;
 
@@ -34,6 +35,7 @@ type StateContext = {
   functionName: string;
   changed: boolean;
   selected: Set<string>;
+  file: File;
 };
 
 export const AstContext = createContext<Dispatch<Action>>(null as any);
@@ -228,6 +230,11 @@ export const AstProvider = ({ children }: AstProviderProps) => {
     functionName,
     changed,
     selected,
+    file: {
+      ast,
+      type: "file",
+      path: state.path,
+    } as File
   };
 
   return (

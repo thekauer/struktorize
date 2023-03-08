@@ -1,7 +1,22 @@
 import { NextRequest } from "next/server";
 import z from "zod";
-import { astSchmea, BadRequest, Conflict, getBody, getToken, NotAllowed, NotFound, Ok, Unauthorized } from "lib/serverUtils";
-import { deleteFile, doesFileExist, getFile, updateFileAndRecent } from "lib/repository";
+import {
+  astSchmea,
+  BadRequest,
+  Conflict,
+  getBody,
+  getToken,
+  NotAllowed,
+  NotFound,
+  Ok,
+  Unauthorized,
+} from "lib/serverUtils";
+import {
+  deleteFile,
+  doesFileExist,
+  getFile,
+  updateFileAndRecent,
+} from "lib/repository";
 
 const rename = z.object({
   ast: astSchmea,
@@ -20,8 +35,7 @@ export default async function handler(req: NextRequest) {
 
   const userId = token.id;
 
-  if (req.method !== "POST")
-    return NotAllowed();
+  if (req.method !== "POST") return NotAllowed();
 
   const body = await getBody(req);
   const moveSchema = rename.safeParse(body);
@@ -42,7 +56,7 @@ export default async function handler(req: NextRequest) {
 
   const newFile = { path: to, type: "file" as const, ast };
 
-  await updateFileAndRecent(userId, newFile)
+  await updateFileAndRecent(userId, newFile);
   await deleteFile(userId, from);
 
   return Ok();

@@ -15,46 +15,46 @@ import { useFiles } from "./useFiles";
 import { FileProps } from "./File/File";
 
 const warnBeforeExit = (e: any) => {
-  const confirmationMessage = 'It looks like you have been editing something. '
-    + 'If you leave before saving, your changes will be lost.';
+  const confirmationMessage =
+    "It looks like you have been editing something. " +
+    "If you leave before saving, your changes will be lost.";
 
   (e || window.event).returnValue = confirmationMessage; //Gecko + IE
   return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
-}
+};
 
 const explorerContext = createContext<{
-  activePath: string;
-  setActivePath: Dispatch<SetStateAction<string>>;
   newPath: string | null;
   setNewPath: Dispatch<SetStateAction<string | null>>;
 }>({} as any);
 
 export const ExplorerProvider = ({ children }: { children: ReactNode }) => {
-  const [activePath, setActivePath] = useState<string>("/main");
   const [newPath, setNewPath] = useState<string | null>(null);
 
   return (
-    <explorerContext.Provider value={{ activePath, setActivePath, newPath, setNewPath }}>
+    <explorerContext.Provider value={{ newPath, setNewPath }}>
       {children}
     </explorerContext.Provider>
   );
 };
 
 export const useExplorer = () => {
-  const { addChangeListener, save, load } = useAst();
-  const { activePath, setActivePath, newPath, setNewPath } = useContext(explorerContext);
-  const { ast, changed } = useAstState();
+  const { addChangeListener, load } = useAst();
+  const { newPath, setNewPath } = useContext(explorerContext);
+  const { changed } = useAstState();
 
-  const { saveFile, refetch, files } = useFiles();
+  const { saveFile, refetch, files, recent } = useFiles();
+  const activePath = recent?.path!;
 
   useEffect(() => {
     addChangeListener(
       debounce((state) => {
         if (state.changed) {
-          saveFile({ ...state, type: "file" });
-          save();
+          saveFile();
         }
-      }, 10000), "save");
+      }, 10000),
+      "save"
+    );
 
     addChangeListener((state) => {
       if (state.changed) {
@@ -62,7 +62,7 @@ export const useExplorer = () => {
       } else {
         window.removeEventListener("beforeunload", warnBeforeExit);
       }
-    }, "warnExit")
+    }, "warnExit");
   }, []);
 
   const newFileClick = () => {
@@ -78,11 +78,9 @@ export const useExplorer = () => {
     const nextFile = files.find((f: any) => f.path === path);
     if (nextFile?.type === "file") {
       if (changed) {
-        saveFile({ ...activeFile, ast });
-        save();
+        saveFile();
       }
       load(nextFile.ast as any, nextFile.path);
-      setActivePath(path);
       focusRoot();
     }
   };
@@ -93,7 +91,6 @@ export const useExplorer = () => {
     (f: FileDTO) => f.path === activePath && f.type === "file"
   ) as FileDTO;
 
-
   const newFile: FileProps = {
     path: newPath!,
     isNew: true,
@@ -101,9 +98,7 @@ export const useExplorer = () => {
 
   const filesWithNewFile = !newPath
     ? files
-    : [...files, newFile as File].sort((a, b) =>
-      b.path.localeCompare(a.path)
-    );
+    : [...files, newFile as File].sort((a, b) => b.path.localeCompare(a.path));
 
   return {
     newFileClick,
@@ -112,7 +107,6 @@ export const useExplorer = () => {
     files: filesWithNewFile,
     activePath,
     activeFile,
-    setActivePath,
-    setNewPath
+    setNewPath,
   };
 };

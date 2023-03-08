@@ -14,7 +14,7 @@ export const MainContainer = styled.div`
   border: 1px solid var(--mid);
 
   &:focus-visible {
-    border: 1px solid var(--blue); 
+    border: 1px solid var(--blue);
     outline: none;
   }
 `;

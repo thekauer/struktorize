@@ -1,5 +1,14 @@
 import { getFile, shareFile } from "lib/repository";
-import { BadRequest, Created, getBody, getToken, NotAllowed, NotFound, Ok, Unauthorized } from "lib/serverUtils";
+import {
+  BadRequest,
+  Created,
+  getBody,
+  getToken,
+  NotAllowed,
+  NotFound,
+  Ok,
+  Unauthorized,
+} from "lib/serverUtils";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 
@@ -12,7 +21,7 @@ export type ShareResponse = { code: string };
 
 export type ShareDTO = {
   id: string;
-}
+};
 
 export default async function handler(req: NextRequest) {
   const token = await getToken(req);
@@ -22,8 +31,7 @@ export default async function handler(req: NextRequest) {
   }
 
   try {
-    if (req.method !== "POST")
-      throw NotAllowed();
+    if (req.method !== "POST") throw NotAllowed();
   } catch (err) {
     return err;
   }
@@ -45,7 +53,7 @@ export default async function handler(req: NextRequest) {
     return Ok({ id: file.sharedId });
   }
 
-  const id = await shareFile(userId, path)
+  const id = await shareFile(userId, path);
   return Created({ id });
 }
 
