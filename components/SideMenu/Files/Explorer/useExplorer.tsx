@@ -43,7 +43,7 @@ export const useExplorer = () => {
   const { newPath, setNewPath } = useContext(explorerContext);
   const { changed } = useAstState();
 
-  const { saveFile, refetch, files, recent } = useFiles();
+  const { saveFile, refetch, files, recent, setActivePath } = useFiles();
   const activePath = recent?.path!;
 
   useEffect(() => {
@@ -81,6 +81,7 @@ export const useExplorer = () => {
         saveFile();
       }
       load(nextFile.ast as any, nextFile.path);
+      setActivePath(path);
       focusRoot();
     }
   };

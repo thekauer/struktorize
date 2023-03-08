@@ -170,7 +170,6 @@ export const useFiles = () => {
   const recent = data?.recent;
 
   const setActivePath = (recentPath: string) => {
-    queryClient.cancelQueries(["files"]);
     queryClient.setQueryData(["files"], {
       files,
       recent: files.find((f) => f.path === recentPath) || recent,
