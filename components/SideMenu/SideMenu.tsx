@@ -32,11 +32,14 @@ export const SideMenu = () => {
     setAstTheme(theme === "dark" ? "light" : "dark");
   };
 
-  const menus: Record<string, JSX.Element> = {
-    files: <Files />,
-    export: <Export />,
-    profile: <Profile />,
-  };
+  const menus: Record<string, JSX.Element> = useMemo(
+    () => ({
+      files: <Files />,
+      export: <Export />,
+      profile: <Profile />,
+    }),
+    []
+  );
 
   const topMenuItems = ["files", "export"];
   const menuItemClick = (name: string) => () => {

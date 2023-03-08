@@ -31,7 +31,7 @@ export default function Page({
   useEffect(() => {
     if (!file) return;
     load(file.ast, file.path);
-  }, []);
+  }, [file]);
 
   const name = file?.path.split("/").pop();
 

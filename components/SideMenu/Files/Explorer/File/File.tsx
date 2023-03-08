@@ -34,7 +34,7 @@ export const File = ({ path, isNew }: FileProps) => {
     if (isNew) {
       inputRef.current?.focus();
     }
-  }, []);
+  }, [isNew]);
 
   const focusRoot = () =>
     document.querySelector<HTMLDivElement>("#root-container")?.focus();
