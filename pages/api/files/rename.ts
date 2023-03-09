@@ -11,12 +11,7 @@ import {
   Ok,
   Unauthorized,
 } from "lib/serverUtils";
-import {
-  deleteFile,
-  doesFileExist,
-  getFile,
-  updateFileAndRecent,
-} from "lib/repository";
+import { deleteFile, doesFileExist, getFile, updateFile } from "lib/repository";
 
 const rename = z.object({
   ast: astSchmea,
@@ -56,7 +51,7 @@ export default async function handler(req: NextRequest) {
 
   const newFile = { path: to, type: "file" as const, ast };
 
-  await updateFileAndRecent(userId, newFile);
+  await updateFile(userId, newFile);
   await deleteFile(userId, from);
 
   return Ok();

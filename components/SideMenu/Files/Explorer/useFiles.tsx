@@ -79,7 +79,8 @@ export const useFiles = () => {
                   ...files.filter((f) => f.path !== payload.from),
                   renamedFile,
                 ];
-                return { recent: renamedFile, files: filesAndRenamedFile };
+                console.log(recent);
+                return { recent, files: filesAndRenamedFile };
               }
 
               const newFile = payload.newFile as File;
@@ -146,11 +147,11 @@ export const useFiles = () => {
     });
   };
 
-  const renameFile = (to: string) => {
+  const renameFile = (file: File, to: string) => {
     mutate({
       payload: {
         from: file.path,
-        ast,
+        ast: file.ast,
         to,
         isRename: true,
       },

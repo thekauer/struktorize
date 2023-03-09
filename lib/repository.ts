@@ -75,6 +75,15 @@ async function createDefaultUserIfNotExists(userId: string) {
   return await getRedis().hset(`user:${userId}`, DEFAULT_USERDATA);
 }
 
+export async function updateFile(userId: string, file: NewFile) {
+  const path = file.path;
+
+  const updatedFile = await getRedis().hset(`user:${userId}`, {
+    [path]: file,
+  });
+  return updatedFile;
+}
+
 export async function updateFileAndRecent(userId: string, file: NewFile) {
   const newFile = await createDefaultUserIfNotExists(userId);
   if (newFile) return newFile;

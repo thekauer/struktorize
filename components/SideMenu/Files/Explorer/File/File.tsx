@@ -29,6 +29,7 @@ export const File = ({ path, isNew }: FileProps) => {
     shareFile,
     setActivePath,
   } = useFiles();
+  const thisFile = files.find((f) => f.path === path)!;
 
   useEffect(() => {
     if (isNew) {
@@ -51,10 +52,6 @@ export const File = ({ path, isNew }: FileProps) => {
       setActivePath(path);
       focusRoot();
     }
-  };
-
-  const onFileMove = (path: string) => {
-    renameFile(path);
   };
 
   const handleDelete = () => {
@@ -111,7 +108,6 @@ export const File = ({ path, isNew }: FileProps) => {
   };
 
   const handleRename = () => {
-    if (inputRef.current?.value === "") return;
     const pressedEnterToStartRenaming = !editing;
     if (pressedEnterToStartRenaming) {
       flushSync(() => {
@@ -122,9 +118,11 @@ export const File = ({ path, isNew }: FileProps) => {
 
     const finishedRenaming = !isNew && editing;
     if (finishedRenaming) {
+      if (inputRef.current?.value === "") return;
       const oldPath = path.substring(0, path.lastIndexOf("/") + 1);
       const newName = inputRef.current?.value!;
-      onFileMove(oldPath + newName);
+      console.log("this", thisFile.path);
+      renameFile(thisFile, oldPath + newName);
     }
   };
 
@@ -172,7 +170,10 @@ export const File = ({ path, isNew }: FileProps) => {
             />
             <ES.MenuItem
               src="/rename.svg"
-              onClick={handleRename}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRename();
+              }}
               title={t("rename")}
             />
             <ES.MenuItem
