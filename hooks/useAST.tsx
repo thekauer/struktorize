@@ -5,6 +5,7 @@ import React, {
   useContext,
   useReducer,
   MouseEvent,
+  useRef,
 } from "react";
 import { DEFAULT_FUNCTION } from "../constants/defaultFunction";
 import {
@@ -25,7 +26,6 @@ import {
 } from "../lib/ast";
 import { addText, deleteLast, getFunctionName } from "../lib/textTransform";
 import { useTheme } from "./useTheme";
-import { File } from "@/lib/repository";
 
 type ChangeListener = (state: State) => void;
 
@@ -35,7 +35,6 @@ type StateContext = {
   functionName: string;
   changed: boolean;
   selected: Set<string>;
-  file: File;
 };
 
 export const AstContext = createContext<Dispatch<Action>>(null as any);
@@ -62,7 +61,10 @@ type Action =
   | { type: "backspace" }
   | { type: "setScope"; payload: string[] }
   | { type: "load"; payload: { ast: Ast; path: string } }
-  | { type: "addChangeListener"; payload: { key: string, listener: ChangeListener } }
+  | {
+      type: "addChangeListener";
+      payload: { key: string; listener: ChangeListener };
+    }
   | { type: "callChangeListeners" }
   | { type: "save" }
   | { type: "select"; payload: string[][] }
@@ -98,7 +100,8 @@ function pushHistory(state: State): State {
   const historyBeforePush = state.history.slice(0, state.history_index + 1);
   return {
     ...state,
-    history: [...historyBeforePush, cst], history_index: state.history_index + 1
+    history: [...historyBeforePush, cst],
+    history_index: state.history_index + 1,
   };
 }
 
@@ -110,8 +113,8 @@ function updateHistory(state: State): State {
 
   return {
     ...state,
-    history
-  }
+    history,
+  };
 }
 
 function reducer(state: State, action: Action): State {
@@ -126,7 +129,11 @@ function reducer(state: State, action: Action): State {
     case "right":
       return navigate(right, state, action);
     case "add": {
-      return pushHistory({ ...state, ...add(scope, ast, action.payload), changed: true, });
+      return pushHistory({
+        ...state,
+        ...add(scope, ast, action.payload),
+        changed: true,
+      });
     }
 
     case "text": {
@@ -162,10 +169,15 @@ function reducer(state: State, action: Action): State {
     case "addChangeListener":
       return {
         ...state,
-        changeListeners: { ...state.changeListeners, [action.payload.key]: action.payload.listener }
+        changeListeners: {
+          ...state.changeListeners,
+          [action.payload.key]: action.payload.listener,
+        },
       };
     case "callChangeListeners":
-      Object.values(state.changeListeners).forEach((listener) => listener?.(state));
+      Object.values(state.changeListeners).forEach((listener) =>
+        listener?.(state)
+      );
       return state;
     case "save":
       return { ...state, changed: false };
@@ -191,7 +203,7 @@ function reducer(state: State, action: Action): State {
     case "redo": {
       const index = Math.min(state.history_index + 1, state.history.length - 1);
       const cst = state.history[index];
-      return { ...state, ...cst, history_index: index }
+      return { ...state, ...cst, history_index: index };
     }
     default:
       return state;
@@ -230,11 +242,6 @@ export const AstProvider = ({ children }: AstProviderProps) => {
     functionName,
     changed,
     selected,
-    file: {
-      ast,
-      type: "file",
-      path: state.path,
-    } as File
   };
 
   return (
@@ -302,12 +309,14 @@ export const useAst = () => {
   const load = (ast: Ast, path: string) => {
     dispatch({ type: "load", payload: { ast, path } });
   };
-  const addChangeListener = (listener: ChangeListener, key = `${Date.now()}_${Math.random()}`) =>
-    dispatch({ type: "addChangeListener", payload: { key, listener } });
+  const addChangeListener = (
+    listener: ChangeListener,
+    key = `${Date.now()}_${Math.random()}`
+  ) => dispatch({ type: "addChangeListener", payload: { key, listener } });
   const save = () => {
     dispatch({ type: "save" });
     callChangeListeners();
-  }
+  };
   const select = (selection: string[][]) =>
     dispatch({ type: "select", payload: selection });
   const deselect = (selection: string[][]) =>
@@ -334,7 +343,7 @@ export const useAst = () => {
     deselect,
     deselectAll,
     undo,
-    redo
+    redo,
   };
 };
 

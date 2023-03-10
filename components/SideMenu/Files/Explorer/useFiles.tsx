@@ -8,7 +8,7 @@ import { Ast } from "@/lib/ast";
 
 export const useFiles = () => {
   const queryClient = useQueryClient();
-  const { functionName, ast, file } = useAstState();
+  const { functionName, ast } = useAstState();
   const { save, load } = useAst();
 
   const { data, refetch } = useQuery(
@@ -79,7 +79,6 @@ export const useFiles = () => {
                   ...files.filter((f) => f.path !== payload.from),
                   renamedFile,
                 ];
-                console.log(recent);
                 return { recent, files: filesAndRenamedFile };
               }
 
@@ -122,7 +121,7 @@ export const useFiles = () => {
     }
   );
 
-  const saveFile = () => {
+  const saveFile = (file: File) => {
     mutate({
       payload: { file },
       method: "put",

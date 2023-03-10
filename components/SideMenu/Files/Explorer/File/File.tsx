@@ -19,7 +19,7 @@ export const File = ({ path, isNew }: FileProps) => {
   const [editing, setEditing] = useState(isNew);
   const { t } = useTranslation(["common"], { keyPrefix: "menu.files" });
   const { files, activePath, setNewPath } = useExplorer();
-  const { changed } = useAstState();
+  const { changed, ast } = useAstState();
   const { load } = useAst();
   const {
     saveFile,
@@ -46,7 +46,7 @@ export const File = ({ path, isNew }: FileProps) => {
     const nextFile = files.find((f: any) => f.path === path);
     if (nextFile?.type === "file") {
       if (changed) {
-        saveFile();
+        saveFile({ ...thisFile, ast });
       }
       load(nextFile.ast as any, nextFile.path);
       setActivePath(path);
@@ -62,7 +62,7 @@ export const File = ({ path, isNew }: FileProps) => {
 
   const createNewFile = (path: string) => {
     if (changed) {
-      saveFile();
+      saveFile({ ...thisFile, ast });
     }
     createFile(path);
     setNewPath(null);
@@ -121,7 +121,6 @@ export const File = ({ path, isNew }: FileProps) => {
       if (inputRef.current?.value === "") return;
       const oldPath = path.substring(0, path.lastIndexOf("/") + 1);
       const newName = inputRef.current?.value!;
-      console.log("this", thisFile.path);
       renameFile(thisFile, oldPath + newName);
     }
   };

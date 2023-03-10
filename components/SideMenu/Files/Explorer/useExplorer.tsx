@@ -41,21 +41,39 @@ export const ExplorerProvider = ({ children }: { children: ReactNode }) => {
 export const useExplorer = () => {
   const { addChangeListener, load } = useAst();
   const { newPath, setNewPath } = useContext(explorerContext);
-  const { changed } = useAstState();
+  const { changed, ast } = useAstState();
 
   const { saveFile, refetch, files, recent, setActivePath } = useFiles();
   const activePath = recent?.path!;
 
   useEffect(() => {
+    if (!recent) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "s") {
+        saveFile({ ...recent, ast });
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [recent, ast]);
+
+  useEffect(() => {
+    if (!recent) return;
+
     addChangeListener(
       debounce((state) => {
         if (state.changed) {
-          saveFile();
+          saveFile({ ...recent!, ast: state.ast });
         }
       }, 10000),
       "save"
     );
+  }, [recent]);
 
+  useEffect(() => {
     addChangeListener((state) => {
       if (state.changed) {
         window.addEventListener("beforeunload", warnBeforeExit);
@@ -78,7 +96,7 @@ export const useExplorer = () => {
     const nextFile = files.find((f: any) => f.path === path);
     if (nextFile?.type === "file") {
       if (changed) {
-        saveFile();
+        saveFile({ ...recent!, ast });
       }
       load(nextFile.ast as any, nextFile.path);
       setActivePath(path);
