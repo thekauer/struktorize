@@ -98,15 +98,19 @@ export async function updateFileAndRecent(userId: string, file: NewFile) {
 }
 
 export async function deleteFile(userId: string, path: string) {
-  const filesInRedis = await getFiles(userId);
-  const paths = Object.keys(filesInRedis || {});
+  const userData = await getUserData(userId);
+  const filesInRedis = userData?.files;
+  const paths = Object.keys(filesInRedis || {}).sort((a, b) =>
+    a.localeCompare(b)
+  );
   if (paths.length === 1) return false;
   const file = filesInRedis![path];
-  if (file.sharedId) {
-    await getRedis().json.del(`shared:${file.sharedId}`);
-  }
+
   await getRedis().hdel(`user:${userId}`, path);
-  await getRedis().hset(`user:${userId}`, { recent: paths[0] });
+  if (userData?.recent === path)
+    await getRedis().hset(`user:${userId}`, { recent: paths[0] });
+  if (file.sharedId) await getRedis().json.del(`shared:${file.sharedId}`);
+
   return true;
 }
 

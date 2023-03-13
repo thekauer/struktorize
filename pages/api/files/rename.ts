@@ -11,7 +11,14 @@ import {
   Ok,
   Unauthorized,
 } from "lib/serverUtils";
-import { deleteFile, doesFileExist, getFile, updateFile } from "lib/repository";
+import {
+  deleteFile,
+  doesFileExist,
+  getFile,
+  getUserData,
+  updateFile,
+  updateFileAndRecent,
+} from "lib/repository";
 
 const rename = z.object({
   ast: astSchmea,
@@ -40,8 +47,9 @@ export default async function handler(req: NextRequest) {
 
   const { from, to, ast } = moveSchema.data;
 
-  const oldFile = await getFile(userId, from);
-  if (oldFile === null) {
+  const userData = await getUserData(userId);
+  const oldFile = userData?.files[userData?.recent];
+  if (!oldFile) {
     return NotFound("File not found");
   }
 
@@ -51,7 +59,11 @@ export default async function handler(req: NextRequest) {
 
   const newFile = { path: to, type: "file" as const, ast };
 
-  await updateFile(userId, newFile);
+  const recentWillChange = from === userData.recent;
+
+  if (recentWillChange) await updateFileAndRecent(userId, newFile);
+  else await updateFile(userId, newFile);
+
   await deleteFile(userId, from);
 
   return Ok();
