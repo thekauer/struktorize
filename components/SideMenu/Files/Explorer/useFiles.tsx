@@ -60,7 +60,7 @@ export const useFiles = () => {
     },
     {
       onMutate: async ({ payload, method }) => {
-        await queryClient.cancelQueries(["files"]);
+        await queryClient.cancelQueries({ queryKey: ["files"] });
         const previousFiles = queryClient.getQueryData<UserDataDTO>(["files"]);
 
         const updater = (userDataDto?: UserDataDTO): UserDataDTO => {
@@ -116,7 +116,7 @@ export const useFiles = () => {
         queryClient.setQueryData(["files"], context.previousFiles);
       },
       onSettled: () => {
-        queryClient.invalidateQueries(["files"]);
+        queryClient.invalidateQueries({ queryKey: ["files"] });
       },
     }
   );
