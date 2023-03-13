@@ -45,9 +45,7 @@ export const File = ({ path, isNew }: FileProps) => {
 
     const nextFile = files.find((f: any) => f.path === path);
     if (nextFile?.type === "file") {
-      if (changed) {
-        saveFile({ ...thisFile, ast });
-      }
+      saveFile({ ...thisFile, ast });
       load(nextFile.ast as any, nextFile.path);
       setActivePath(path);
       focusRoot();
