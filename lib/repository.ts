@@ -104,10 +104,10 @@ export async function updateFileAndRecent(
 export async function deleteFile(userId: string, path: string) {
   const userData = await getUserData(userId);
   const filesInRedis = userData?.files;
-  const paths = Object.keys(filesInRedis || {}).sort((a, b) =>
-    a.localeCompare(b)
-  );
-  if (paths.length === 1) return false;
+  const paths = Object.keys(filesInRedis || {})
+    .sort((a, b) => a.localeCompare(b))
+    .filter((p) => p !== path);
+  if (paths.length === 0) return false;
   const file = filesInRedis![path];
 
   await getRedis().hdel(`user:${userId}`, path);
