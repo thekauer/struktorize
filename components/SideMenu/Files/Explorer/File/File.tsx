@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { MouseEvent, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import * as S from "./File.atoms";
 import * as ES from "../Explorer.atoms";
@@ -85,7 +85,8 @@ export const File = ({ path, isNew }: FileProps) => {
     setNewPath(null);
   };
 
-  const handleShare = () => {
+  const handleShare = (e: MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
     if (!path) {
       toast.error(t("errorGeneratingLink"));
       return;
