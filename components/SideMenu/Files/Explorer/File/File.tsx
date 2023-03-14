@@ -28,6 +28,7 @@ export const File = ({ path, isNew }: FileProps) => {
     renameFile,
     shareFile,
     setActivePath,
+    recent,
   } = useFiles();
   const thisFile = files.find((f) => f.path === path)!;
 
@@ -42,10 +43,9 @@ export const File = ({ path, isNew }: FileProps) => {
 
   const onFileClick = () => {
     if (path === activePath) return;
-
     const nextFile = files.find((f: any) => f.path === path);
     if (nextFile?.type === "file") {
-      saveFile({ ...thisFile, ast });
+      saveFile({ ...recent!, ast, recent: nextFile.path });
       load(nextFile.ast as any, nextFile.path);
       setActivePath(path);
       focusRoot();
@@ -60,7 +60,7 @@ export const File = ({ path, isNew }: FileProps) => {
 
   const createNewFile = (path: string) => {
     if (changed) {
-      saveFile({ ...thisFile, ast });
+      saveFile({ ...recent!, ast });
     }
     createFile(path);
     setNewPath(null);
