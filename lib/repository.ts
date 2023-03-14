@@ -84,7 +84,11 @@ export async function updateFile(userId: string, file: NewFile) {
   return updatedFile;
 }
 
-export async function updateFileAndRecent(userId: string, file: NewFile) {
+export async function updateFileAndRecent(
+  userId: string,
+  file: NewFile,
+  recent?: string
+) {
   const newFile = await createDefaultUserIfNotExists(userId);
   if (newFile) return newFile;
 
@@ -92,7 +96,7 @@ export async function updateFileAndRecent(userId: string, file: NewFile) {
 
   const updatedFile = await getRedis().hset(`user:${userId}`, {
     [path]: file,
-    recent: path,
+    recent: recent || path,
   });
   return updatedFile;
 }

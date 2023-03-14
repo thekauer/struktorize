@@ -67,6 +67,7 @@ const fileValidator = z.object({
   type: z.literal("file"),
   path: z.string(),
   ast: astSchmea,
+  recent: z.string().optional(),
 });
 
 export type FileDTO = z.infer<typeof fileValidator>;
@@ -80,7 +81,7 @@ const put = async (req: NextRequest, token: Token) => {
     return BadRequest();
   }
 
-  await updateFileAndRecent(userId, schema.data);
+  await updateFileAndRecent(userId, schema.data, schema.data.recent);
   return Ok();
 };
 

@@ -121,7 +121,7 @@ export const useFiles = () => {
     }
   );
 
-  const saveFile = (file: File) => {
+  const saveFile = (file: FileDTO) => {
     mutate({
       payload: { file },
       method: "put",

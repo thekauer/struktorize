@@ -95,7 +95,7 @@ export const useExplorer = () => {
 
     const nextFile = files.find((f: any) => f.path === path);
     if (nextFile?.type === "file") {
-      saveFile({ ...recent!, ast });
+      saveFile({ ...recent!, ast, recent: nextFile.path });
       load(nextFile.ast as any, nextFile.path);
       setActivePath(path);
       focusRoot();
