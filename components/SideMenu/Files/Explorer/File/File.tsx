@@ -117,9 +117,14 @@ export const File = ({ path, isNew }: FileProps) => {
 
     const finishedRenaming = !isNew && editing;
     if (finishedRenaming) {
-      if (inputRef.current?.value === "") return;
-      const oldPath = path.substring(0, path.lastIndexOf("/") + 1);
       const newName = inputRef.current?.value!;
+      if (newName === "") return;
+      const isConflictingFileName = files.find((f) => f.path === `/${newName}`);
+      if (isConflictingFileName) return;
+      const nameHasOnlyAsciiLetters = !/^[a-zA-Z0-9]+$/.test(newName);
+      if (nameHasOnlyAsciiLetters) return;
+
+      const oldPath = path.substring(0, path.lastIndexOf("/") + 1);
       renameFile(thisFile, oldPath + newName);
     }
   };
