@@ -63,7 +63,7 @@ export default function Home({ recent }: HomeProps) {
   return (
     <>
       <Head>
-        <title>Structorizer</title>
+        <title>Structorize</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Layout>

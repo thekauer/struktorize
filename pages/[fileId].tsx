@@ -38,7 +38,7 @@ export default function Page({
   return (
     <>
       <Head>
-        <title>{name} - Structorizer</title>
+        <title>{name} - Structorize</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
