@@ -18,6 +18,7 @@ export const getServerSideProps: GetServerSideProps<
     "common",
     "footer",
   ]);
+  console.log(translations._nextI18Next.initialI18nStore.en);
   const session = await getSession({ req });
   if (!session || !session.user) {
     return {
@@ -48,7 +49,9 @@ export const getServerSideProps: GetServerSideProps<
 };
 
 type HomeProps = InferGetServerSidePropsType<typeof getServerSideProps>;
-export default function Home({ recent }: HomeProps) {
+export default function Home(props: HomeProps) {
+  const { recent } = props;
+  console.log("props", props);
   const { load } = useAst();
   const { status } = useSession();
 
