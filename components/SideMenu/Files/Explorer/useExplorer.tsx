@@ -49,7 +49,7 @@ export const useExplorer = () => {
   useEffect(() => {
     if (!recent) return;
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === "s") {
+      if (e.ctrlKey && e.key === "s" && changed) {
         saveFile({ ...recent, ast });
       }
     };
@@ -58,7 +58,7 @@ export const useExplorer = () => {
     return () => {
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [recent, ast]);
+  }, [recent, ast, changed]);
 
   useEffect(() => {
     if (!recent) return;
