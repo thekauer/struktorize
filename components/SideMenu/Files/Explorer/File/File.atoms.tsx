@@ -6,6 +6,7 @@ export const FileMenu = styled.div`
 
 export const Container = styled.div<{ active?: boolean }>`
   display: flex;
+  position: relative;
   align-items: center;
   justify-content: flex-start;
   gap: 1rem;
@@ -25,6 +26,8 @@ export const Container = styled.div<{ active?: boolean }>`
   }
 
   &:hover ${FileMenu} {
+    position: absolute;
+    right: 1rem;
     display: flex;
     flex: 1;
     align-items: center;
@@ -49,6 +52,9 @@ export const Image = styled.div<{ src: string }>`
 export const Name = styled.span`
   font-size: 0.9rem;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 7rem;
 `;
 
 export const Input = styled.input`
