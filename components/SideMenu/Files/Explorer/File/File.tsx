@@ -161,7 +161,7 @@ export const File = ({ path, isNew }: FileProps) => {
         <S.Input ref={inputRef} />
       ) : (
         <>
-          <S.Name>
+          <S.Name title={path.split("/").pop()}>
             {isChanged && "*"}
             {path.split("/").pop()}
           </S.Name>
