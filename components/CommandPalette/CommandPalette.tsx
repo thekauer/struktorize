@@ -1,16 +1,28 @@
 import { useEffect, useRef, useState } from "react";
 import { FileDTO } from "../../pages/api/files";
+import { File } from "@/lib/repository";
 import { useExplorer } from "../SideMenu/Files/Explorer/useExplorer";
-import { useFiles } from "../SideMenu/Files/Explorer/useFiles";
 import * as S from "./CommandPalette.atoms";
+import FuzzySearch from "fuzzy-search";
 
 export const CommandPalette = () => {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [input, setInput] = useState<string>("");
   const [selected, setSelected] = useState<number>(0);
-  const [filter, setFilter] = useState<string[]>();
   const inputRef = useRef<HTMLInputElement>(null);
   const { onFileClick, files } = useExplorer();
+
+  const searcher = new FuzzySearch(files, ["path"], {
+    caseSensitive: false,
+  });
+  const filter: string[] = searcher
+    .search(input)
+    .map(({ path }: FileDTO) => path);
+
+  const nodes: File[] = files.filter(
+    (node: File) =>
+      node.type === "file" && filter.find((path) => path === node.path)
+  );
 
   useEffect(() => {
     const commandPaletteToggle = (e: KeyboardEvent) => {
@@ -39,18 +51,12 @@ export const CommandPalette = () => {
     else focusRoot();
   }, [showCommandPalette]);
 
-  const nodes = files.filter(
-    (node) =>
-      node.type === "file" &&
-      (filter?.find((path) => path === node.path) || filter === undefined)
-  );
-
   if (!showCommandPalette) return null;
 
   return (
     <S.Container
       onKeyDown={(e) => {
-        const length = filter?.length || files.length;
+        const length = filter.length;
         if (e.key === "ArrowDown") {
           setSelected((prev) => (prev + 1 > length - 1 ? 0 : prev + 1));
         }
@@ -62,6 +68,8 @@ export const CommandPalette = () => {
           const selectedFile = nodes[selected];
           if (selectedFile) {
             onFileClick(selectedFile.path);
+            setInput("");
+            setSelected(0);
             setShowCommandPalette(false);
           }
         }
@@ -73,12 +81,6 @@ export const CommandPalette = () => {
         onChange={async (e) => {
           setInput(e.target.value);
           setSelected(0);
-          const FuzzySearch = (await import("fuzzy-search")).default;
-          const searcher = new FuzzySearch(files, ["path"], {
-            caseSensitive: false,
-          });
-          const results: FileDTO[] = searcher.search(e.target.value);
-          setFilter(results.map((r) => r.path));
         }}
       />
       <S.FilesContainer>

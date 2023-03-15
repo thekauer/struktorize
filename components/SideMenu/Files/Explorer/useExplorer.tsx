@@ -1,4 +1,4 @@
-import {
+import React, {
   useEffect,
   useState,
   createContext,
@@ -10,52 +10,96 @@ import {
 import { useAst, useAstState } from "../../../../hooks/useAST";
 import { debounce } from "../../../../lib/debounce";
 import { FileDTO } from "../../../../pages/api/files";
-import { Ast } from "../../../../lib/ast";
+import { File } from "@/lib/repository";
 import { useFiles } from "./useFiles";
 import { FileProps } from "./File/File";
 
+const warnBeforeExit = (e: any) => {
+  const confirmationMessage =
+    "It looks like you have been editing something. " +
+    "If you leave before saving, your changes will be lost.";
+
+  (e || window.event).returnValue = confirmationMessage; //Gecko + IE
+  return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
+};
+
 const explorerContext = createContext<{
-  activePath: string;
-  setActivePath: Dispatch<SetStateAction<string>>;
+  newPath: string | null;
+  setNewPath: Dispatch<SetStateAction<string | null>>;
 }>({} as any);
 
 export const ExplorerProvider = ({ children }: { children: ReactNode }) => {
-  const [activePath, setActivePath] = useState<string>("/main");
+  const [newPath, setNewPath] = useState<string | null>(null);
+
   return (
-    <explorerContext.Provider value={{ activePath, setActivePath }}>
+    <explorerContext.Provider value={{ newPath, setNewPath }}>
       {children}
     </explorerContext.Provider>
   );
 };
 
 export const useExplorer = () => {
-  const { functionName, ast, changed } = useAstState();
-  const { load, addChangeListener, save } = useAst();
-  const { activePath, setActivePath } = useContext(explorerContext);
-  const [newPath, setNewPath] = useState<string | null>(null);
+  const { addChangeListener, load } = useAst();
+  const { newPath, setNewPath } = useContext(explorerContext);
+  const { changed, ast } = useAstState();
 
-  const { createFile, deleteFile, saveFile, renameFile, refetch, files } =
-    useFiles(({ files, file }) => {
-      if (files?.length === 0) {
-        createFile(`/${functionName}`);
-        return;
-      }
-      load(file.ast as Ast, file.path);
-    });
+  const { saveFile, refetch, files, recent, setActivePath } = useFiles();
+  const activePath = recent?.path!;
 
   useEffect(() => {
+    if (!recent) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "s" && changed) {
+        saveFile({ ...recent, ast });
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [recent, ast, changed]);
+
+  useEffect(() => {
+    if (!recent) return;
+
     addChangeListener(
       debounce((state) => {
         if (state.changed) {
-          saveFile(state);
-          save();
+          saveFile({ ...recent!, ast: state.ast });
         }
-      }, 10000)
+      }, 10000),
+      "save"
     );
+  }, [recent]);
+
+  useEffect(() => {
+    addChangeListener((state) => {
+      if (state.changed) {
+        window.addEventListener("beforeunload", warnBeforeExit);
+      } else {
+        window.removeEventListener("beforeunload", warnBeforeExit);
+      }
+    }, "warnExit");
   }, []);
 
   const newFileClick = () => {
     setNewPath(activePath.substring(0, activePath.lastIndexOf("/") + 1));
+  };
+
+  const focusRoot = () =>
+    document.querySelector<HTMLDivElement>("#root-container")?.focus();
+
+  const onFileClick = (path: string) => {
+    if (activePath === path) return;
+
+    const nextFile = files.find((f: any) => f.path === path);
+    if (nextFile?.type === "file") {
+      saveFile({ ...recent!, ast, recent: nextFile.path });
+      load(nextFile.ast as any, nextFile.path);
+      setActivePath(path);
+      focusRoot();
+    }
   };
 
   const refreshClick = () => refetch();
@@ -64,90 +108,22 @@ export const useExplorer = () => {
     (f: FileDTO) => f.path === activePath && f.type === "file"
   ) as FileDTO;
 
-  const focusRoot = () =>
-    document.querySelector<HTMLDivElement>("#root-container")?.focus();
-
   const newFile: FileProps = {
     path: newPath!,
     isNew: true,
-    onSubmit: (path) => {
-      createFile(path);
-      setNewPath(null);
-      setActivePath(path);
-
-      const name = path.substring(path.lastIndexOf("/") + 1);
-      const newAst = {
-        signature: {
-          text: `\\text{${name}}()`,
-          type: "signature",
-          path: "signature",
-        },
-        body: [],
-        type: "function",
-        path: "",
-      } as Ast;
-
-      load(newAst, path);
-      focusRoot();
-    },
-    onEscape: () => {
-      setNewPath(null);
-    },
   };
 
   const filesWithNewFile = !newPath
     ? files
-    : [...files, newFile as FileDTO].sort((a, b) =>
-        b.path.localeCompare(a.path)
-      );
-
-  const onFileClick = (path: string) => {
-    if (path === activePath) return;
-
-    const nextFile = files.find((f: any) => f.path === path);
-    if (nextFile?.type === "file") {
-      if (changed) {
-        saveFile({ ...activeFile, ast });
-        save();
-      }
-      load(nextFile.ast as any, nextFile.path);
-      setActivePath(path);
-      focusRoot();
-    }
-  };
-
-  const onFileDelete = (path: string) => {
-    const nextFile: any = files.filter(
-      (f: FileDTO) => f.path !== path && f.type === "file"
-    )[0];
-    if (nextFile) {
-      setActivePath(nextFile.path);
-      load(nextFile.ast as any, nextFile.path);
-    }
-    deleteFile(path);
-  };
-
-  const onFileMove = (path: string) => {
-    renameFile({ ...activeFile, ast }, activePath, path);
-    save();
-
-    setActivePath(path);
-  };
-
-  const getFileProps = (file: any) => ({
-    ...file,
-    name: file.path.substring(file.path.lastIndexOf("/") + 1),
-    isActive: file.path === activePath,
-    onClick: onFileClick,
-    onDelete: onFileDelete,
-    onMove: onFileMove,
-  });
+    : [...files, newFile as File].sort((a, b) => b.path.localeCompare(a.path));
 
   return {
-    getFileProps,
     newFileClick,
     refreshClick,
-    files: filesWithNewFile,
     onFileClick,
+    files: filesWithNewFile,
+    activePath,
+    activeFile,
+    setNewPath,
   };
 };

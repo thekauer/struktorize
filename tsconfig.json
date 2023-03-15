@@ -29,10 +29,18 @@
       "@/styles/*": [
         "styles/*"
       ],
-      "@hooks/*": [
+      "@/hooks/*": [
         "hooks/*"
       ],
-    }
+      "@/lib/*": [
+        "lib/*"
+      ]
+    },
+    "plugins": [
+      {
+        "name": "typescript-styled-plugin"
+      }
+    ]
   },
   "include": [
     "next-env.d.ts",

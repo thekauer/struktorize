@@ -5,8 +5,12 @@
     "prettier"
   ],
   "plugins": [
-    "testing-library"
+    "testing-library",
+    "prettier"
   ],
+  "rules": {
+    "prettier/prettier": "error"
+  },
   "overrides": [
     // Only uses Testing Library lint rules in test files
     {

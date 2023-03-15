@@ -2,7 +2,7 @@ import { useTheme } from "../../hooks/useTheme";
 import { KeyboardEvent, useRef, useState } from "react";
 import { useAst } from "../../hooks/useAST";
 
-export const useEditor = () => {
+export const useEditor = (readonly?: boolean) => {
   const {
     up,
     down,
@@ -15,7 +15,7 @@ export const useEditor = () => {
     addLoop,
     deselectAll,
     undo,
-    redo
+    redo,
   } = useAst();
   const [buffer, setBuffer] = useState("");
   const [insertMode, setInsertMode] = useState<
@@ -30,19 +30,18 @@ export const useEditor = () => {
   };
 
   const handleUndoRedo = (e: KeyboardEvent<HTMLDivElement>) => {
-
     if (e.ctrlKey && e.shiftKey && e.key === "Z") {
       redo();
     }
     if (e.ctrlKey && e.key === "z") {
       undo();
     }
-  }
+  };
 
   const handleKeydown = (e: KeyboardEvent<HTMLDivElement>) => {
     const key = getKey(e);
 
-    handleUndoRedo(e);
+    if (!readonly) handleUndoRedo(e);
     if (e.ctrlKey) return;
 
     const navigationPayload = { select: e.shiftKey, move: e.altKey };
@@ -83,6 +82,10 @@ export const useEditor = () => {
         right(navigationPayload);
         if (canDeselect) deselectAll();
         return;
+    }
+    if (readonly) return;
+
+    switch (key) {
       case "Backspace":
         setInsertMode("normal");
         backspace();

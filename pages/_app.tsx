@@ -1,12 +1,12 @@
 import "style/theme.css";
 import "katex/dist/katex.min.css";
 import type { AppProps } from "next/app";
-import { Layout } from "../components/Layout/Layout";
 import { ThemeProvider } from "../hooks/useTheme";
 import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { appWithTranslation } from "next-i18next";
 import { Session } from "next-auth";
+import { AstProvider } from "@/hooks/useAST";
 
 const queryClient = new QueryClient();
 
@@ -18,9 +18,9 @@ function MyApp({
     <SessionProvider session={session}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <Layout>
+          <AstProvider>
             <Component {...pageProps} />
-          </Layout>
+          </AstProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </SessionProvider>

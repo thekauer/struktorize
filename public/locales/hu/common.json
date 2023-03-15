@@ -3,6 +3,10 @@
     "files": {
       "title": "Fájlok",
       "signInToSaveYourStructograms": "Jelentkezz be, hogy el tudd menteni a structogramjaidat:",
+      "copyToClipboard": "A link a vágólapra lett másolva",
+      "generatingLink": "Link generálása...",
+      "errorGeneratingLink": "Valami hiba történt a linked generálása közben",
+      "share": "Megosztás",
       "rename": "Átnevezés",
       "delete": "Törlés"
     },

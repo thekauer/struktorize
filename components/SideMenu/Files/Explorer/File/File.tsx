@@ -1,49 +1,112 @@
-import { useEffect, useRef, useState } from "react";
+import { MouseEvent, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import * as S from "./File.atoms";
 import * as ES from "../Explorer.atoms";
 import { useTranslation } from "next-i18next";
+import toast from "react-hot-toast";
+import { useAst, useAstState } from "@/hooks/useAST";
+import { useExplorer } from "../useExplorer";
+import { useFiles } from "../useFiles";
+import { Ast } from "lib/ast";
 
 export interface FileProps {
-  name?: string;
   path: string;
-  isActive?: boolean;
   isNew?: boolean;
-  onClick?: (path: string) => void;
-  onDelete?: (path: string) => void;
-  onEscape?: () => void;
-  onSubmit?: (path: string) => void;
-  onMove?: (path: string) => void;
 }
 
-export const File = ({
-  name,
-  path,
-  isActive,
-  isNew,
-  onClick,
-  onDelete,
-  onEscape,
-  onSubmit,
-  onMove,
-}: FileProps) => {
+export const File = ({ path, isNew }: FileProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(isNew);
   const { t } = useTranslation(["common"], { keyPrefix: "menu.files" });
+  const { files, activePath, setNewPath } = useExplorer();
+  const { changed, ast } = useAstState();
+  const { load } = useAst();
+  const {
+    saveFile,
+    createFile,
+    deleteFile,
+    renameFile,
+    shareFile,
+    setActivePath,
+    recent,
+  } = useFiles();
+  const thisFile = files.find((f) => f.path === path)!;
 
   useEffect(() => {
     if (isNew) {
       inputRef.current?.focus();
     }
-  }, []);
+  }, [isNew]);
+
+  const focusRoot = () =>
+    document.querySelector<HTMLDivElement>("#root-container")?.focus();
+
+  const onFileClick = () => {
+    if (path === activePath) return;
+    const nextFile = files.find((f: any) => f.path === path);
+    if (nextFile?.type === "file") {
+      saveFile({ ...recent!, ast, recent: nextFile.path });
+      load(nextFile.ast as any, nextFile.path);
+      setActivePath(path);
+      focusRoot();
+    }
+  };
 
   const handleDelete = () => {
     if (isNew) return;
-    onDelete?.(path);
+
+    deleteFile(path);
+  };
+
+  const createNewFile = (path: string) => {
+    if (changed) {
+      saveFile({ ...recent!, ast });
+    }
+    createFile(path);
+    setNewPath(null);
+
+    const name = path.substring(path.lastIndexOf("/") + 1);
+    const newAst = {
+      signature: {
+        text: `\\text{${name}}()`,
+        type: "signature",
+        path: "signature",
+      },
+      body: [],
+      type: "function",
+      path: "",
+    } as Ast;
+
+    load(newAst, path);
+    focusRoot();
+  };
+
+  const onEscape = () => {
+    setNewPath(null);
+  };
+
+  const handleShare = (e: MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    if (!path) {
+      toast.error(t("errorGeneratingLink"));
+      return;
+    }
+
+    const shareFileAndCopyIdToClipboard = async () => {
+      const id = await shareFile(path);
+      await navigator.clipboard.writeText(
+        `${process.env.NEXT_PUBLIC_SITE_URL}/${id}`
+      );
+    };
+
+    toast.promise(shareFileAndCopyIdToClipboard(), {
+      loading: t("generatingLink"),
+      success: t("copyToClipboard"),
+      error: t("errorGeneratingLink"),
+    });
   };
 
   const handleRename = () => {
-    if (inputRef.current?.value === "") return;
     const pressedEnterToStartRenaming = !editing;
     if (pressedEnterToStartRenaming) {
       flushSync(() => {
@@ -54,17 +117,18 @@ export const File = ({
 
     const finishedRenaming = !isNew && editing;
     if (finishedRenaming) {
+      if (inputRef.current?.value === "") return;
       const oldPath = path.substring(0, path.lastIndexOf("/") + 1);
       const newName = inputRef.current?.value!;
-      onMove?.(oldPath + newName);
+      renameFile(thisFile, oldPath + newName);
     }
-  }
+  };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     switch (e.key) {
       case "Enter":
         handleRename();
-        if (isNew) onSubmit?.(path + inputRef.current?.value!);
+        if (isNew) createNewFile(path + inputRef.current?.value!);
         break;
 
       case "Delete":
@@ -73,26 +137,51 @@ export const File = ({
 
       case "Escape":
         if (editing) setEditing(false);
-        onEscape?.();
+        onEscape();
         break;
     }
   };
 
+  const isChanged = changed && path === activePath;
+
   return (
     <S.Container
-      active={isActive}
+      active={path === activePath}
       onKeyDown={onKeyDown}
-      onClick={() => onClick?.(path)}
+      onClick={onFileClick}
       tabIndex={-1}
     >
       <S.Image src={"/structogram.png"} />
-      {editing ? <S.Input ref={inputRef} /> :
+      {editing ? (
+        <S.Input ref={inputRef} />
+      ) : (
         <>
-          <S.Name>{name}</S.Name><S.FileMenu>
-            <ES.MenuItem src="/rename.svg" onClick={handleRename} title={t("rename")} />
-            <ES.MenuItem src="/bin.svg" onClick={handleDelete} title={t("delete")} />
+          <S.Name>
+            {isChanged && "*"}
+            {path.split("/").pop()}
+          </S.Name>
+          <S.FileMenu>
+            <ES.MenuItem
+              src="/share.svg"
+              onClick={handleShare}
+              title={t("share")}
+            />
+            <ES.MenuItem
+              src="/rename.svg"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRename();
+              }}
+              title={t("rename")}
+            />
+            <ES.MenuItem
+              src="/bin.svg"
+              onClick={handleDelete}
+              title={t("delete")}
+            />
           </S.FileMenu>
-        </>}
+        </>
+      )}
     </S.Container>
   );
 };

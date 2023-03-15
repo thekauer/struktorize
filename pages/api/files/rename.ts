@@ -1,10 +1,27 @@
 import { NextRequest } from "next/server";
-import { getBody, getRedis, jsonSchema } from ".";
-import { getToken } from "next-auth/jwt";
 import z from "zod";
+import {
+  astSchmea,
+  BadRequest,
+  Conflict,
+  getBody,
+  getToken,
+  NotAllowed,
+  NotFound,
+  Ok,
+  Unauthorized,
+} from "lib/serverUtils";
+import {
+  deleteFile,
+  doesFileExist,
+  getFile,
+  getUserData,
+  updateFile,
+  updateFileAndRecent,
+} from "lib/repository";
 
 const rename = z.object({
-  ast: jsonSchema,
+  ast: astSchmea,
   from: z.string(),
   to: z.string(),
 });
@@ -12,42 +29,44 @@ const rename = z.object({
 export type RenameDTO = z.infer<typeof rename>;
 
 export default async function handler(req: NextRequest) {
-  const redis = getRedis();
-  const token = await getToken({ req });
+  const token = await getToken(req);
 
   if (!token) {
-    return new Response("Unauthorized", { status: 401 });
+    return Unauthorized();
   }
 
-  const key = `files:${token.id}`;
+  const userId = token.id;
 
-  if (req.method !== "POST")
-    return new Response("Method not allowed", { status: 405 });
+  if (req.method !== "POST") return NotAllowed();
 
   const body = await getBody(req);
   const moveSchema = rename.safeParse(body);
   if (!moveSchema.success) {
-    return new Response("Invalid schema", { status: 400 });
+    return BadRequest("Invalid schema");
   }
 
   const { from, to, ast } = moveSchema.data;
 
-  const oldFile = await redis.hget(key, from);
-  if (oldFile === null) {
-    return new Response("File not found", { status: 404 });
+  const userData = await getUserData(userId);
+  const oldFile = userData?.files[userData?.recent];
+  if (!oldFile) {
+    return NotFound("File not found");
   }
 
-  const fileExists = await redis.hget(key, to);
-  if (fileExists !== null) {
-    return new Response("File already exists", { status: 409 });
+  if (await doesFileExist(userId, to)) {
+    return Conflict("File already exists");
   }
 
-  const newFile = { path: to, type: "file", ast };
+  const newFile = { path: to, type: "file" as const, ast };
 
-  await redis.hset(key, { [to]: newFile, recent: to });
-  await redis.hdel(key, from);
+  const recentWillChange = from === userData.recent;
 
-  return new Response("OK", { status: 200 });
+  if (recentWillChange) await updateFileAndRecent(userId, newFile);
+  else await updateFile(userId, newFile);
+
+  await deleteFile(userId, from);
+
+  return Ok();
 }
 
 export const config = {

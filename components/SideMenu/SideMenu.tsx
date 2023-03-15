@@ -16,12 +16,14 @@ export const SideMenu = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "b" && e.ctrlKey) {
-        setShowMenu(sm => !sm);
+        setShowMenu((sm) => !sm);
       }
-    }
+    };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => { window.removeEventListener("keydown", handleKeyDown); }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, []);
 
   const moonSrc = theme === "dark" ? "./moon.png" : "./moon_filled.png";
@@ -30,15 +32,18 @@ export const SideMenu = () => {
     setAstTheme(theme === "dark" ? "light" : "dark");
   };
 
-  const menus: Record<string, JSX.Element> = {
-    files: <Files />,
-    export: <Export />,
-    profile: <Profile />,
-  };
+  const menus: Record<string, JSX.Element> = useMemo(
+    () => ({
+      files: <Files />,
+      export: <Export />,
+      profile: <Profile />,
+    }),
+    []
+  );
 
   const topMenuItems = ["files", "export"];
   const menuItemClick = (name: string) => () => {
-    setShowMenu(sm => activeMenu === name ? !sm : true);
+    setShowMenu((sm) => (activeMenu === name ? !sm : true));
     setActiveMenu(name);
   };
 
