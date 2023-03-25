@@ -38,9 +38,9 @@ export const useFiles = () => {
   type Mutation =
     | { method: "delete"; payload: { path: string } }
     | {
-        method: "post";
-        payload: { isRename: true; to: string; from: string; ast: Ast };
-      }
+      method: "post";
+      payload: { isRename: true; to: string; from: string; ast: Ast };
+    }
     | { method: "post"; payload: { isRename: false; newFile: NewFileDTO } }
     | { method: "put"; payload: { file: FileDTO } };
 
