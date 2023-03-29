@@ -41,7 +41,7 @@ export type CST = {
   scope: string[];
 };
 
-const get = (scope: string[], ast: Ast) =>
+export const get = (scope: string[], ast: Ast) =>
   scope[0] === "" ? ast : scope.reduce((acc: any, curr) => acc[curr], ast);
 
 const grandParent = (scope: string[], ast: Ast) => {
@@ -131,19 +131,19 @@ const insert = (scope: string[], body: Ast[], index: number, node: Ast) => {
   if (index === -1) {
     return [node, ...body].map(
       (node, i) =>
-        ({
-          ...node,
-          path: setIndex(oldPath, i),
-        } as Ast)
+      ({
+        ...node,
+        path: setIndex(oldPath, i),
+      } as Ast)
     );
   }
 
   return [...body.slice(0, index + 1), node, ...body.slice(index + 1)].map(
     (node, i) =>
-      ({
-        ...node,
-        path: setIndex(oldPath, i),
-      } as Ast)
+    ({
+      ...node,
+      path: setIndex(oldPath, i),
+    } as Ast)
   );
 };
 
