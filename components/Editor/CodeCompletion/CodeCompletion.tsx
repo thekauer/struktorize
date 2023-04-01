@@ -20,7 +20,7 @@ export const CodeCompletion = ({
     item.scrollIntoView({ block: "nearest" });
   }, [selected]);
 
-  if (!visible) return null;
+  if (!visible || items.length === 0) return null;
 
   return createPortal(
     <S.Container>

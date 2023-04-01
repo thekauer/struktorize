@@ -4,6 +4,8 @@ export const getLastText = (node: Exclude<Ast, FunctionAst>) => {
   const text = node.text || "";
   const textTag = "\\text{";
   const textIndex = text.lastIndexOf(textTag);
+  const isTextTagTheLastTag = text.lastIndexOf("\\") === textIndex;
+  if (!isTextTagTheLastTag) return "";
   const textLength = text.substring(textIndex + textTag.length).indexOf("}");
   return text.substring(
     textIndex + textTag.length,
