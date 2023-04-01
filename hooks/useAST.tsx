@@ -63,9 +63,9 @@ type Action =
   | { type: "setScope"; payload: string[] }
   | { type: "load"; payload: { ast: Ast; path: string } }
   | {
-    type: "addChangeListener";
-    payload: { key: string; listener: ChangeListener };
-  }
+      type: "addChangeListener";
+      payload: { key: string; listener: ChangeListener };
+    }
   | { type: "callChangeListeners" }
   | { type: "save" }
   | { type: "select"; payload: string[][] }
@@ -371,10 +371,15 @@ export const useNode = (path: string | null) => {
     }
   };
 
-  return { hovered, selected: isSelected, onClick, className: hovered ? "hovered" : undefined };
+  return {
+    hovered,
+    selected: isSelected,
+    onClick,
+    className: hovered ? "hovered" : undefined,
+  };
 };
 
 export const useNodeInScope = () => {
   const { scope, ast } = useContext(AstStateContext);
   return get(scope, ast) as Ast;
-}
+};

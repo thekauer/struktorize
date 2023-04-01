@@ -22,7 +22,10 @@ interface EditorProps {
 
 export const Editor = ({ readonly }: EditorProps) => {
   const codeCompletionProps = useCodeCompletion();
-  const { containerProps, rootRef } = useEditor({ readonly, disableNavigation: codeCompletionProps.visible });
+  const { containerProps, rootRef } = useEditor({
+    readonly,
+    disableNavigation: codeCompletionProps.visible,
+  });
 
   useEffect(() => {
     rootRef.current?.focus();

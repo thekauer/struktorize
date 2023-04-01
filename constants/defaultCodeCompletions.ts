@@ -1,6 +1,1 @@
-export const defaultCodeCompletions = [
-  "if",
-  "loop",
-  "pi",
-  "epsilon",
-]
+export const defaultCodeCompletions = ["if", "loop", "pi", "epsilon"];
