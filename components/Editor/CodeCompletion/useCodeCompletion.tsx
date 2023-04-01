@@ -9,6 +9,7 @@ export const useCodeCompletion = () => {
   const [selected, setSelected] = useState(0);
   const [visible, setVisible] = useState(false);
   const pathRef = useRef("");
+  const mountedref = useRef(false);
   const node = useNodeInScope();
   const { addIf, addLoop, edit, backspace } = useAst();
   const { ast } = useAstState();
@@ -28,12 +29,16 @@ export const useCodeCompletion = () => {
   const items = searcher.search(getLastText(node));
 
   useEffect(() => {
+    if (!mountedref.current) return;
     setVisible(node.path === pathRef.current);
 
     pathRef.current = node.path;
   }, [node]);
 
   useEffect(() => {
+    if (!mountedref.current) {
+      mountedref.current = true;
+    }
     const keydown = (e: KeyboardEvent) => {
       if (e.key === " " && e.ctrlKey) {
         setVisible(true);
