@@ -23,7 +23,7 @@ export const CodeCompletion = ({
   if (!visible || items.length === 0) return null;
 
   return createPortal(
-    <S.Container>
+    <S.Container className="CodeCompletion">
       <S.RowContainer>
         {items.map((item, index) => (
           <S.Row
