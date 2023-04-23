@@ -5,7 +5,6 @@ import React, {
   useContext,
   useReducer,
   MouseEvent,
-  useRef,
 } from "react";
 import { DEFAULT_FUNCTION } from "../constants/defaultFunction";
 import {
@@ -24,8 +23,18 @@ import {
   navigateAndToggleSelection,
   CST,
   get,
+  AstNode,
+  Symbol,
+  AbstractChar,
 } from "../lib/ast";
-import { addText, deleteLast, getFunctionName } from "../lib/textTransform";
+import {
+  addAbstractChar,
+  addText,
+  deleteLast,
+  deleteLastVariable,
+  getFunctionName,
+  InsertMode,
+} from "@/lib/abstractText";
 import { useTheme } from "./useTheme";
 
 type ChangeListener = (state: State) => void;
@@ -58,8 +67,16 @@ type Action =
   | { type: "left"; payload: { select?: boolean; move?: boolean } }
   | { type: "right"; payload: { select?: boolean; move?: boolean } }
   | { type: "add"; payload: Ast }
-  | { type: "text"; payload: { text: string; insertMode: string } }
+  | {
+      type: "text";
+      payload: { text: string; insertMode: InsertMode };
+    }
+  | {
+      type: "insertSymbol";
+      payload: { symbol: AbstractChar; insertMode: InsertMode };
+    }
   | { type: "backspace" }
+  | { type: "popLastText" }
   | { type: "setScope"; payload: string[] }
   | { type: "load"; payload: { ast: Ast; path: string } }
   | {
@@ -151,6 +168,20 @@ function reducer(state: State, action: Action): State {
       });
     }
 
+    case "insertSymbol": {
+      const cst = edit(
+        scope,
+        ast,
+        addAbstractChar(action.payload.symbol, action.payload.insertMode)
+      );
+
+      return updateHistory({
+        ...state,
+        ...cst,
+        changed: true,
+      });
+    }
+
     case "backspace":
       if (!isEmpty(scope, ast))
         return { ...state, ...edit(scope, ast, deleteLast) };
@@ -158,6 +189,8 @@ function reducer(state: State, action: Action): State {
       const removed = remove(scope, ast, true);
       const newScope = up(removed.scope, removed.ast);
       return { ...state, scope: newScope, ast: removed.ast, changed: true };
+    case "popLastText":
+      return { ...state, ...edit(scope, ast, deleteLastVariable) };
     case "setScope":
       return { ...state, ast, scope: action.payload };
     case "load":
@@ -236,7 +269,7 @@ export const AstProvider = ({ children }: AstProviderProps) => {
 
   const { ast, scope, changed, selected } = state;
 
-  const functionName = getFunctionName((ast as FunctionAst).signature?.text);
+  const functionName = getFunctionName((ast as FunctionAst).signature.text);
   const stateContext = {
     ast,
     scope: showScope ? scope : [],
@@ -275,7 +308,7 @@ export const useAst = () => {
   const addStatement = () => {
     dispatch({
       type: "add",
-      payload: { type: "statement", path: "", text: " " },
+      payload: { type: "statement", path: "", text: [] },
     });
     callChangeListeners();
   };
@@ -285,7 +318,7 @@ export const useAst = () => {
       payload: {
         type: "branch",
         path: "",
-        text: " ",
+        text: [],
       },
     });
     callChangeListeners();
@@ -293,7 +326,7 @@ export const useAst = () => {
   const addLoop = () => {
     dispatch({
       type: "add",
-      payload: { type: "loop", body: [], path: "", text: " " },
+      payload: { type: "loop", body: [], path: "", text: [] },
     });
     callChangeListeners();
   };
@@ -301,8 +334,16 @@ export const useAst = () => {
     for (let i = 0; i < n; i++) dispatch({ type: "backspace" });
     callChangeListeners();
   };
-  const edit = (text: string, insertMode = "normal") => {
+  const popLastText = () => {
+    dispatch({ type: "popLastText" });
+    callChangeListeners();
+  };
+  const edit = (text: string, insertMode: InsertMode = "normal") => {
     dispatch({ type: "text", payload: { text, insertMode } });
+    callChangeListeners();
+  };
+  const insert = (symbol: AbstractChar, insertMode: InsertMode) => {
+    dispatch({ type: "insertSymbol", payload: { symbol, insertMode } });
     callChangeListeners();
   };
   const setScope = (scope: string[]) =>
@@ -335,7 +376,9 @@ export const useAst = () => {
     addIf,
     addLoop,
     backspace,
+    popLastText,
     edit,
+    insert,
     setScope,
     load,
     addChangeListener,
@@ -381,5 +424,5 @@ export const useNode = (path: string | null) => {
 
 export const useNodeInScope = () => {
   const { scope, ast } = useContext(AstStateContext);
-  return get(scope, ast) as Ast;
+  return get(scope, ast) as AstNode;
 };

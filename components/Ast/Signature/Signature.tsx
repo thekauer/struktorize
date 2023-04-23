@@ -1,6 +1,6 @@
 import { useNode } from "../../../hooks/useAST";
 import { SignatureAst } from "../../../lib/ast";
-import { Latex } from "../Latex/Latex";
+import { AbstractText } from "../AbstractText/AbstractText";
 import * as S from "./Signature.atoms";
 
 export const Signature = ({ text, path }: SignatureAst) => {
@@ -9,7 +9,7 @@ export const Signature = ({ text, path }: SignatureAst) => {
   return (
     <>
       <S.Container {...containerProps}>
-        <Latex>{text}</Latex>
+        <AbstractText>{text}</AbstractText>
       </S.Container>
       <S.Line />
     </>

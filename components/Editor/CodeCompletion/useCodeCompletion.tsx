@@ -1,9 +1,24 @@
 import { useAst, useAstState, useNodeInScope } from "@/hooks/useAST";
 import { defaultCodeCompletions } from "constants/defaultCodeCompletions";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import FuzzySearch from "fuzzy-search";
-import { getAllTextsExceptCurrent, getLastText } from "./getAllTexts";
-import { FunctionAst } from "@/lib/ast";
+import { FunctionAst, AbstractChar } from "@/lib/ast";
+import {
+  doesEndWithSpace,
+  getAllVariablesExceptCurrent,
+  getLastText,
+} from "@/lib/abstractText";
+
+export type CodeCompletionItem =
+  | {
+      value: string;
+      type: "variable" | "keyword";
+    }
+  | {
+      type: "symbol";
+      value: string;
+      symbol: AbstractChar;
+    };
 
 export const useCodeCompletion = () => {
   const [selected, setSelected] = useState(0);
@@ -11,29 +26,56 @@ export const useCodeCompletion = () => {
   const pathRef = useRef("");
   const mountedref = useRef(false);
   const node = useNodeInScope();
-  const { addIf, addLoop, edit, backspace } = useAst();
+  const { addIf, addLoop, edit, insert, popLastText } = useAst();
   const { ast } = useAstState();
 
   const functionAst = ast as FunctionAst;
 
-  const allNodes = [...functionAst.body, functionAst.signature];
-  const allItems = [
+  const allItems: CodeCompletionItem[] = [
     ...defaultCodeCompletions,
-    ...getAllTextsExceptCurrent(allNodes, node),
+    ...getAllVariablesExceptCurrent(functionAst, node).map((value) => ({
+      type: "variable" as const,
+      value,
+    })),
   ];
 
-  const searcher = new FuzzySearch(allItems, [], {
+  const searcher = new FuzzySearch(allItems, ["value"], {
     sort: true,
   });
 
-  const items = searcher.search(getLastText(node));
+  const items: CodeCompletionItem[] = doesEndWithSpace(node.text)
+    ? allItems
+    : searcher.search(getLastText(node));
 
-  useEffect(() => {
+  const shown = visible && items.length > 0;
+
+  useLayoutEffect(() => {
     if (!mountedref.current) return;
-    setVisible(node.path === pathRef.current);
+    setVisible(node.path === pathRef.current && node.text.length > 0);
 
     pathRef.current = node.path;
   }, [node]);
+
+  const complete = (item: CodeCompletionItem) => {
+    popLastText();
+    switch (item.value) {
+      case "if":
+        addIf();
+        break;
+      case "loop":
+        addLoop();
+        break;
+
+      default:
+        if (item.type === "symbol") {
+          insert(item.symbol, "normal"); //TODO: this should be the current insert mode - so move insert mode into AstState
+
+          return;
+        }
+        edit(item.value);
+        break;
+    }
+  };
 
   useEffect(() => {
     if (!mountedref.current) {
@@ -51,48 +93,31 @@ export const useCodeCompletion = () => {
   }, []);
 
   useEffect(() => {
-    if (!visible) return;
-
-    const popLastText = () => {
-      backspace(getLastText(node).length);
-    };
-
-    const complete = () => {
-      const item = items[selected];
-      switch (item) {
-        case "if":
-          addIf();
-          popLastText();
-          // remove last text
-          break;
-        case "loop":
-          addLoop();
-          // remove last text
-          break;
-        default:
-          edit(item);
-        // replace item text
-      }
-    };
+    if (!shown) return;
 
     const keydown = (e: KeyboardEvent) => {
+      if (!shown) return;
+      const length = items.length;
       e.stopPropagation();
       e.preventDefault();
       switch (e.key) {
         case "ArrowDown":
-          setSelected((prev) => (prev < items.length - 1 ? prev + 1 : 0));
+          setSelected((prev) => (prev < length - 1 ? prev + 1 : 0));
           break;
         case "ArrowUp":
-          setSelected((prev) => (prev > 0 ? prev - 1 : items.length - 1));
+          setSelected((prev) => (prev > 0 ? prev - 1 : length - 1));
           break;
         case "Tab":
-          complete();
+          complete(items[selected]);
+          document.querySelector<HTMLDivElement>("#root-container")?.focus();
           setVisible(false);
           break;
         case " ":
         case "Escape":
           setVisible(false);
           break;
+        default:
+          setSelected(0);
       }
     };
     window.addEventListener("keydown", keydown);
@@ -100,7 +125,7 @@ export const useCodeCompletion = () => {
     return () => {
       window.removeEventListener("keydown", keydown);
     };
-  }, [visible]);
+  }, [shown, items, selected]);
 
-  return { items, visible, selected };
+  return { items, visible: shown, selected };
 };

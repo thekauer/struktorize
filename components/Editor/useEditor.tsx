@@ -1,6 +1,7 @@
 import { useTheme } from "../../hooks/useTheme";
 import { KeyboardEvent, useRef, useState } from "react";
 import { useAst } from "../../hooks/useAST";
+import { InsertMode } from "@/lib/abstractText";
 
 interface UseEditorProps {
   readonly?: boolean;
@@ -14,18 +15,14 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     left,
     right,
     edit,
+    insert,
     backspace,
     addStatement,
-    addIf,
-    addLoop,
     deselectAll,
     undo,
     redo,
   } = useAst();
-  const [buffer, setBuffer] = useState("");
-  const [insertMode, setInsertMode] = useState<
-    "normal" | "superscript" | "subscript"
-  >("normal");
+  const [insertMode, setInsertMode] = useState<InsertMode>("normal");
   const { astTheme } = useTheme();
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -54,7 +51,7 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     if (!disableNavigation) {
       switch (key) {
         case "ArrowUp":
-          if (insertMode === "subscript") {
+          if (insertMode === "inside") {
             setInsertMode("normal");
             edit("", "normal");
             return;
@@ -64,7 +61,7 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
           if (canDeselect) deselectAll();
           return;
         case "ArrowDown":
-          if (insertMode === "superscript") {
+          if (insertMode === "inside") {
             setInsertMode("normal");
             edit("", "normal");
             return;
@@ -100,32 +97,18 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
         addStatement();
         return;
       case "^":
-        setInsertMode("superscript");
-        edit("", "superscript");
+        setInsertMode("inside");
+        insert({ type: "superscript", text: [] }, "normal");
         return;
       case "_":
-        setInsertMode("subscript");
-        edit("", "subscript");
+        setInsertMode("inside");
+        insert({ type: "subscript", text: [] }, "normal");
         return;
     }
 
     const allowedChars =
       /^[a-zA-Z0-9_:\+\/\(\)\*\- \"\^=\.\&\|<>!\^\×\,\[\]\;]{1}$/;
     if (allowedChars.test(key)) {
-      setBuffer((prev) => prev.substring(prev.length - 3) + key);
-
-      // switch (true) {
-      //   case (buffer + key).endsWith("if"):
-      //     backspace();
-      //     addIf();
-      //     return;
-      //   case (buffer + key).endsWith("loop"):
-      //     backspace(3);
-      //     addLoop();
-      //     edit("for", insertMode);
-      //     return;
-      // }
-
       const finalKey = e.shiftKey ? key.toUpperCase() : key;
       edit(finalKey, insertMode);
     }

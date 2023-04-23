@@ -1,9 +1,10 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import * as S from "./CodeCompletion.atoms";
+import { CodeCompletionItem } from "./useCodeCompletion";
 
 interface CodeCompletionProps {
-  items: string[];
+  items: CodeCompletionItem[];
   visible: boolean;
   selected: number;
 }
@@ -31,9 +32,10 @@ export const CodeCompletion = ({
             ref={(row: HTMLDivElement) => {
               itemsRef.current[index] = row;
             }}
-            key={item}
+            key={item.type + "_" + item.value}
           >
-            <span>{item}</span>
+            <img src={`/cc/${item.type}.svg`} alt="variable" />
+            <span>{item.value}</span>
             <S.Tab selected={selected === index}>[Tab]</S.Tab>
           </S.Row>
         ))}

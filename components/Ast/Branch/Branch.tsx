@@ -1,6 +1,6 @@
 import { useNode } from "../../../hooks/useAST";
 import { BranchAst } from "../../../lib/ast";
-import { Latex } from "../Latex/Latex";
+import { AbstractText } from "../AbstractText/AbstractText";
 import { Render } from "../Render/Render";
 import * as S from "./Branch.atoms";
 
@@ -12,7 +12,7 @@ export const Branch = ({ text, ifBranch, elseBranch, path }: BranchAst) => {
       <S.Condition {...containerProps}>
         <S.True>t</S.True>
         <S.False>f</S.False>
-        <Latex>{text}</Latex>
+        <AbstractText>{text}</AbstractText>
       </S.Condition>
       <S.Container>
         <S.TrueBranch>
