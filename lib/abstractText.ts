@@ -5,6 +5,8 @@ import {
   AstNode,
   InsertInsideAvailable,
   Operator,
+  Subscript,
+  SuperScript,
   Symbol,
   traverse,
   Variable,
@@ -99,6 +101,11 @@ const isSpaceScript = (first: AbstractChar, second: AbstractChar) => {
   return second.type === "superscript" || second.type === "subscript";
 };
 
+const isSameScriptTwice = (first: AbstractChar, second: AbstractChar) => {
+  const script = ["superscript", "subscript"];
+  return script.includes(first.type) && first.type === second.type;
+};
+
 export const addText =
   (newText: string, insertMode: InsertMode = "normal") =>
   (currentText: AbstractText): AbstractText => {
@@ -133,6 +140,7 @@ export const addAbstractChar =
     const last = getLast(currentText);
     if (!last) return isBannedFirstChar(char) ? [] : [char];
 
+    if (isSameScriptTwice(last, char)) return currentText;
     if (isSpaceScript(last, char)) return currentText;
     const isDoubleOperator = isOperatorType(char) && isOperatorType(last);
     if (isDoubleOperator) {
@@ -178,11 +186,30 @@ export const deleteLastVariable = (text: AbstractText): AbstractText => {
   if (doesEndWithVariable(text)) {
     return text.slice(0, -1);
   }
+  if (doesEndWithScript(text)) {
+    const last = getLast<Subscript | SuperScript>(text)!;
+    const newText = last.text.slice(0, -1);
+    const newLast = { type: last.type, text: newText };
+    return text.slice(0, -1).concat(newLast);
+  }
   return text;
 };
 
 const getAllVariablesInNode = (node: AstNode) => {
-  return node.text.filter((text) => text.type === "variable") as Variable[];
+  return node.text.reduce((acc, curr) => {
+    switch (curr.type) {
+      case "subscript":
+      case "superscript":
+        return acc.concat(
+          curr.text.filter((char) => char.type === "variable") as Variable[]
+        );
+      case "variable":
+        acc.push(curr);
+        return acc;
+      default:
+        return acc;
+    }
+  }, [] as Variable[]);
 };
 
 const getAllVariableNames = (body: Ast) => {

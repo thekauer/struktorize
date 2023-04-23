@@ -68,7 +68,7 @@ export const useCodeCompletion = () => {
 
       default:
         if (item.type === "symbol") {
-          insert(item.symbol, "normal"); //TODO: this should be the current insert mode - so move insert mode into AstState
+          insert(item.symbol);
 
           return;
         }

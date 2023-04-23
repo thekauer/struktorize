@@ -24,7 +24,6 @@ import {
   CST,
   get,
   AstNode,
-  Symbol,
   AbstractChar,
 } from "../lib/ast";
 import {
@@ -45,6 +44,7 @@ type StateContext = {
   functionName: string;
   changed: boolean;
   selected: Set<string>;
+  insertMode: InsertMode;
 };
 
 export const AstContext = createContext<Dispatch<Action>>(null as any);
@@ -59,6 +59,7 @@ type State = {
   selected: Set<string>;
   history: CST[];
   history_index: number;
+  insertMode: InsertMode;
 };
 
 type Action =
@@ -69,12 +70,13 @@ type Action =
   | { type: "add"; payload: Ast }
   | {
       type: "text";
-      payload: { text: string; insertMode: InsertMode };
+      payload: { text: string; insertMode?: InsertMode };
     }
   | {
       type: "insertSymbol";
-      payload: { symbol: AbstractChar; insertMode: InsertMode };
+      payload: { symbol: AbstractChar; insertMode?: InsertMode };
     }
+  | { type: "setInsertMode"; payload: { insertMode: InsertMode } }
   | { type: "backspace" }
   | { type: "popLastText" }
   | { type: "setScope"; payload: string[] }
@@ -158,7 +160,10 @@ function reducer(state: State, action: Action): State {
       const cst = edit(
         scope,
         ast,
-        addText(action.payload.text, action.payload.insertMode)
+        addText(
+          action.payload.text,
+          action.payload.insertMode ?? state.insertMode
+        )
       );
 
       return updateHistory({
@@ -168,11 +173,18 @@ function reducer(state: State, action: Action): State {
       });
     }
 
+    case "setInsertMode": {
+      return { ...state, insertMode: action.payload.insertMode };
+    }
+
     case "insertSymbol": {
       const cst = edit(
         scope,
         ast,
-        addAbstractChar(action.payload.symbol, action.payload.insertMode)
+        addAbstractChar(
+          action.payload.symbol,
+          action.payload.insertMode ?? state.insertMode
+        )
       );
 
       return updateHistory({
@@ -257,6 +269,7 @@ const defaultState: State = {
   selected: new Set<string>(),
   history: [defaultCST],
   history_index: 0,
+  insertMode: "normal",
 };
 
 interface AstProviderProps {
@@ -267,7 +280,7 @@ export const AstProvider = ({ children }: AstProviderProps) => {
   const [state, dispatch] = useReducer(reducer, defaultState);
   const { showScope } = useTheme();
 
-  const { ast, scope, changed, selected } = state;
+  const { ast, scope, changed, selected, insertMode } = state;
 
   const functionName = getFunctionName((ast as FunctionAst).signature.text);
   const stateContext = {
@@ -276,6 +289,7 @@ export const AstProvider = ({ children }: AstProviderProps) => {
     functionName,
     changed,
     selected,
+    insertMode,
   };
 
   return (
@@ -338,11 +352,14 @@ export const useAst = () => {
     dispatch({ type: "popLastText" });
     callChangeListeners();
   };
-  const edit = (text: string, insertMode: InsertMode = "normal") => {
+  const edit = (text: string, insertMode?: InsertMode) => {
     dispatch({ type: "text", payload: { text, insertMode } });
     callChangeListeners();
   };
-  const insert = (symbol: AbstractChar, insertMode: InsertMode) => {
+  const setInsertMode = (insertMode: InsertMode) => {
+    dispatch({ type: "setInsertMode", payload: { insertMode } });
+  };
+  const insert = (symbol: AbstractChar, insertMode?: InsertMode) => {
     dispatch({ type: "insertSymbol", payload: { symbol, insertMode } });
     callChangeListeners();
   };
@@ -379,6 +396,7 @@ export const useAst = () => {
     popLastText,
     edit,
     insert,
+    setInsertMode,
     setScope,
     load,
     addChangeListener,

@@ -1,3 +1,5 @@
+import { useAstState } from "@/hooks/useAST";
+import { InsertMode } from "@/lib/abstractText";
 import {
   AbstractChar,
   AbstractText as AbstractTextType,
@@ -95,11 +97,11 @@ const basicTransform = (char: BasicAbstractChar): string => {
 const SCRIPT_STYLE =
   "\\htmlStyle{background-color: var(--s-script); padding: 2px; border-radius: 3px;}";
 
-const transform = (text: AbstractTextType) => {
+const transform = (text: AbstractTextType, insertmode: InsertMode) => {
   return text
     .map((char, index, { length }): string => {
       const isLast = index === length - 1;
-      const isHighlighted = isLast; //TODO: && insertmode is ""nside"
+      const isHighlighted = isLast && insertmode === "inside"; //TODO: && insertmode is ""nside"
       switch (char.type) {
         case "variable": {
           const text = (char as Variable).name;
@@ -107,12 +109,12 @@ const transform = (text: AbstractTextType) => {
         }
         case "superscript": {
           const text = (char as SuperScript).text;
-          const transformedText = transform(text);
+          const transformedText = transform(text, "normal");
           return `^{${isHighlighted ? SCRIPT_STYLE : ""}{${transformedText}}}`;
         }
         case "subscript": {
           const text = (char as Subscript).text;
-          const transformedText = transform(text);
+          const transformedText = transform(text, "normal");
           return `_{${isHighlighted ? SCRIPT_STYLE : ""}{${transformedText}}}`;
         }
         case "mathbb": {
@@ -127,5 +129,6 @@ const transform = (text: AbstractTextType) => {
 };
 
 export const AbstractText = ({ children }: AbstractTextProps) => {
-  return <Latex>{transform(children)}</Latex>;
+  const { insertMode } = useAstState();
+  return <Latex>{transform(children, insertMode)}</Latex>;
 };

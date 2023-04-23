@@ -1,7 +1,6 @@
 import { useTheme } from "../../hooks/useTheme";
-import { KeyboardEvent, useRef, useState } from "react";
+import { KeyboardEvent, useRef } from "react";
 import { useAst } from "../../hooks/useAST";
-import { InsertMode } from "@/lib/abstractText";
 
 interface UseEditorProps {
   readonly?: boolean;
@@ -21,8 +20,8 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     deselectAll,
     undo,
     redo,
+    setInsertMode,
   } = useAst();
-  const [insertMode, setInsertMode] = useState<InsertMode>("normal");
   const { astTheme } = useTheme();
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -51,22 +50,10 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     if (!disableNavigation) {
       switch (key) {
         case "ArrowUp":
-          if (insertMode === "inside") {
-            setInsertMode("normal");
-            edit("", "normal");
-            return;
-          }
-
           up(navigationPayload);
           if (canDeselect) deselectAll();
           return;
         case "ArrowDown":
-          if (insertMode === "inside") {
-            setInsertMode("normal");
-            edit("", "normal");
-            return;
-          }
-
           down(navigationPayload);
           if (canDeselect) deselectAll();
           return;
@@ -75,11 +62,7 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
           if (canDeselect) deselectAll();
           return;
         case "ArrowRight":
-          if (insertMode !== "normal") {
-            setInsertMode("normal");
-            edit("", "normal");
-            return;
-          }
+          setInsertMode("normal");
 
           right(navigationPayload);
           if (canDeselect) deselectAll();
@@ -97,12 +80,12 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
         addStatement();
         return;
       case "^":
-        setInsertMode("inside");
         insert({ type: "superscript", text: [] }, "normal");
+        setInsertMode("inside");
         return;
       case "_":
-        setInsertMode("inside");
         insert({ type: "subscript", text: [] }, "normal");
+        setInsertMode("inside");
         return;
     }
 
@@ -110,7 +93,7 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
       /^[a-zA-Z0-9_:\+\/\(\)\*\- \"\^=\.\&\|<>!\^\×\,\[\]\;]{1}$/;
     if (allowedChars.test(key)) {
       const finalKey = e.shiftKey ? key.toUpperCase() : key;
-      edit(finalKey, insertMode);
+      edit(finalKey);
     }
   };
 
