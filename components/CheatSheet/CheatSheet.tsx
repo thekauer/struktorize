@@ -2,7 +2,7 @@ import { useTranslation } from "next-i18next";
 import { useEffect, useState } from "react";
 import { useActiveItems } from "../../hooks/useActiveItems";
 import * as S from "./CheatSheet.atoms";
-import { Item, ItemProps } from "./Item/Item";
+import { Item } from "./Item/Item";
 
 export const CheatSheet = () => {
   const { ITEMS: items, active } = useActiveItems();
