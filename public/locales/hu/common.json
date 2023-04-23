@@ -49,6 +49,7 @@
     "title": "Puska",
     "statement": "Állítás",
     "branch": "Elágazás",
-    "loop": "Ciklus"
+    "loop": "Ciklus",
+    "codecompletion": "StructoriSense™"
   }
 }

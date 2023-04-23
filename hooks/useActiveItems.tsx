@@ -24,6 +24,13 @@ const ITEMS: ItemProps[] = [
     shortcut: "loop",
     type: "Mark",
   },
+  {
+    id: "codecompletion",
+    image: "",
+    shortcut: ["Ctrl", "Space"],
+    name: "Strctorisense",
+    type: "Kbd",
+  },
 ];
 
 const MARK_ITEMS = ITEMS.filter((item) => item.type === "Mark");
