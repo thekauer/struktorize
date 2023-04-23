@@ -4,6 +4,7 @@ export const Container = styled.div`
   display: flex;
   height: 100%;
   margin: 0;
+  background-color: var(--dark);
 `;
 
 export const MainContainer = styled.div`
