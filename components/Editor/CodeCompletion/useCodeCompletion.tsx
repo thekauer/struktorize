@@ -26,7 +26,7 @@ export const useCodeCompletion = () => {
   const pathRef = useRef("");
   const mountedref = useRef(false);
   const node = useNodeInScope();
-  const { addIf, addLoop, edit, insert, popLastText } = useAst();
+  const { addIf, addLoop, edit, insert, popLastText, setInsertMode } = useAst();
   const { ast } = useAstState();
 
   const functionAst = ast as FunctionAst;
@@ -106,6 +106,9 @@ export const useCodeCompletion = () => {
           break;
         case "ArrowUp":
           setSelected((prev) => (prev > 0 ? prev - 1 : length - 1));
+          break;
+        case "ArrowRight":
+          setInsertMode("normal");
           break;
         case "Tab":
           complete(items[selected]);
