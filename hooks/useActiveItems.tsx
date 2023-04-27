@@ -43,7 +43,6 @@ export const useActiveItems = () => {
       }
 
       LATEX_ITEMS.forEach((item) => {
-        console.log(buffer + e.key);
         if ((buffer + e.key).endsWith(item.shortcut as string)) {
           setActive((prev) => ({ ...prev, [item.id]: true }));
         }
