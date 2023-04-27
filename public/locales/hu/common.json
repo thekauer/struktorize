@@ -50,6 +50,21 @@
     "statement": "Állítás",
     "branch": "Elágazás",
     "loop": "Ciklus",
-    "codecompletion": "StructoriSense™"
+    "codecompletion": "StructoriSense™",
+    "save": "Mentés",
+    "toggleMenu": "Oldalsó menu mutatása",
+    "searchBar": "Struktogram keresése",
+    "undo": "Vissza",
+    "redo": "Előre",
+    "select": "Kijelölés",
+    "exitScript": "Kilépés az alsó/felső indexből",
+    "cheatSheet": "Puska",
+    "neq": "Nem egyenlő",
+    "land": "És",
+    "lor": "Vagy",
+    "ge": "Nagyobb Egyenlő",
+    "le": "Kissebb Egyenlő",
+    "subscript": "Alsó Index",
+    "superscript": "Felső Index"
   }
 }

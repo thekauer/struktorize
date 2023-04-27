@@ -8,6 +8,7 @@ export const Container = styled.div`
   width: 100%;
   height: 100%;
   border: 1px solid var(--dark);
+  overflow: auto;
 
   &:focus-visible {
     border: 1px solid var(--blue);

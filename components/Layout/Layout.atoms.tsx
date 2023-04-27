@@ -11,7 +11,7 @@ export const MainContainer = styled.div`
   display: flex;
   flex-direction: column;
   flex: 1;
-  overflow: auto;
+  overflow: hidden;
   border: 1px solid var(--mid);
 
   &:focus-visible {
@@ -22,9 +22,10 @@ export const MainContainer = styled.div`
 
 export const Main = styled.main`
   display: flex;
-  flex: 1;
+  flex: 1 1 auto;
   background: var(--dark);
   color: var(--text);
+  overflow: hidden;
 `;
 
 export const Center = styled.div`

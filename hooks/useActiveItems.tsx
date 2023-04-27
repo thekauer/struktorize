@@ -1,39 +1,10 @@
+import {
+  ITEMS,
+  KBD_ITEMS,
+  LATEX_ITEMS,
+} from "constants/defaultCheatSheetItems";
 import { useTranslation } from "next-i18next";
 import { useEffect, useMemo, useState } from "react";
-import { ItemProps } from "../components/CheatSheet/Item/Item";
-
-const ITEMS: ItemProps[] = [
-  {
-    id: "statement",
-    image: "/statement.png",
-    name: "Statement",
-    shortcut: ["Enter"],
-    type: "Kbd",
-  },
-  {
-    id: "branch",
-    image: "/branch.png",
-    name: "Branch",
-    shortcut: "if",
-    type: "Mark",
-  },
-  {
-    id: "loop",
-    image: "/loop.png",
-    name: "Loop",
-    shortcut: "loop",
-    type: "Mark",
-  },
-  {
-    id: "codecompletion",
-    image: "",
-    shortcut: ["Ctrl", "Space"],
-    name: "Strctorisense",
-    type: "Kbd",
-  },
-];
-
-const MARK_ITEMS = ITEMS.filter((item) => item.type === "Mark");
 
 export const useActiveItems = () => {
   const [active, setActive] = useState<Record<string, boolean>>(
@@ -55,9 +26,24 @@ export const useActiveItems = () => {
         setActive((prev) => ({ ...prev, statement: true }));
       }
 
-      setBuffer((prev) => prev + e.key);
+      const wasHatPressed = e.key === "Dead" && e.code === "Digit3";
+      if (wasHatPressed) {
+        setActive((prev) => ({ ...prev, ["superscript"]: true }));
+      }
 
-      MARK_ITEMS.forEach((item) => {
+      KBD_ITEMS.forEach((item) => {
+        if (item.pressed(e))
+          setActive((prev) => ({ ...prev, [item.id]: true }));
+      });
+
+      const allowedChars =
+        /^[a-zA-Z0-9_:\+\/\(\)\*\- \"\^=\.\&\|<>!\^\×\,\[\]\;]{1}$/;
+      if (allowedChars.test(e.key)) {
+        setBuffer((prev) => prev + e.key);
+      }
+
+      LATEX_ITEMS.forEach((item) => {
+        console.log(buffer + e.key);
         if ((buffer + e.key).endsWith(item.shortcut as string)) {
           setActive((prev) => ({ ...prev, [item.id]: true }));
         }
@@ -71,5 +57,5 @@ export const useActiveItems = () => {
     };
   }, [buffer]);
 
-  return { ITEMS: translatedItems, MARK_ITEMS, active };
+  return { ITEMS: translatedItems, active };
 };
