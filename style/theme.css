@@ -115,6 +115,10 @@ html, body, #__next {
   outline: 1px solid var(--s-hovered);
 }
 
+::-webkit-scrollbar-corner {
+  background: rgba(0,0,0,0);
+}
+
 * {
     padding: 0;
     margin:0;
