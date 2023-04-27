@@ -54,6 +54,7 @@
     "save": "Save",
     "toggleMenu": "Toggle sidemenu",
     "searchBar": "Search structograms",
+    "deleteBlock": "Delete block",
     "undo": "Undo",
     "redo": "Redo",
     "select": "Select",

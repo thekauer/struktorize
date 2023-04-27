@@ -43,6 +43,14 @@ export const ITEMS: ItemProps[] = [
     type: "Kbd",
   },
   {
+    id: "deleteBlock",
+    image: "/cross_box.png",
+    shortcut: ["Ctrl", "⌫"],
+    pressed: (e) => e.key === "Backspace" && e.ctrlKey,
+    name: "DeleteBlock",
+    type: "Kbd",
+  },
+  {
     id: "undo",
     image: "/undo.png",
     shortcut: ["Ctrl", "z"],

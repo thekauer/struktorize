@@ -16,6 +16,7 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     edit,
     insert,
     backspace,
+    deleteBlock,
     addStatement,
     deselectAll,
     undo,
@@ -39,10 +40,20 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     }
   };
 
+  const handleDeleteBlock = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.ctrlKey && e.key === "Backspace") {
+      setInsertMode("normal");
+      deleteBlock();
+    }
+  };
+
   const handleKeydown = (e: KeyboardEvent<HTMLDivElement>) => {
     const key = getKey(e);
 
-    if (!readonly) handleUndoRedo(e);
+    if (!readonly) {
+      handleUndoRedo(e);
+      handleDeleteBlock(e);
+    }
     if (e.ctrlKey) return;
 
     const navigationPayload = { select: e.shiftKey, move: e.altKey };
