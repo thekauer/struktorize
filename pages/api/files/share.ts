@@ -4,6 +4,7 @@ import {
   Created,
   getBody,
   getToken,
+  InternalServerError,
   NotAllowed,
   NotFound,
   Ok,
@@ -54,6 +55,8 @@ export default async function handler(req: NextRequest) {
   }
 
   const id = await shareFile(userId, path);
+  if (id === null) return InternalServerError();
+
   return Created({ id });
 }
 

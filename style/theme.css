@@ -48,7 +48,7 @@
     --s-shadow: none;
 }
 
-.s-black-on-white {
+.s-white-on-black {
     --s-bg: white;
     --s-border:black;
     --s-text: black;
@@ -62,7 +62,7 @@
     --s-shadow: none;
 }
 
-.s-white-on-black {
+.s-black-on-white {
     --s-bg: black;
     --s-border:white;
     --s-text: white;

@@ -123,11 +123,25 @@ type SharedFile = { key: string; path: string };
 export async function shareFile(userId: string, path: string) {
   const id = makeId();
 
-  const file = await getFile(userId, path);
-  getRedis().hset(`user:${userId}`, { [path]: { ...file, sharedId: id } });
-  getRedis().json.set(`shared:${id}`, "$", { key: `user:${userId}`, path });
+  try {
+    const shareResult = getRedis().json.set(`shared:${id}`, "$", {
+      key: `user:${userId}`,
+      path,
+    });
+    if (shareResult === null) return null;
 
-  return id;
+    const file = await getFile(userId, path);
+    if (file === null) return null;
+
+    const addIdResult = getRedis().hset(`user:${userId}`, {
+      [path]: { ...file, sharedId: id },
+    });
+    if (addIdResult === null) return null;
+
+    return id;
+  } catch (err) {
+    return null;
+  }
 }
 
 export async function getSharedFile(id: string) {
