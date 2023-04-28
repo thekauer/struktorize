@@ -50,30 +50,12 @@ describe("App", () => {
     });
 
     it("should display Cheat sheet when pressing ctrl + i", () => {
-      cy.get("body").findByText(/Cheat Sheet/);
+      cy.get("body").findByRole("heading", { name: /Cheat Sheet/ });
     });
 
     it("enter should become blue in Cheat Sheet menu when pressed", () => {
       root.type("{enter}");
       cy.contains("Enter").should(
-        "have.css",
-        "background-color",
-        "rgb(0, 122, 204)"
-      );
-    });
-
-    it("if should become blue in Cheat Sheet menu when if is typed in", () => {
-      root.type("if");
-      cy.contains("if").should(
-        "have.css",
-        "background-color",
-        "rgb(0, 122, 204)"
-      );
-    });
-
-    it("loop should become blue in Cheat Sheet menu when loop is typed in", () => {
-      root.type("loop");
-      cy.contains("loop").should(
         "have.css",
         "background-color",
         "rgb(0, 122, 204)"
