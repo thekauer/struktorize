@@ -50,9 +50,11 @@ export const useExplorer = () => {
   useEffect(() => {
     if (!recent) return;
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === "s" && changed) {
+      if (e.ctrlKey && e.key === "s") {
         e.preventDefault();
-        saveFile({ ...recent, ast });
+        if (changed) {
+          saveFile({ ...recent, ast });
+        }
       }
     };
     window.addEventListener("keydown", onKeyDown);
