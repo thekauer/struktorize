@@ -34,7 +34,7 @@ export const Editor = ({ readonly }: EditorProps) => {
   return (
     <S.Container {...containerProps}>
       <Root />
-      <CodeCompletion {...codeCompletionProps} />
+      {!readonly && <CodeCompletion {...codeCompletionProps} />}
     </S.Container>
   );
 };
