@@ -5,11 +5,13 @@ import axios from "axios";
 import { FileDTO, NewFileDTO, UserDataDTO } from "../../../../pages/api/files";
 import { File } from "@/lib/repository";
 import { Ast } from "@/lib/ast";
+import { useSession } from "next-auth/react";
 
 export const useFiles = () => {
   const queryClient = useQueryClient();
   const { functionName, ast } = useAstState();
   const { save, load } = useAst();
+  const { status } = useSession();
 
   const { data, refetch } = useQuery(
     ["files"],
@@ -29,6 +31,7 @@ export const useFiles = () => {
       },
       staleTime: Infinity,
       cacheTime: Infinity,
+      enabled: status === "authenticated",
     }
   );
 
