@@ -49,6 +49,23 @@
     "title": "Cheat Sheet",
     "statement": "Statement",
     "branch": "Branch",
-    "loop": "Loop"
+    "loop": "Loop",
+    "codecompletion": "StructoriSense™",
+    "save": "Save",
+    "toggleMenu": "Toggle sidemenu",
+    "searchBar": "Search structograms",
+    "deleteBlock": "Delete block",
+    "undo": "Undo",
+    "redo": "Redo",
+    "select": "Select",
+    "exitScript": "Exit superscript/subscript",
+    "cheatSheet": "Cheat Sheet",
+    "neq": "Not equals",
+    "land": "And",
+    "lor": "Or",
+    "ge": "Greater Equal",
+    "le": "Less equal",
+    "subscript": "Subscript",
+    "superscript": "Superscript"
   }
 }

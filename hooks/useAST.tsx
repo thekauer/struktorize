@@ -5,7 +5,6 @@ import React, {
   useContext,
   useReducer,
   MouseEvent,
-  useRef,
 } from "react";
 import { DEFAULT_FUNCTION } from "../constants/defaultFunction";
 import {
@@ -23,8 +22,18 @@ import {
   deselect,
   navigateAndToggleSelection,
   CST,
+  get,
+  AstNode,
+  AbstractChar,
 } from "../lib/ast";
-import { addText, deleteLast, getFunctionName } from "../lib/textTransform";
+import {
+  addAbstractChar,
+  addText,
+  deleteLast,
+  deleteLastVariable,
+  getFunctionName,
+  InsertMode,
+} from "@/lib/abstractText";
 import { useTheme } from "./useTheme";
 
 type ChangeListener = (state: State) => void;
@@ -35,6 +44,7 @@ type StateContext = {
   functionName: string;
   changed: boolean;
   selected: Set<string>;
+  insertMode: InsertMode;
 };
 
 export const AstContext = createContext<Dispatch<Action>>(null as any);
@@ -49,6 +59,7 @@ type State = {
   selected: Set<string>;
   history: CST[];
   history_index: number;
+  insertMode: InsertMode;
 };
 
 type Action =
@@ -57,8 +68,17 @@ type Action =
   | { type: "left"; payload: { select?: boolean; move?: boolean } }
   | { type: "right"; payload: { select?: boolean; move?: boolean } }
   | { type: "add"; payload: Ast }
-  | { type: "text"; payload: { text: string; insertMode: string } }
-  | { type: "backspace" }
+  | {
+      type: "text";
+      payload: { text: string; insertMode?: InsertMode };
+    }
+  | {
+      type: "insertSymbol";
+      payload: { symbol: AbstractChar; insertMode?: InsertMode };
+    }
+  | { type: "setInsertMode"; payload: { insertMode: InsertMode } }
+  | { type: "backspace"; payload: { force: boolean } }
+  | { type: "popLastText" }
   | { type: "setScope"; payload: string[] }
   | { type: "load"; payload: { ast: Ast; path: string } }
   | {
@@ -140,7 +160,31 @@ function reducer(state: State, action: Action): State {
       const cst = edit(
         scope,
         ast,
-        addText(action.payload.text, action.payload.insertMode)
+        addText(
+          action.payload.text,
+          action.payload.insertMode ?? state.insertMode
+        )
+      );
+
+      return updateHistory({
+        ...state,
+        ...cst,
+        changed: true,
+      });
+    }
+
+    case "setInsertMode": {
+      return { ...state, insertMode: action.payload.insertMode };
+    }
+
+    case "insertSymbol": {
+      const cst = edit(
+        scope,
+        ast,
+        addAbstractChar(
+          action.payload.symbol,
+          action.payload.insertMode ?? state.insertMode
+        )
       );
 
       return updateHistory({
@@ -151,12 +195,15 @@ function reducer(state: State, action: Action): State {
     }
 
     case "backspace":
-      if (!isEmpty(scope, ast))
-        return { ...state, ...edit(scope, ast, deleteLast) };
+      if (isEmpty(scope, ast) || action.payload.force) {
+        const removed = remove(scope, ast, true);
+        const newScope = up(removed.scope, removed.ast);
 
-      const removed = remove(scope, ast, true);
-      const newScope = up(removed.scope, removed.ast);
-      return { ...state, scope: newScope, ast: removed.ast, changed: true };
+        return { ...state, scope: newScope, ast: removed.ast, changed: true };
+      }
+      return { ...state, ...edit(scope, ast, deleteLast) };
+    case "popLastText":
+      return { ...state, ...edit(scope, ast, deleteLastVariable) };
     case "setScope":
       return { ...state, ast, scope: action.payload };
     case "load":
@@ -223,6 +270,7 @@ const defaultState: State = {
   selected: new Set<string>(),
   history: [defaultCST],
   history_index: 0,
+  insertMode: "normal",
 };
 
 interface AstProviderProps {
@@ -233,15 +281,16 @@ export const AstProvider = ({ children }: AstProviderProps) => {
   const [state, dispatch] = useReducer(reducer, defaultState);
   const { showScope } = useTheme();
 
-  const { ast, scope, changed, selected } = state;
+  const { ast, scope, changed, selected, insertMode } = state;
 
-  const functionName = getFunctionName((ast as FunctionAst).signature?.text);
+  const functionName = getFunctionName((ast as FunctionAst).signature.text);
   const stateContext = {
     ast,
     scope: showScope ? scope : [],
     functionName,
     changed,
     selected,
+    insertMode,
   };
 
   return (
@@ -274,7 +323,7 @@ export const useAst = () => {
   const addStatement = () => {
     dispatch({
       type: "add",
-      payload: { type: "statement", path: "", text: " " },
+      payload: { type: "statement", path: "", text: [] },
     });
     callChangeListeners();
   };
@@ -284,7 +333,7 @@ export const useAst = () => {
       payload: {
         type: "branch",
         path: "",
-        text: " ",
+        text: [],
       },
     });
     callChangeListeners();
@@ -292,16 +341,32 @@ export const useAst = () => {
   const addLoop = () => {
     dispatch({
       type: "add",
-      payload: { type: "loop", body: [], path: "", text: " " },
+      payload: { type: "loop", body: [], path: "", text: [] },
     });
     callChangeListeners();
   };
   const backspace = (n = 1) => {
-    for (let i = 0; i < n; i++) dispatch({ type: "backspace" });
+    for (let i = 0; i < n; i++)
+      dispatch({ type: "backspace", payload: { force: false } });
     callChangeListeners();
   };
-  const edit = (text: string, insertMode = "normal") => {
+  const deleteBlock = () => {
+    dispatch({ type: "backspace", payload: { force: true } });
+    callChangeListeners();
+  };
+  const popLastText = () => {
+    dispatch({ type: "popLastText" });
+    callChangeListeners();
+  };
+  const edit = (text: string, insertMode?: InsertMode) => {
     dispatch({ type: "text", payload: { text, insertMode } });
+    callChangeListeners();
+  };
+  const setInsertMode = (insertMode: InsertMode) => {
+    dispatch({ type: "setInsertMode", payload: { insertMode } });
+  };
+  const insert = (symbol: AbstractChar, insertMode?: InsertMode) => {
+    dispatch({ type: "insertSymbol", payload: { symbol, insertMode } });
     callChangeListeners();
   };
   const setScope = (scope: string[]) =>
@@ -334,7 +399,11 @@ export const useAst = () => {
     addIf,
     addLoop,
     backspace,
+    deleteBlock,
+    popLastText,
     edit,
+    insert,
+    setInsertMode,
     setScope,
     load,
     addChangeListener,
@@ -370,5 +439,15 @@ export const useNode = (path: string | null) => {
     }
   };
 
-  return { hovered, selected: isSelected, onClick };
+  return {
+    hovered,
+    selected: isSelected,
+    onClick,
+    className: hovered ? "hovered" : undefined,
+  };
+};
+
+export const useNodeInScope = () => {
+  const { scope, ast } = useContext(AstStateContext);
+  return get(scope, ast) as AstNode;
 };

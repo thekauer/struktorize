@@ -2,10 +2,11 @@ import styled, { css } from "styled-components";
 import { StyleProps } from "../../../style/styleProps";
 
 export const Container = styled.div<StyleProps>`
+  position: relative;
   flex: 1;
   padding: 0.5em;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   justify-content: center;
   align-items: center;
   color: var(--s-text);

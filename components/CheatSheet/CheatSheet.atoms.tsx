@@ -5,7 +5,9 @@ export const Container = styled.aside`
   height: 16em;
   border-top: 2px solid var(--light);
   background-color: var(--dark);
-  padding: 1em;
+  padding-top: 1em;
+  flex: 0 0 16em;
+  overflow: hidden;
 
   display: flex;
   flex-direction: column;
@@ -14,8 +16,10 @@ export const Container = styled.aside`
 
 export const Grid = styled.div`
   display: grid;
-  grid-template-rows: 1fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
+  overflow: scroll;
+  padding-top: 1rem;
 `;
 
 export const Title = styled.h1`

@@ -5,28 +5,82 @@ export interface AstBase {
   type: AstType;
 }
 
+export type Variable = { type: "variable"; name: string };
+export type Subscript = { type: "subscript"; text: AbstractText };
+export type SuperScript = { type: "superscript"; text: AbstractText };
+export type MathBB = { type: "mathbb"; value: "S" | "R" | "N" | "B" };
+
+export type InsertInsideAvailable = SuperScript | Subscript;
+
+export type Operator = {
+  type:
+    | "and"
+    | "or"
+    | "eq"
+    | "lt"
+    | "gt"
+    | "colon"
+    | "comma"
+    | "semicolon"
+    | "lp"
+    | "rp"
+    | "lb"
+    | "rb"
+    | "lc"
+    | "rc"
+    | "star"
+    | "bang"
+    | "space";
+};
+export type Symbol = {
+  type:
+    | "epsilon"
+    | "pi"
+    | "in"
+    | "infinity"
+    | "forall"
+    | "exists"
+    | "land"
+    | "lor"
+    | "lnot"
+    | "neq"
+    | "ge"
+    | "le"
+    | "coloneq";
+};
+
+export type AbstractChar =
+  | Operator
+  | Symbol
+  | Variable
+  | Subscript
+  | SuperScript
+  | MathBB;
+
+export type AbstractText = AbstractChar[];
+
 export interface SignatureAst extends AstBase {
-  text: string;
+  text: AbstractText;
 }
 
 export interface FunctionAst extends AstBase {
   signature: SignatureAst;
-  body: Ast[];
+  body: AstNode[];
 }
 
 export interface StatementAst extends AstBase {
-  text: string;
+  text: AbstractText;
 }
 
 export interface LoopAst extends AstBase {
-  text?: string;
-  body: Ast[];
+  text: AbstractText;
+  body: AstNode[];
 }
 
 export interface BranchAst extends AstBase {
-  text?: string;
-  ifBranch?: Ast[];
-  elseBranch?: Ast[];
+  text: AbstractText;
+  ifBranch: AstNode[];
+  elseBranch: AstNode[];
 }
 
 export type Ast =
@@ -36,28 +90,32 @@ export type Ast =
   | LoopAst
   | StatementAst;
 
+export type AstNode = Exclude<Ast, FunctionAst>;
+
+type Scope = string[];
+
 export type CST = {
   ast: Ast;
-  scope: string[];
+  scope: Scope;
 };
 
-const get = (scope: string[], ast: Ast) =>
+export const get = (scope: Scope, ast: Ast) =>
   scope[0] === "" ? ast : scope.reduce((acc: any, curr) => acc[curr], ast);
 
-const grandParent = (scope: string[], ast: Ast) => {
+const grandParent = (scope: Scope, ast: Ast) => {
   const parent = scope.slice(0, -2);
   return parent.length === 0
     ? ast
     : parent.reduce((acc: any, curr) => acc[curr], ast);
 };
 
-const isOnSignature = (scope: string[]) => {
+const isOnSignature = (scope: Scope) => {
   return scope[0] === "signature";
 };
 
-const isOnIfBranch = (scope: string[]) => scope.at(-2) === "ifBranch";
+const isOnIfBranch = (scope: Scope) => scope.at(-2) === "ifBranch";
 
-const swapBranch = (scope: string[], ast: Ast) => {
+const swapBranch = (scope: Scope, ast: Ast) => {
   const parent = grandParent(scope, ast);
   const otherBranch = isOnIfBranch(scope) ? "elseBranch" : "ifBranch";
   const index = scopeIndex(scope);
@@ -67,7 +125,7 @@ const swapBranch = (scope: string[], ast: Ast) => {
   return [...branchScope, otherBranch, Math.min(index, length - 1).toString()];
 };
 
-const getBody = (scope: string[], ast: any | Ast) => {
+const getBody = (scope: Scope, ast: any | Ast) => {
   switch (ast.type) {
     case "function":
     case "loop":
@@ -78,7 +136,7 @@ const getBody = (scope: string[], ast: any | Ast) => {
   }
 };
 
-const isLast = (scope: string[], ast: Ast) => {
+const isLast = (scope: Scope, ast: Ast) => {
   const last = scope.at(-1);
   const parent = grandParent(scope, ast);
   const { length } = getBody(scope, parent);
@@ -86,7 +144,7 @@ const isLast = (scope: string[], ast: Ast) => {
   return nextNumber >= length;
 };
 
-const isLeaf = (scope: string[], ast: Ast, depth = 0): boolean => {
+const isLeaf = (scope: Scope, ast: Ast, depth = 0): boolean => {
   const parent = grandParent(scope, ast);
   const { length } = getBody(scope, parent);
   const last = scope.at(-1);
@@ -102,11 +160,11 @@ const isLeaf = (scope: string[], ast: Ast, depth = 0): boolean => {
 };
 
 const tryIncrementScope = (
-  scope: string[],
+  scope: Scope,
   ast: Ast,
   depth = 0,
   originalScope = scope
-): string[] => {
+): Scope => {
   const parent = grandParent(scope, ast);
   const { length } = getBody(scope, parent);
   const last = scope.at(-1);
@@ -126,7 +184,7 @@ const tryIncrementScope = (
 const setIndex = (path: string, index: number) =>
   path.split(".").slice(0, -1).concat(index.toString()).join(".");
 
-const insert = (scope: string[], body: Ast[], index: number, node: Ast) => {
+const insert = (scope: Scope, body: Ast[], index: number, node: Ast) => {
   const oldPath = scope.join(".");
   if (index === -1) {
     return [node, ...body].map(
@@ -147,10 +205,10 @@ const insert = (scope: string[], body: Ast[], index: number, node: Ast) => {
   );
 };
 
-const scopeIndex = (scope: string[]) =>
+const scopeIndex = (scope: Scope) =>
   isOnSignature(scope) ? -1 : Number(scope.at(-1)!);
 
-const withScope = (scope: string[], ast: any): any => {
+const withScope = (scope: Scope, ast: any): any => {
   const [first, ...rest] = scope;
   if (rest.length === 0) {
     return { [first]: ast };
@@ -160,7 +218,7 @@ const withScope = (scope: string[], ast: any): any => {
   };
 };
 
-const incrementScope = (scope: string[]): string[] => {
+const incrementScope = (scope: Scope): Scope => {
   const last = Number(scope.at(-1));
   //if last is a number
   if (!isNaN(last)) {
@@ -169,7 +227,7 @@ const incrementScope = (scope: string[]): string[] => {
   return scope.concat("0");
 };
 
-const incrementAt = (scope: string[], ast: Ast, depth: number): string[] => {
+const incrementAt = (scope: Scope, ast: Ast, depth: number): Scope => {
   const parent = grandParent(scope, ast);
   const parentScope = parent.path.split(".");
 
@@ -179,25 +237,23 @@ const incrementAt = (scope: string[], ast: Ast, depth: number): string[] => {
   return incrementAt(parentScope, ast, depth - 1);
 };
 
-const prepare = (scope: string[], node: Ast): Ast => {
+const prepare = (scope: Scope, node: Ast): Ast => {
   const path = incrementScope(scope).join(".");
   switch (node.type) {
     case "branch":
       return {
         ...node,
         path,
-        ifBranch: [
-          { type: "statement", path: `${path}.ifBranch.0`, text: " " },
-        ],
+        ifBranch: [{ type: "statement", path: `${path}.ifBranch.0`, text: [] }],
         elseBranch: [
-          { type: "statement", path: `${path}.elseBranch.0`, text: " " },
+          { type: "statement", path: `${path}.elseBranch.0`, text: [] },
         ],
       } as Ast;
     case "loop":
       return {
         ...node,
         path,
-        body: [{ type: "statement", path: `${path}.body.0`, text: " " }],
+        body: [{ type: "statement", path: `${path}.body.0`, text: [] }],
       } as Ast;
   }
 
@@ -205,7 +261,7 @@ const prepare = (scope: string[], node: Ast): Ast => {
   return node;
 };
 
-const createBody = (scope: string[], ast: Ast, node: Ast) => {
+const createBody = (scope: Scope, ast: Ast, node: Ast) => {
   const parent = grandParent(scope, ast);
   const parentBody = getBody(scope, parent);
   const index = scopeIndex(scope);
@@ -217,14 +273,14 @@ const correctPaths = (ast: Ast): Ast => {
 
   const newAst = structuredClone(ast);
   // @ts-ignore
-  newAst.body = newAst.body.map((node: Ast, index: number) =>
+  newAst.body = newAst.body.map((node: AstNode, index: number) =>
     correctPathsHelper(["body", index.toString()], node)
   );
 
   return newAst;
 };
 
-const correctPathsHelper = (scope: string[], ast: Ast): Ast => {
+const correctPathsHelper = (scope: Scope, ast: AstNode): AstNode => {
   const path = scope.join(".");
 
   switch (ast.type) {
@@ -233,13 +289,13 @@ const correctPathsHelper = (scope: string[], ast: Ast): Ast => {
       return {
         ...ast,
         path,
-        ifBranch: ifBranch?.map((child, index) =>
+        ifBranch: ifBranch.map((child, index) =>
           correctPathsHelper(
             setIndex(`${path}.ifBranch.0`, index).split("."), //this might be scope.concat(["ifBranch", index.toString()]), could make a function for this
             child
           )
         ),
-        elseBranch: elseBranch?.map((child, index) =>
+        elseBranch: elseBranch.map((child, index) =>
           correctPathsHelper(
             setIndex(`${path}.elseBranch.0`, index).split("."),
             child
@@ -263,7 +319,8 @@ const correctPathsHelper = (scope: string[], ast: Ast): Ast => {
       return { ...ast, path: scope.join(".") };
   }
 };
-const removeFromBody = (scope: string[], ast: Ast) => {
+
+const removeFromBody = (scope: Scope, ast: Ast) => {
   const parent = grandParent(scope, ast);
   const parentBody = getBody(scope, parent);
   const index = scopeIndex(scope);
@@ -274,7 +331,7 @@ const removeFromBody = (scope: string[], ast: Ast) => {
   return newBody;
 };
 
-const setBody = (scope: string[], ast: Ast, body: Ast[]) => {
+const setBody = (scope: Scope, ast: Ast, body: Ast[]) => {
   const parent = grandParent(scope, ast);
   const newAst = structuredClone(ast);
   const parentScope = parent.path.split(".");
@@ -283,13 +340,13 @@ const setBody = (scope: string[], ast: Ast, body: Ast[]) => {
   return correctPaths(newAst);
 };
 
-const set = (scope: string[], ast: Ast, node: Ast): Ast => {
+const set = (scope: Scope, ast: Ast, node: Ast): Ast => {
   const newAst = structuredClone(ast);
   get(scope.slice(0, -1), newAst)[scope.at(-1)!] = node;
   return newAst;
 };
 
-const isAddingToPlaceholder = (scope: string[], ast: Ast, node: Ast) => {
+const isAddingToPlaceholder = (scope: Scope, ast: Ast, node: Ast) => {
   if (node.type === "branch" || node.type === "loop") {
     const inScope = get(scope, ast);
 
@@ -298,12 +355,12 @@ const isAddingToPlaceholder = (scope: string[], ast: Ast, node: Ast) => {
   return false;
 };
 
-const isOnCondition = (scope: string[], ast: Ast) => {
+const isOnCondition = (scope: Scope, ast: Ast) => {
   const current = get(scope, ast);
   return current.type === "branch" || current.type === "loop";
 };
 
-const getChildScopes = (scope: string[], ast: Ast): string[][] => {
+const getChildScopes = (scope: Scope, ast: Ast): Scope[] => {
   const node = get(scope, ast);
   switch (node.type) {
     case "branch":
@@ -329,7 +386,7 @@ const getChildScopes = (scope: string[], ast: Ast): string[][] => {
       return [scope];
   }
 };
-export const up = (scope: string[], ast: Ast): string[] => {
+export const up = (scope: Scope, ast: Ast): Scope => {
   const last = scope.at(-1);
   if (last === "0") {
     const { type } = grandParent(scope, ast);
@@ -362,7 +419,38 @@ export const up = (scope: string[], ast: Ast): string[] => {
   }
 };
 
-export const down = (scope: string[], ast: Ast): string[] => {
+export const traverse = <T, U = T extends Array<any> ? T : T[]>(
+  ast: Ast,
+  callback: (node: AstNode) => T
+): U => {
+  switch (ast.type) {
+    case "function": {
+      const { body, signature } = ast as FunctionAst;
+      return [
+        callback(signature),
+        ...body.flatMap((child) => traverse(child, callback)),
+      ].flat() as U;
+    }
+    case "branch": {
+      const { ifBranch, elseBranch } = ast as BranchAst;
+      return [
+        callback(ast as AstNode),
+        ...ifBranch.flatMap((child) => traverse(child, callback)),
+        ...elseBranch.flatMap((child) => traverse(child, callback)),
+      ].flat() as U;
+    }
+    case "loop": {
+      const { body } = ast as LoopAst;
+      return [
+        callback(ast as AstNode),
+        ...body.flatMap((child) => traverse(child, callback)),
+      ].flat() as U;
+    }
+  }
+  return [callback(ast as AstNode)].flat() as U;
+};
+
+export const down = (scope: Scope, ast: Ast): Scope => {
   if (isOnSignature(scope) && (ast as FunctionAst).body.length === 0) {
     return scope;
   }
@@ -383,10 +471,10 @@ export const down = (scope: string[], ast: Ast): string[] => {
 };
 
 export const left = (
-  scope: string[],
+  scope: Scope,
   ast: Ast,
-  originalScope: string[] = scope
-): string[] => {
+  originalScope: Scope = scope
+): Scope => {
   const parent = grandParent(scope, ast);
   const parentScope = parent.path.split(".");
   switch (parent.type) {
@@ -416,11 +504,7 @@ export const left = (
   }
 };
 
-export const right = (
-  scope: string[],
-  ast: Ast,
-  originalScope = scope
-): string[] => {
+export const right = (scope: Scope, ast: Ast, originalScope = scope): Scope => {
   const parent = grandParent(scope, ast);
   const parentScope = parent.path.split(".");
 
@@ -447,7 +531,7 @@ export const right = (
   }
 };
 
-export const remove = (scope: string[], ast: Ast, strict = false): CST => {
+export const remove = (scope: Scope, ast: Ast, strict = false): CST => {
   if (isOnSignature(scope)) return { scope, ast };
 
   if (strict) {
@@ -473,7 +557,7 @@ export const remove = (scope: string[], ast: Ast, strict = false): CST => {
 
       return add(scope, removed.ast, {
         type: "statement",
-        text: " ",
+        text: [],
         path: "",
       });
     }
@@ -484,7 +568,7 @@ export const remove = (scope: string[], ast: Ast, strict = false): CST => {
   return { scope: scope, ast: newAst };
 };
 
-export const add = (scope: string[], ast: Ast, node: Ast): CST => {
+export const add = (scope: Scope, ast: Ast, node: Ast): CST => {
   const newNode = prepare(scope, node);
   const newBody = createBody(scope, ast, newNode);
   const newAst = setBody(scope, ast, newBody);
@@ -500,9 +584,9 @@ export const add = (scope: string[], ast: Ast, node: Ast): CST => {
 };
 
 export const edit = (
-  scope: string[],
+  scope: Scope,
   ast: Ast,
-  textTransform: (text?: string) => string | undefined
+  textTransform: (text: AbstractText) => AbstractText
 ): CST => {
   const node = get(scope, ast);
   const newNode = { ...node, text: textTransform(node.text) };
@@ -510,14 +594,14 @@ export const edit = (
   return { scope, ast: newAst };
 };
 
-export const isEmpty = (scope: string[], ast: Ast) => {
+export const isEmpty = (scope: Scope, ast: Ast) => {
   const { text } = get(scope, ast);
-  return text === " " || text === "\\;" || text === "";
+  return text.length === 0;
 };
 
 export const select = (
   selected: Set<string>,
-  selection: string[][],
+  selection: Scope[],
   ast: Ast
 ): Set<string> => {
   const newSet = new Set(selected);
@@ -529,7 +613,7 @@ export const select = (
 
 export const deselect = (
   selected: Set<string>,
-  deselection: string[][],
+  deselection: Scope[],
   ast: Ast
 ): Set<string> => {
   const toDeselect = deselection
@@ -543,8 +627,8 @@ export const deselect = (
 
 export const navigateAndToggleSelection = (
   selected: Set<string>,
-  scope: string[],
-  newScope: string[],
+  scope: Scope,
+  newScope: Scope,
   ast: Ast
 ) => {
   const isNextSelected = selected.has(newScope.join("."));

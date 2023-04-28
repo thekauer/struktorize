@@ -16,9 +16,15 @@ export const Export = () => {
       ?.firstChild as HTMLElement;
     if (!root) return;
 
+    const cc = root.getElementsByClassName(
+      "CodeCompletion"
+    )[0] as HTMLDivElement;
+    if (!cc) return;
+    cc.style.display = "none";
     setShowScope(false);
     await cb(root);
     setShowScope(true);
+    cc.style.display = "block";
   };
 
   const exportClick = () => {

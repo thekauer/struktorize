@@ -49,6 +49,23 @@
     "title": "Puska",
     "statement": "Állítás",
     "branch": "Elágazás",
-    "loop": "Ciklus"
+    "loop": "Ciklus",
+    "codecompletion": "StructoriSense™",
+    "save": "Mentés",
+    "toggleMenu": "Oldalsó menu mutatása",
+    "searchBar": "Struktogram keresése",
+    "deleteBlock": "Blokk törlése",
+    "undo": "Vissza",
+    "redo": "Előre",
+    "select": "Kijelölés",
+    "exitScript": "Kilépés az alsó/felső indexből",
+    "cheatSheet": "Puska",
+    "neq": "Nem egyenlő",
+    "land": "És",
+    "lor": "Vagy",
+    "ge": "Nagyobb Egyenlő",
+    "le": "Kissebb Egyenlő",
+    "subscript": "Alsó Index",
+    "superscript": "Felső Index"
   }
 }

@@ -1,6 +1,6 @@
 import { useNode } from "../../../hooks/useAST";
 import { StatementAst } from "../../../lib/ast";
-import { Latex } from "../Latex/Latex";
+import { AbstractText } from "../AbstractText/AbstractText";
 import * as S from "./Statement.atoms";
 
 export const Statement = ({ text, path }: StatementAst) => {
@@ -8,7 +8,7 @@ export const Statement = ({ text, path }: StatementAst) => {
 
   return (
     <S.Container {...containerProps}>
-      <Latex>{text}</Latex>
+      <AbstractText>{text}</AbstractText>
     </S.Container>
   );
 };

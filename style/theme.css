@@ -102,6 +102,23 @@ html, body, #__next {
     overflow: hidden;
 }
 
+::-webkit-scrollbar {
+  width: 1em;
+}
+ 
+::-webkit-scrollbar-track {
+  background-color: var(--dark)
+}
+ 
+::-webkit-scrollbar-thumb {
+  background-color: var(--s-hovered);
+  outline: 1px solid var(--s-hovered);
+}
+
+::-webkit-scrollbar-corner {
+  background: rgba(0,0,0,0);
+}
+
 * {
     padding: 0;
     margin:0;

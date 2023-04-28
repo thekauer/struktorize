@@ -13,6 +13,7 @@ import { FileDTO } from "../../../../pages/api/files";
 import { File } from "@/lib/repository";
 import { useFiles } from "./useFiles";
 import { FileProps } from "./File/File";
+import { useSession } from "next-auth/react";
 
 const warnBeforeExit = (e: any) => {
   const confirmationMessage =
@@ -42,15 +43,18 @@ export const useExplorer = () => {
   const { addChangeListener, load } = useAst();
   const { newPath, setNewPath } = useContext(explorerContext);
   const { changed, ast } = useAstState();
-
+  const { status } = useSession();
   const { saveFile, refetch, files, recent, setActivePath } = useFiles();
   const activePath = recent?.path!;
 
   useEffect(() => {
     if (!recent) return;
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === "s" && changed) {
-        saveFile({ ...recent, ast });
+      if (e.ctrlKey && e.key === "s") {
+        e.preventDefault();
+        if (changed) {
+          saveFile({ ...recent, ast });
+        }
       }
     };
     window.addEventListener("keydown", onKeyDown);
@@ -74,6 +78,8 @@ export const useExplorer = () => {
   }, [recent]);
 
   useEffect(() => {
+    if (status !== "authenticated") return;
+
     addChangeListener((state) => {
       if (state.changed) {
         window.addEventListener("beforeunload", warnBeforeExit);
@@ -81,7 +87,7 @@ export const useExplorer = () => {
         window.removeEventListener("beforeunload", warnBeforeExit);
       }
     }, "warnExit");
-  }, []);
+  }, [status]);
 
   const newFileClick = () => {
     setNewPath(activePath.substring(0, activePath.lastIndexOf("/") + 1));

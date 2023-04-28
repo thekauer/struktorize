@@ -5,8 +5,18 @@ describe("ast", () => {
     describe("statement/function", () => {
       it("should go down from signature to body", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
-          body: [{ type: "statement", path: "body.0", text: "a" }],
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
+          body: [
+            {
+              type: "statement",
+              path: "body.0",
+              text: [{ type: "variable", name: "a" }],
+            },
+          ],
           type: "function",
           path: "",
         } as Ast;
@@ -18,11 +28,27 @@ describe("ast", () => {
 
       it("should go down twice", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
-            { type: "statement", path: "body.0", text: "a" },
-            { type: "statement", path: "body.1", text: "a" },
-            { type: "statement", path: "body.2", text: "a" },
+            {
+              type: "statement",
+              path: "body.0",
+              text: [{ type: "variable", name: "a" }],
+            },
+            {
+              type: "statement",
+              path: "body.1",
+              text: [{ type: "variable", name: "a" }],
+            },
+            {
+              type: "statement",
+              path: "body.2",
+              text: [{ type: "variable", name: "a" }],
+            },
           ],
           type: "function",
           path: "",
@@ -36,11 +62,27 @@ describe("ast", () => {
 
       it("should not go down at after the last statement", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
-            { type: "statement", path: "body.0", text: "a" },
-            { type: "statement", path: "body.1", text: "a" },
-            { type: "statement", path: "body.2", text: "a" },
+            {
+              type: "statement",
+              path: "body.0",
+              text: [{ type: "variable", name: "a" }],
+            },
+            {
+              type: "statement",
+              path: "body.1",
+              text: [{ type: "variable", name: "a" }],
+            },
+            {
+              type: "statement",
+              path: "body.2",
+              text: [{ type: "variable", name: "a" }],
+            },
           ],
           type: "function",
           path: "",
@@ -57,18 +99,39 @@ describe("ast", () => {
       it("should go down to loop condition", () => {
         const ast = {
           signature: {
-            text: "\\text{main}(\\text{a}\\in\\mathbb{N})",
+            text: [
+              { type: "variable", name: "main" },
+              { type: "lp" },
+              { type: "variable", name: "a" },
+              { type: "in" },
+              { type: "mathbb", value: "N" },
+              { type: "rp" },
+            ],
             type: "signature",
             path: "signature",
           },
           body: [
-            { type: "statement", path: "body.1", text: "a" },
+            {
+              type: "statement",
+              path: "body.1",
+              text: [{ type: "variable", name: "a" }],
+            },
             {
               type: "loop",
               path: "body.1",
-              body: [{ type: "statement", path: "body.1.body.0", text: "a" }],
+              body: [
+                {
+                  type: "statement",
+                  path: "body.1.body.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+              ],
             },
-            { type: "statement", path: "body.2", text: "a" },
+            {
+              type: "statement",
+              path: "body.2",
+              text: [{ type: "variable", name: "a" }],
+            },
           ],
           type: "function",
           path: "",
@@ -82,15 +145,33 @@ describe("ast", () => {
 
       it("should go down into loop body", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
-            { type: "statement", path: "body.0", text: "a" },
+            {
+              type: "statement",
+              path: "body.0",
+              text: [{ type: "variable", name: "a" }],
+            },
             {
               type: "loop",
               path: "body.1",
-              body: [{ type: "statement", path: "body.1.body.0", text: "a" }],
+              body: [
+                {
+                  type: "statement",
+                  path: "body.1.body.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+              ],
             },
-            { type: "statement", path: "body.2", text: "a" },
+            {
+              type: "statement",
+              path: "body.2",
+              text: [{ type: "variable", name: "a" }],
+            },
           ],
           type: "function",
           path: "",
@@ -104,15 +185,33 @@ describe("ast", () => {
 
       it("should go down to the statement after the loop body", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
-            { type: "statement", path: "body.0", text: "a" },
+            {
+              type: "statement",
+              path: "body.0",
+              text: [{ type: "variable", name: "a" }],
+            },
             {
               type: "loop",
               path: "body.1",
-              body: [{ type: "statement", path: "body.1.body.0", text: "a" }],
+              body: [
+                {
+                  type: "statement",
+                  path: "body.1.body.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+              ],
             },
-            { type: "statement", path: "body.2", text: "a" },
+            {
+              type: "statement",
+              path: "body.2",
+              text: [{ type: "variable", name: "a" }],
+            },
           ],
           type: "function",
           path: "",
@@ -126,13 +225,27 @@ describe("ast", () => {
 
       it("should not go down if loop is the last ast", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
-            { type: "statement", path: "body.0", text: "a" },
+            {
+              type: "statement",
+              path: "body.0",
+              text: [{ type: "variable", name: "a" }],
+            },
             {
               type: "loop",
               path: "body.1",
-              body: [{ type: "statement", path: "body.1.body.0", text: "a" }],
+              body: [
+                {
+                  type: "statement",
+                  path: "body.1.body.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+              ],
             },
           ],
           type: "function",
@@ -147,24 +260,52 @@ describe("ast", () => {
 
       it("when two loops are on top of each other it should go down from top loop's last ast to bottom loop's  condition", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "loop",
               path: "body.0",
               body: [
-                { type: "statement", path: "body.0.body.0", text: "a" },
-                { type: "statement", path: "body.0.body.1", text: "a" },
-                { type: "statement", path: "body.0.body.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.body.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.body.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.body.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
             {
               type: "loop",
               path: "body.1",
               body: [
-                { type: "statement", path: "body.1.body.0", text: "a" },
-                { type: "statement", path: "body.1.body.1", text: "a" },
-                { type: "statement", path: "body.1.body.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.1.body.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.1.body.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.1.body.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -181,20 +322,40 @@ describe("ast", () => {
     describe("branch", () => {
       it("should go down to if condition", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
-            { type: "statement", path: "body.0", text: "a" },
+            {
+              type: "statement",
+              path: "body.0",
+              text: [{ type: "variable", name: "a" }],
+            },
             {
               type: "branch",
               path: "body.1",
               ifBranch: [
-                { type: "statement", path: "body.1.ifBranch.0", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.1.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "statement", path: "body.1.elseBranch.0", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.1.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
-            { type: "statement", path: "body.2", text: "a" },
+            {
+              type: "statement",
+              path: "body.2",
+              text: [{ type: "variable", name: "a" }],
+            },
           ],
           type: "function",
           path: "",
@@ -208,20 +369,40 @@ describe("ast", () => {
 
       it("should go down to the true branch", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
-            { type: "statement", path: "body.0", text: "a" },
+            {
+              type: "statement",
+              path: "body.0",
+              text: [{ type: "variable", name: "a" }],
+            },
             {
               type: "branch",
               path: "body.1",
               ifBranch: [
-                { type: "statement", path: "body.1.ifBranch.0", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.1.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "statement", path: "body.1.elseBranch.0", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.1.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
-            { type: "statement", path: "body.2", text: "a" },
+            {
+              type: "statement",
+              path: "body.2",
+              text: [{ type: "variable", name: "a" }],
+            },
           ],
           type: "function",
           path: "",
@@ -235,20 +416,40 @@ describe("ast", () => {
 
       it("should go down to the statement after the branch", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
-            { type: "statement", path: "body.0", text: "a" },
+            {
+              type: "statement",
+              path: "body.0",
+              text: [{ type: "variable", name: "a" }],
+            },
             {
               type: "branch",
               path: "body.1",
               ifBranch: [
-                { type: "statement", path: "body.1.ifBranch.0", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.1.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "statement", path: "body.1.elseBranch.0", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.1.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
-            { type: "statement", path: "body.2", text: "a" },
+            {
+              type: "statement",
+              path: "body.2",
+              text: [{ type: "variable", name: "a" }],
+            },
           ],
           type: "function",
           path: "",
@@ -262,17 +463,33 @@ describe("ast", () => {
 
       it("should not go down if the branch is the last ast", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
-            { type: "statement", path: "body.0", text: "a" },
+            {
+              type: "statement",
+              path: "body.0",
+              text: [{ type: "variable", name: "a" }],
+            },
             {
               type: "branch",
               path: "body.1",
               ifBranch: [
-                { type: "statement", path: "body.1.ifBranch.0", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.1.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "statement", path: "body.1.elseBranch.0", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.1.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -288,26 +505,46 @@ describe("ast", () => {
 
       it("when two branches are on top of each other it should go down frop the top branch's true branch to the bottom branch's condition", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "branch",
               path: "body.0",
               ifBranch: [
-                { type: "statement", path: "body.0.ifBranch.0", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "statement", path: "body.0.elseBranch.0", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
             {
               type: "branch",
               path: "body.1",
               ifBranch: [
-                { type: "statement", path: "body.1.ifBranch.0", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.1.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "statement", path: "body.1.elseBranch.0", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.1.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -323,26 +560,46 @@ describe("ast", () => {
 
       it("when two branches are on top of each other it should go down frop the top branch's false branch to the bottom branch's condition", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "branch",
               path: "body.0",
               ifBranch: [
-                { type: "statement", path: "body.0.ifBranch.0", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "statement", path: "body.0.elseBranch.0", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
             {
               type: "branch",
               path: "body.1",
               ifBranch: [
-                { type: "statement", path: "body.1.ifBranch.0", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.1.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "statement", path: "body.1.elseBranch.0", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.1.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -362,8 +619,18 @@ describe("ast", () => {
     describe("statment/function", () => {
       it("should not go up from the signature", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
-          body: [{ type: "statement", path: "body.0", text: "a" }],
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
+          body: [
+            {
+              type: "statement",
+              path: "body.0",
+              text: [{ type: "variable", name: "a" }],
+            },
+          ],
           type: "function",
           path: "",
         } as Ast;
@@ -375,8 +642,18 @@ describe("ast", () => {
 
       it("should go up from the first statement to the signature", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
-          body: [{ type: "statement", path: "body.0", text: "a" }],
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
+          body: [
+            {
+              type: "statement",
+              path: "body.0",
+              text: [{ type: "variable", name: "a" }],
+            },
+          ],
           type: "function",
           path: "",
         } as Ast;
@@ -388,11 +665,27 @@ describe("ast", () => {
 
       it("should go up twice from last statement to the first one", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
-            { type: "statement", path: "body.0", text: "a" },
-            { type: "statement", path: "body.1", text: "a" },
-            { type: "statement", path: "body.2", text: "a" },
+            {
+              type: "statement",
+              path: "body.0",
+              text: [{ type: "variable", name: "a" }],
+            },
+            {
+              type: "statement",
+              path: "body.1",
+              text: [{ type: "variable", name: "a" }],
+            },
+            {
+              type: "statement",
+              path: "body.2",
+              text: [{ type: "variable", name: "a" }],
+            },
           ],
           type: "function",
           path: "",
@@ -407,15 +700,31 @@ describe("ast", () => {
     describe("loop", () => {
       it("should go up from loop condition to signature when loop is the first ast", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "loop",
               path: "body.0",
               body: [
-                { type: "statement", path: "body.0.body.0", text: "a" },
-                { type: "statement", path: "body.0.body.1", text: "a" },
-                { type: "statement", path: "body.0.body.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.body.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.body.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.body.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -430,15 +739,31 @@ describe("ast", () => {
 
       it("should go up from lopp body.0 to loop condition", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "loop",
               path: "body.0",
               body: [
-                { type: "statement", path: "body.0.body.0", text: "a" },
-                { type: "statement", path: "body.0.body.1", text: "a" },
-                { type: "statement", path: "body.0.body.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.body.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.body.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.body.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -453,15 +778,31 @@ describe("ast", () => {
 
       it("should go up from last ast in loop body to the first one", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "loop",
               path: "body.0",
               body: [
-                { type: "statement", path: "body.0.body.0", text: "a" },
-                { type: "statement", path: "body.0.body.1", text: "a" },
-                { type: "statement", path: "body.0.body.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.body.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.body.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.body.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -476,24 +817,52 @@ describe("ast", () => {
 
       it("when two loops are on top of each other it should go up from bottom loop's condition to top loop's last ast", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "loop",
               path: "body.0",
               body: [
-                { type: "statement", path: "body.0.body.0", text: "a" },
-                { type: "statement", path: "body.0.body.1", text: "a" },
-                { type: "statement", path: "body.0.body.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.body.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.body.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.body.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
             {
               type: "loop",
               path: "body.1",
               body: [
-                { type: "statement", path: "body.1.body.0", text: "a" },
-                { type: "statement", path: "body.1.body.1", text: "a" },
-                { type: "statement", path: "body.1.body.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.1.body.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.1.body.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.1.body.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -510,20 +879,48 @@ describe("ast", () => {
     describe("branch", () => {
       it("should go up from if's condition to function signature when if is the first ast", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "branch",
               path: "body.0",
               ifBranch: [
-                { type: "statement", path: "body.0.ifBranch.0", text: "a" },
-                { type: "statement", path: "body.0.ifBranch.1", text: "a" },
-                { type: "statement", path: "body.0.ifBranch.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "statement", path: "body.0.elseBranch.0", text: "a" },
-                { type: "statement", path: "body.0.elseBranch.1", text: "a" },
-                { type: "statement", path: "body.0.elseBranch.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -538,20 +935,48 @@ describe("ast", () => {
 
       it("should go up from the first ast of the true branch of a branch to it's condition", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "branch",
               path: "body.0",
               ifBranch: [
-                { type: "statement", path: "body.0.ifBranch.0", text: "a" },
-                { type: "statement", path: "body.0.ifBranch.1", text: "a" },
-                { type: "statement", path: "body.0.ifBranch.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "statement", path: "body.0.elseBranch.0", text: "a" },
-                { type: "statement", path: "body.0.elseBranch.1", text: "a" },
-                { type: "statement", path: "body.0.elseBranch.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -566,20 +991,48 @@ describe("ast", () => {
 
       it("should go up from the first ast of the else branch of a branch to it's condition", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "branch",
               path: "body.0",
               ifBranch: [
-                { type: "statement", path: "body.0.ifBranch.0", text: "a" },
-                { type: "statement", path: "body.0.ifBranch.1", text: "a" },
-                { type: "statement", path: "body.0.ifBranch.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "statement", path: "body.0.elseBranch.0", text: "a" },
-                { type: "statement", path: "body.0.elseBranch.1", text: "a" },
-                { type: "statement", path: "body.0.elseBranch.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -594,20 +1047,48 @@ describe("ast", () => {
 
       it("should go up from elseBranch's last ast to the first one", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "branch",
               path: "body.0",
               ifBranch: [
-                { type: "statement", path: "body.0.ifBranch.0", text: "a" },
-                { type: "statement", path: "body.0.ifBranch.1", text: "a" },
-                { type: "statement", path: "body.0.ifBranch.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "statement", path: "body.0.elseBranch.0", text: "a" },
-                { type: "statement", path: "body.0.elseBranch.1", text: "a" },
-                { type: "statement", path: "body.0.elseBranch.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -622,20 +1103,48 @@ describe("ast", () => {
 
       it("should go up from ifBranch's last ast to the first one", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "branch",
               path: "body.0",
               ifBranch: [
-                { type: "statement", path: "body.0.ifBranch.0", text: "a" },
-                { type: "statement", path: "body.0.ifBranch.1", text: "a" },
-                { type: "statement", path: "body.0.ifBranch.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "statement", path: "body.0.elseBranch.0", text: "a" },
-                { type: "statement", path: "body.0.elseBranch.1", text: "a" },
-                { type: "statement", path: "body.0.elseBranch.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -650,34 +1159,86 @@ describe("ast", () => {
 
       it("when two branches are on top if each other it should go up from the bottom branch's condition to the top branch's last ast in its true branch", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "branch",
               path: "body.0",
               ifBranch: [
-                { type: "statement", path: "body.0.ifBranch.0", text: "a" },
-                { type: "statement", path: "body.0.ifBranch.1", text: "a" },
-                { type: "statement", path: "body.0.ifBranch.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.ifBranch.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "statement", path: "body.0.elseBranch.0", text: "a" },
-                { type: "statement", path: "body.0.elseBranch.1", text: "a" },
-                { type: "statement", path: "body.0.elseBranch.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.0.elseBranch.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
             {
               type: "branch",
               path: "body.1",
               ifBranch: [
-                { type: "statement", path: "body.1.ifBranch.0", text: "a" },
-                { type: "statement", path: "body.1.ifBranch.1", text: "a" },
-                { type: "statement", path: "body.1.ifBranch.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.1.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.1.ifBranch.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.1.ifBranch.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "statement", path: "body.1.elseBranch.0", text: "a" },
-                { type: "statement", path: "body.1.elseBranch.1", text: "a" },
-                { type: "statement", path: "body.1.elseBranch.2", text: "a" },
+                {
+                  type: "statement",
+                  path: "body.1.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.1.elseBranch.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "statement",
+                  path: "body.1.elseBranch.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -696,8 +1257,18 @@ describe("ast", () => {
     describe("statement/function", () => {
       it("should not go left from the signature", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
-          body: [{ type: "statement", path: "body.0", text: "a" }],
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
+          body: [
+            {
+              type: "statement",
+              path: "body.0",
+              text: [{ type: "variable", name: "a" }],
+            },
+          ],
           type: "function",
           path: "",
         } as Ast;
@@ -709,8 +1280,18 @@ describe("ast", () => {
 
       it("should not go left from the first statement in the function", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
-          body: [{ type: "statement", path: "body.0", text: "a" }],
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
+          body: [
+            {
+              type: "statement",
+              path: "body.0",
+              text: [{ type: "variable", name: "a" }],
+            },
+          ],
           type: "function",
           path: "",
         } as Ast;
@@ -724,13 +1305,23 @@ describe("ast", () => {
     describe("loop", () => {
       it("should not go left from the first loop's condition", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "loop",
               path: "body.0",
-              text: "a",
-              body: [{ type: "branch", path: "body.0.body.0", text: "a" }],
+              text: [{ type: "variable", name: "a" }],
+              body: [
+                {
+                  type: "branch",
+                  path: "body.0.body.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+              ],
             },
           ],
           type: "function",
@@ -744,13 +1335,23 @@ describe("ast", () => {
 
       it("should go left from the loop's body to its condition", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "loop",
               path: "body.0",
-              text: "a",
-              body: [{ type: "branch", path: "body.0.body.0", text: "a" }],
+              text: [{ type: "variable", name: "a" }],
+              body: [
+                {
+                  type: "branch",
+                  path: "body.0.body.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+              ],
             },
           ],
           type: "function",
@@ -766,17 +1367,29 @@ describe("ast", () => {
     describe("branch", () => {
       it("should not go left from the first branch's condition", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "branch",
               path: "body.0",
-              text: "a",
+              text: [{ type: "variable", name: "a" }],
               ifBranch: [
-                { type: "branch", path: "body.0.ifBranch.0", text: "a" },
+                {
+                  type: "branch",
+                  path: "body.0.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "branch", path: "body.0.elseBranch.0", text: "a" },
+                {
+                  type: "branch",
+                  path: "body.0.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -791,17 +1404,29 @@ describe("ast", () => {
 
       it("should not go left from the first branch's true branch's asts ", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "branch",
               path: "body.0",
-              text: "a",
+              text: [{ type: "variable", name: "a" }],
               ifBranch: [
-                { type: "branch", path: "body.0.ifBranch.0", text: "a" },
+                {
+                  type: "branch",
+                  path: "body.0.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "branch", path: "body.0.elseBranch.0", text: "a" },
+                {
+                  type: "branch",
+                  path: "body.0.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -816,17 +1441,29 @@ describe("ast", () => {
 
       it("should go left from the first branch's false branch to its true branch ", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "branch",
               path: "body.0",
-              text: "a",
+              text: [{ type: "variable", name: "a" }],
               ifBranch: [
-                { type: "branch", path: "body.0.ifBranch.0", text: "a" },
+                {
+                  type: "branch",
+                  path: "body.0.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "branch", path: "body.0.elseBranch.0", text: "a" },
+                {
+                  type: "branch",
+                  path: "body.0.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -841,19 +1478,39 @@ describe("ast", () => {
 
       it("should go left from the false branch's last ast to its true branch's first ast when there is only one ast in the true branch ", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "branch",
               path: "body.0",
-              text: "a",
+              text: [{ type: "variable", name: "a" }],
               ifBranch: [
-                { type: "branch", path: "body.0.ifBranch.0", text: "a" },
+                {
+                  type: "branch",
+                  path: "body.0.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "branch", path: "body.0.elseBranch.0", text: "a" },
-                { type: "branch", path: "body.0.elseBranch.1", text: "a" },
-                { type: "branch", path: "body.0.elseBranch.2", text: "a" },
+                {
+                  type: "branch",
+                  path: "body.0.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "branch",
+                  path: "body.0.elseBranch.1",
+                  text: [{ type: "variable", name: "a" }],
+                },
+                {
+                  type: "branch",
+                  path: "body.0.elseBranch.2",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -872,8 +1529,18 @@ describe("ast", () => {
     describe("statement/function", () => {
       it("should not go right from the signature", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
-          body: [{ type: "statement", path: "body.0", text: "a" }],
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
+          body: [
+            {
+              type: "statement",
+              path: "body.0",
+              text: [{ type: "variable", name: "a" }],
+            },
+          ],
           type: "function",
           path: "",
         } as Ast;
@@ -885,8 +1552,18 @@ describe("ast", () => {
 
       it("should not go right from the first statement in the function", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
-          body: [{ type: "statement", path: "body.0", text: "a" }],
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
+          body: [
+            {
+              type: "statement",
+              path: "body.0",
+              text: [{ type: "variable", name: "a" }],
+            },
+          ],
           type: "function",
           path: "",
         } as Ast;
@@ -900,13 +1577,23 @@ describe("ast", () => {
     describe("loop", () => {
       it("should not go right from the first loop's condition", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "loop",
               path: "body.0",
-              text: "a",
-              body: [{ type: "branch", path: "body.0.body.0", text: "a" }],
+              text: [{ type: "variable", name: "a" }],
+              body: [
+                {
+                  type: "branch",
+                  path: "body.0.body.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+              ],
             },
           ],
           type: "function",
@@ -920,13 +1607,23 @@ describe("ast", () => {
 
       it("should not go right from the loop's body", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "loop",
               path: "body.0",
-              text: "a",
-              body: [{ type: "branch", path: "body.0.body.0", text: "a" }],
+              text: [{ type: "variable", name: "a" }],
+              body: [
+                {
+                  type: "branch",
+                  path: "body.0.body.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
+              ],
             },
           ],
           type: "function",
@@ -942,17 +1639,29 @@ describe("ast", () => {
     describe("branch", () => {
       it("should not go right from the first branch's condition", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "branch",
               path: "body.0",
-              text: "a",
+              text: [{ type: "variable", name: "a" }],
               ifBranch: [
-                { type: "branch", path: "body.0.ifBranch.0", text: "a" },
+                {
+                  type: "branch",
+                  path: "body.0.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "branch", path: "body.0.elseBranch.0", text: "a" },
+                {
+                  type: "branch",
+                  path: "body.0.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -967,17 +1676,29 @@ describe("ast", () => {
 
       it("should not go right from the first branch's else branch's asts ", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "branch",
               path: "body.0",
-              text: "a",
+              text: [{ type: "variable", name: "a" }],
               ifBranch: [
-                { type: "branch", path: "body.0.ifBranch.0", text: "a" },
+                {
+                  type: "branch",
+                  path: "body.0.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "branch", path: "body.0.elseBranch.0", text: "a" },
+                {
+                  type: "branch",
+                  path: "body.0.elseBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -992,17 +1713,29 @@ describe("ast", () => {
 
       it("should go right from the first branch's true branch to its false branch ", () => {
         const ast = {
-          signature: { type: "signature", path: "signature", text: "none" },
+          signature: {
+            type: "signature",
+            path: "signature",
+            text: [{ type: "variable", name: "none" }],
+          },
           body: [
             {
               type: "branch",
               path: "body.0",
-              text: "a",
+              text: [{ type: "variable", name: "a" }],
               ifBranch: [
-                { type: "branch", path: "body.0.ifBranch.0", text: "a" },
+                {
+                  type: "branch",
+                  path: "body.0.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
               elseBranch: [
-                { type: "branch", path: "body.0.ifBranch.0", text: "a" },
+                {
+                  type: "branch",
+                  path: "body.0.ifBranch.0",
+                  text: [{ type: "variable", name: "a" }],
+                },
               ],
             },
           ],
@@ -1023,15 +1756,27 @@ describe("ast", () => {
     });
     it("should remove first statement in loop", () => {
       const ast = {
-        signature: { type: "signature", path: "signature", text: "none" },
+        signature: {
+          type: "signature",
+          path: "signature",
+          text: [{ type: "variable", name: "none" }],
+        },
         body: [
           {
             type: "loop",
             path: "body.0",
-            text: "a",
+            text: [{ type: "variable", name: "a" }],
             body: [
-              { type: "statement", path: "body.0.body.0", text: "a" },
-              { type: "statement", path: "body.0.body.1", text: "b" },
+              {
+                type: "statement",
+                path: "body.0.body.0",
+                text: [{ type: "variable", name: "a" }],
+              },
+              {
+                type: "statement",
+                path: "body.0.body.1",
+                text: [{ type: "variable", name: "b" }],
+              },
             ],
           },
         ],
@@ -1041,13 +1786,23 @@ describe("ast", () => {
       const actual = remove(scope, ast).ast;
 
       const expected = {
-        signature: { type: "signature", path: "signature", text: "none" },
+        signature: {
+          type: "signature",
+          path: "signature",
+          text: [{ type: "variable", name: "none" }],
+        },
         body: [
           {
             type: "loop",
             path: "body.0",
-            text: "a",
-            body: [{ type: "statement", path: "body.0.body.0", text: "b" }],
+            text: [{ type: "variable", name: "a" }],
+            body: [
+              {
+                type: "statement",
+                path: "body.0.body.0",
+                text: [{ type: "variable", name: "b" }],
+              },
+            ],
           },
         ],
         type: "function",
@@ -1061,7 +1816,14 @@ describe("ast", () => {
     it("should go left 4 times when there is a branch both a branches true and false branch", () => {
       const ast = {
         signature: {
-          text: "\\text{main}(\\text{a}\\in\\mathbb{N})",
+          text: [
+            { type: "variable", name: "main" },
+            { type: "lp" },
+            { type: "variable", name: "a" },
+            { type: "in" },
+            { type: "mathbb", value: "N" },
+            { type: "rp" },
+          ],
           type: "signature",
           path: "signature",
         },
@@ -1069,24 +1831,24 @@ describe("ast", () => {
           {
             type: "branch",
             path: "body.0",
-            text: " ",
+            text: [],
             ifBranch: [
               {
                 type: "branch",
                 path: "body.0.ifBranch.0",
-                text: " ",
+                text: [],
                 ifBranch: [
                   {
                     type: "statement",
                     path: "body.0.ifBranch.0.ifBranch.0",
-                    text: " ",
+                    text: [],
                   },
                 ],
                 elseBranch: [
                   {
                     type: "statement",
                     path: "body.0.ifBranch.0.elseBranch.0",
-                    text: " ",
+                    text: [],
                   },
                 ],
               },
@@ -1095,19 +1857,19 @@ describe("ast", () => {
               {
                 type: "branch",
                 path: "body.0.elseBranch.0",
-                text: " ",
+                text: [],
                 ifBranch: [
                   {
                     type: "statement",
                     path: "body.0.elseBranch.0.ifBranch.0",
-                    text: " ",
+                    text: [],
                   },
                 ],
                 elseBranch: [
                   {
                     type: "statement",
                     path: "body.0.elseBranch.0.elseBranch.0",
-                    text: " ",
+                    text: [],
                   },
                 ],
               },

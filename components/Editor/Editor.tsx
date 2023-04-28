@@ -3,6 +3,8 @@ import { useAstState } from "../../hooks/useAST";
 import { Render } from "../Ast/Render/Render";
 import { useEditor } from "./useEditor";
 import * as S from "./Editor.atoms";
+import { CodeCompletion } from "./CodeCompletion/CodeCompletion";
+import { useCodeCompletion } from "./CodeCompletion/useCodeCompletion";
 
 const Root = () => {
   const { ast } = useAstState();
@@ -19,7 +21,11 @@ interface EditorProps {
 }
 
 export const Editor = ({ readonly }: EditorProps) => {
-  const { containerProps, rootRef } = useEditor(readonly);
+  const codeCompletionProps = useCodeCompletion();
+  const { containerProps, rootRef } = useEditor({
+    readonly,
+    disableNavigation: codeCompletionProps.visible,
+  });
 
   useEffect(() => {
     rootRef.current?.focus();
@@ -28,6 +34,7 @@ export const Editor = ({ readonly }: EditorProps) => {
   return (
     <S.Container {...containerProps}>
       <Root />
+      <CodeCompletion {...codeCompletionProps} />
     </S.Container>
   );
 };

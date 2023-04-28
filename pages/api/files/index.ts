@@ -111,7 +111,7 @@ const post = async (req: NextRequest, token: Token) => {
   const name = file.path.split("/").pop();
   const ast = {
     signature: {
-      text: `\\text{${name}}()`,
+      text: [{ type: "variable", name: `${name}` }],
       type: "signature",
       path: "signature",
     },
