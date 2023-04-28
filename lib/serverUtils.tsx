@@ -31,6 +31,10 @@ export function NotAllowed(reason?: string) {
   return new Response(reason || "Method not allowed", { status: 405 });
 }
 
+export function InternalServerError(reason?: string) {
+  return new Response(reason || "Internal Server Error", { status: 500 });
+}
+
 export type Token = {
   name: string;
   email: string;
