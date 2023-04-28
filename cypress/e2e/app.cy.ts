@@ -44,6 +44,7 @@ describe("App", () => {
       root.contains(":=").should("exist");
     });
   });
+
   describe("Cheat Sheet", () => {
     beforeEach(() => {
       root.type("{ctrl}i");
@@ -60,6 +61,60 @@ describe("App", () => {
         "background-color",
         "rgb(0, 122, 204)"
       );
+    });
+
+    it("&& should become blue in Cheat Sheet menu when pressed", () => {
+      root.type("&&");
+      cy.contains("mark", "&&").should(
+        "have.css",
+        "background-color",
+        "rgb(0, 122, 204)"
+      );
+    });
+
+    it("<= should become blue in Cheat Sheet menu when pressed", () => {
+      root.type("<=");
+      cy.contains("mark", "<=").should(
+        "have.css",
+        "background-color",
+        "rgb(0, 122, 204)"
+      );
+    });
+  });
+
+  describe("Code Completion", () => {
+    it("should be visible when ctrl+space is pressed", () => {
+      root.type("{enter}");
+      root.type("{ctrl} ");
+      cy.contains("if").should("be.visible");
+    });
+
+    it("should complete misstyped args to correct args", () => {
+      root.type("{enter}");
+      root.type("ag");
+      cy.contains("span", "args").should("be.visible");
+      root.tab();
+      root.find(".hovered .katex-html").first().should("have.text", "args");
+    });
+
+    it.only("should create branch when completing if", () => {
+      root.type("{enter}");
+      root.type("if");
+      cy.contains("span", "if").should("be.visible");
+      root.tab();
+      const condition = root
+        .find("div[class*=Branch-atoms__Condition]")
+        .should("be.visible");
+
+      root.type("{downArrow}");
+      const trueBranch = condition.next().children().eq(0).children().first();
+      trueBranch.should("have.class", "hovered");
+      root.type("a");
+      trueBranch
+        .children()
+        .find(".katex-html")
+        .first()
+        .should("have.text", "a");
     });
   });
 });
