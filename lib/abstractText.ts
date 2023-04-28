@@ -228,7 +228,7 @@ export const getAllVariablesExceptCurrent = (body: Ast, current: AstNode) => {
 };
 
 export const getFunctionName = (text: AbstractText): string => {
-  return text[0].type === "variable" ? text[0].name : "";
+  return text[0]?.type === "variable" ? text[0]?.name : "";
 };
 
 export const doesEndWithSpace = (text: AbstractText) => {
