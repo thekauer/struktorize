@@ -101,7 +101,7 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     }
 
     const allowedChars =
-      /^[a-zA-Z0-9_:\+\/\(\)\*\- \"\^=\.\&\|<>!\^\×\,\[\]\;]{1}$/;
+      /^[a-zA-Z0-9_:\+\/\(\)\*\- \"\^=\.\&\|<>!\^\×\,\[\]\{\}\;]{1}$/;
     if (allowedChars.test(key)) {
       const finalKey = e.shiftKey ? key.toUpperCase() : key;
       edit(finalKey);
