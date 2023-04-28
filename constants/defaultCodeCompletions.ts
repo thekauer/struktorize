@@ -9,6 +9,7 @@ export const defaultCodeCompletions: CodeCompletionItem[] = [
   { value: "forall", type: "symbol", symbol: { type: "forall" } },
   { value: "exists", type: "symbol", symbol: { type: "exists" } },
   { value: "infinity", type: "symbol", symbol: { type: "infinity" } },
+  { value: "not", type: "symbol", symbol: { type: "lnot" } },
 
   { value: "S", type: "symbol", symbol: { type: "mathbb", value: "S" } },
   { value: "R", type: "symbol", symbol: { type: "mathbb", value: "R" } },
