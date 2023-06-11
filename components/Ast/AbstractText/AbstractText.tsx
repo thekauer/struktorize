@@ -62,6 +62,8 @@ const basicTransform = (char: BasicAbstractChar): string => {
       return "!";
     case "space":
       return "\\;";
+    case "minus":
+      return "-";
     case "epsilon":
       return "\\varepsilon{}";
     case "pi":
@@ -88,6 +90,10 @@ const basicTransform = (char: BasicAbstractChar): string => {
       return "\\le{}";
     case "coloneq":
       return "\\coloneqq{}";
+    case "arrow":
+      return "\\rightarrow{}";
+    case "times":
+      return "\\times{}";
   }
 
   const { type } = char;

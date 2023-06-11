@@ -8,7 +8,7 @@ export interface AstBase {
 export type Variable = { type: "variable"; name: string };
 export type Subscript = { type: "subscript"; text: AbstractText };
 export type SuperScript = { type: "superscript"; text: AbstractText };
-export type MathBB = { type: "mathbb"; value: "S" | "R" | "N" | "B" };
+export type MathBB = { type: "mathbb"; value: "S" | "R" | "N" | "Z" | "B" };
 
 export type InsertInsideAvailable = SuperScript | Subscript;
 
@@ -30,7 +30,8 @@ export type Operator = {
     | "rc"
     | "star"
     | "bang"
-    | "space";
+    | "space"
+    | "minus";
 };
 export type Symbol = {
   type:
@@ -46,7 +47,9 @@ export type Symbol = {
     | "neq"
     | "ge"
     | "le"
-    | "coloneq";
+    | "coloneq"
+    | "arrow"
+    | "times";
 };
 
 export type AbstractChar =

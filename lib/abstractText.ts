@@ -56,6 +56,7 @@ const OPERATOR_MAP: Record<string, Operator> = {
   "*": { type: "star" },
   "!": { type: "bang" },
   " ": { type: "space" },
+  "-": { type: "minus" },
 };
 
 const DOUBLE_OPERATOR_MAP: Record<string, Symbol | Operator> = {
@@ -66,6 +67,7 @@ const DOUBLE_OPERATOR_MAP: Record<string, Symbol | Operator> = {
   ">=": { type: "ge" },
   ":=": { type: "coloneq" },
   "  ": { type: "space" },
+  "->": { type: "arrow" },
 };
 
 const operatorToChar = (op: AbstractChar) => {
