@@ -19,12 +19,11 @@ export const Export = () => {
     const cc = root.getElementsByClassName(
       "CodeCompletion"
     )[0] as HTMLDivElement;
-    if (!cc) return;
-    cc.style.display = "none";
+    if (cc) cc.style.display = "none";
     setShowScope(false);
     await cb(root);
     setShowScope(true);
-    cc.style.display = "block";
+    if (cc) cc.style.display = "block";
   };
 
   const exportClick = () => {
