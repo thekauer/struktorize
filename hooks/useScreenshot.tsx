@@ -27,10 +27,8 @@ const useScreenshot = () => {
       let link = document.createElement("a");
       link.download = "structogram.png";
       link.href = uri;
-      document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
-    }
+    };
 
     try {
       const image = await toPng(node);
@@ -38,8 +36,7 @@ const useScreenshot = () => {
     } catch (e) {
       setError(e as any);
     }
-
-  }
+  };
 
   const screenshotToClipboard = async (node: HTMLElement) => {
     if (!node) {
@@ -53,7 +50,13 @@ const useScreenshot = () => {
     ]);
   };
 
-  return { image, takeScreenShot,downloadScreenshot, screenshotToClipboard, error };
+  return {
+    image,
+    takeScreenShot,
+    downloadScreenshot,
+    screenshotToClipboard,
+    error,
+  };
 };
 
 export { useScreenshot };
