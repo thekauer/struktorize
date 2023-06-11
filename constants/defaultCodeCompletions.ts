@@ -10,9 +10,11 @@ export const defaultCodeCompletions: CodeCompletionItem[] = [
   { value: "exists", type: "symbol", symbol: { type: "exists" } },
   { value: "infinity", type: "symbol", symbol: { type: "infinity" } },
   { value: "not", type: "symbol", symbol: { type: "lnot" } },
+  { value: "times", type: "symbol", symbol: { type: "times" } },
 
   { value: "S", type: "symbol", symbol: { type: "mathbb", value: "S" } },
   { value: "R", type: "symbol", symbol: { type: "mathbb", value: "R" } },
   { value: "N", type: "symbol", symbol: { type: "mathbb", value: "N" } },
+  { value: "Z", type: "symbol", symbol: { type: "mathbb", value: "Z" } },
   { value: "B", type: "symbol", symbol: { type: "mathbb", value: "B" } },
 ];

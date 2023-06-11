@@ -449,5 +449,6 @@ export const useNode = (path: string | null) => {
 
 export const useNodeInScope = () => {
   const { scope, ast } = useContext(AstStateContext);
+  if (scope.length === 0) return get(["signature"], ast);
   return get(scope, ast) as AstNode;
 };
