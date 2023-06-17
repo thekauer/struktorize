@@ -59,6 +59,8 @@ export const File = ({ path, isNew }: FileProps) => {
   };
 
   const createNewFile = (path: string) => {
+    const newName = inputRef.current?.value!;
+    if (!validName(newName)) return;
     if (changed) {
       saveFile({ ...recent!, ast });
     }
@@ -83,6 +85,15 @@ export const File = ({ path, isNew }: FileProps) => {
 
   const onEscape = () => {
     setNewPath(null);
+  };
+
+  const validName = (name: string) => {
+    if (name === "") return false;
+    const isConflictingFileName = files.find((f) => f.path === `/${name}`);
+    if (isConflictingFileName) return false;
+    const nameHasOnlyAsciiLetters = !/^[a-zA-Z0-9]+$/.test(name);
+    if (nameHasOnlyAsciiLetters) return false;
+    return true;
   };
 
   const handleShare = (e: MouseEvent<HTMLDivElement>) => {
@@ -118,11 +129,7 @@ export const File = ({ path, isNew }: FileProps) => {
     const finishedRenaming = !isNew && editing;
     if (finishedRenaming) {
       const newName = inputRef.current?.value!;
-      if (newName === "") return;
-      const isConflictingFileName = files.find((f) => f.path === `/${newName}`);
-      if (isConflictingFileName) return;
-      const nameHasOnlyAsciiLetters = !/^[a-zA-Z0-9]+$/.test(newName);
-      if (nameHasOnlyAsciiLetters) return;
+      if (!validName(newName)) return;
 
       const oldPath = path.substring(0, path.lastIndexOf("/") + 1);
       renameFile(thisFile, oldPath + newName);
