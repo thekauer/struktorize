@@ -94,6 +94,8 @@ const basicTransform = (char: BasicAbstractChar): string => {
       return "\\rightarrow{}";
     case "times":
       return "\\times{}";
+    case "empty":
+      return "\\emptyset{}";
   }
 
   const { type } = char;
