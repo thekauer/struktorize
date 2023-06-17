@@ -8,6 +8,8 @@ import { useAst, useAstState } from "@/hooks/useAST";
 import { useExplorer } from "../useExplorer";
 import { useFiles } from "../useFiles";
 import { Ast } from "lib/ast";
+import { useSetAtom } from "jotai";
+import { codeCompletionVisibleAtom } from "@/components/Editor/CodeCompletion/useCodeCompletion";
 
 export interface FileProps {
   path: string;
@@ -31,6 +33,7 @@ export const File = ({ path, isNew }: FileProps) => {
     recent,
   } = useFiles();
   const thisFile = files.find((f) => f.path === path)!;
+  const setCCVisivle = useSetAtom(codeCompletionVisibleAtom);
 
   useEffect(() => {
     if (isNew) {
@@ -60,6 +63,7 @@ export const File = ({ path, isNew }: FileProps) => {
 
   const createNewFile = (path: string) => {
     const newName = inputRef.current?.value!;
+    setCCVisivle(false);
     if (!validName(newName)) return;
     if (changed) {
       saveFile({ ...recent!, ast });
@@ -125,6 +129,7 @@ export const File = ({ path, isNew }: FileProps) => {
       });
       inputRef.current?.focus();
     }
+    setCCVisivle(false);
 
     const finishedRenaming = !isNew && editing;
     if (finishedRenaming) {

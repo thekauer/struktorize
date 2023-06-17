@@ -21,7 +21,8 @@ export const CodeCompletion = ({
     item.scrollIntoView({ block: "nearest" });
   }, [selected]);
 
-  if (!visible || items.length === 0) return null;
+  const targetContainer = document.querySelector(".hovered");
+  if (!visible || items.length === 0 || !targetContainer) return null;
 
   return createPortal(
     <S.Container className="CodeCompletion">
@@ -41,6 +42,6 @@ export const CodeCompletion = ({
         ))}
       </S.RowContainer>
     </S.Container>,
-    document.querySelector(".hovered")!
+    targetContainer
   );
 };

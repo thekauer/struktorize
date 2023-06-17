@@ -4,6 +4,8 @@ import { File } from "@/lib/repository";
 import { useExplorer } from "../SideMenu/Files/Explorer/useExplorer";
 import * as S from "./CommandPalette.atoms";
 import FuzzySearch from "fuzzy-search";
+import { useSetAtom } from "jotai";
+import { codeCompletionVisibleAtom } from "../Editor/CodeCompletion/useCodeCompletion";
 
 export const CommandPalette = () => {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
@@ -11,6 +13,7 @@ export const CommandPalette = () => {
   const [selected, setSelected] = useState<number>(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const { onFileClick, files } = useExplorer();
+  const setCCVisible = useSetAtom(codeCompletionVisibleAtom);
 
   const searcher = new FuzzySearch(files, ["path"], {
     caseSensitive: false,
@@ -46,6 +49,8 @@ export const CommandPalette = () => {
   useEffect(() => {
     const focusRoot = () =>
       document.querySelector<HTMLDivElement>("#root-container")?.focus();
+
+    if (showCommandPalette) setCCVisible(false);
 
     if (showCommandPalette) inputRef.current?.focus();
     else focusRoot();

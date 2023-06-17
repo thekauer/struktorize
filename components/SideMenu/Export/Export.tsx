@@ -1,3 +1,5 @@
+import { codeCompletionVisibleAtom } from "@/components/Editor/CodeCompletion/useCodeCompletion";
+import { useSetAtom } from "jotai";
 import { useTranslation } from "next-i18next";
 import { ChangeEventHandler } from "react";
 import { useScreenshot } from "../../../hooks/useScreenshot";
@@ -8,6 +10,7 @@ export const Export = () => {
   const { downloadScreenshot, screenshotToClipboard } = useScreenshot();
   const { astTheme, setAstTheme, setShowScope } = useTheme();
   const { t } = useTranslation(["common"], { keyPrefix: "menu.export" });
+  const setCCVisible = useSetAtom(codeCompletionVisibleAtom);
 
   const prepareScreenshot = async (
     cb: (root: HTMLElement) => Promise<void>
@@ -16,14 +19,10 @@ export const Export = () => {
       ?.firstChild as HTMLElement;
     if (!root) return;
 
-    const cc = root.getElementsByClassName(
-      "CodeCompletion"
-    )[0] as HTMLDivElement;
-    if (cc) cc.style.display = "none";
+    setCCVisible(false);
     setShowScope(false);
     await cb(root);
     setShowScope(true);
-    if (cc) cc.style.display = "block";
   };
 
   const exportClick = () => {
