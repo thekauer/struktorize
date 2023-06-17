@@ -53,7 +53,7 @@ export const useExplorer = () => {
       if (e.ctrlKey && e.key === "s") {
         e.preventDefault();
         if (changed) {
-          saveFile({ ...recent, ast });
+          saveFile({ ...recent, ast, recent: activePath });
         }
       }
     };
@@ -62,7 +62,7 @@ export const useExplorer = () => {
     return () => {
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [recent, ast, changed]);
+  }, [recent, ast, changed, activePath]);
 
   useEffect(() => {
     if (!recent) return;
