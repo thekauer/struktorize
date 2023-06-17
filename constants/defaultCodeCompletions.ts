@@ -11,6 +11,7 @@ export const defaultCodeCompletions: CodeCompletionItem[] = [
   { value: "infinity", type: "symbol", symbol: { type: "infinity" } },
   { value: "not", type: "symbol", symbol: { type: "lnot" } },
   { value: "times", type: "symbol", symbol: { type: "times" } },
+  { value: "empty", type: "symbol", symbol: { type: "empty" } },
 
   { value: "S", type: "symbol", symbol: { type: "mathbb", value: "S" } },
   { value: "R", type: "symbol", symbol: { type: "mathbb", value: "R" } },

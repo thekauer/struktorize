@@ -8,6 +8,9 @@ import {
   getAllVariablesExceptCurrent,
   getLastText,
 } from "@/lib/abstractText";
+import { atom, useAtom } from "jotai";
+
+export const codeCompletionVisibleAtom = atom(false);
 
 export type CodeCompletionItem =
   | {
@@ -22,7 +25,7 @@ export type CodeCompletionItem =
 
 export const useCodeCompletion = () => {
   const [selected, setSelected] = useState(0);
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useAtom(codeCompletionVisibleAtom);
   const pathRef = useRef("");
   const mountedref = useRef(false);
   const node = useNodeInScope();

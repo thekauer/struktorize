@@ -49,7 +49,8 @@ export type Symbol = {
     | "le"
     | "coloneq"
     | "arrow"
-    | "times";
+    | "times"
+    | "empty";
 };
 
 export type AbstractChar =

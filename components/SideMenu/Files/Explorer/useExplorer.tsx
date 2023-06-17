@@ -14,6 +14,8 @@ import { File } from "@/lib/repository";
 import { useFiles } from "./useFiles";
 import { FileProps } from "./File/File";
 import { useSession } from "next-auth/react";
+import { useSetAtom } from "jotai";
+import { codeCompletionVisibleAtom } from "@/components/Editor/CodeCompletion/useCodeCompletion";
 
 const warnBeforeExit = (e: any) => {
   const confirmationMessage =
@@ -46,6 +48,7 @@ export const useExplorer = () => {
   const { status } = useSession();
   const { saveFile, refetch, files, recent, setActivePath } = useFiles();
   const activePath = recent?.path!;
+  const setCCVisible = useSetAtom(codeCompletionVisibleAtom);
 
   useEffect(() => {
     if (!recent) return;
@@ -53,7 +56,7 @@ export const useExplorer = () => {
       if (e.ctrlKey && e.key === "s") {
         e.preventDefault();
         if (changed) {
-          saveFile({ ...recent, ast });
+          saveFile({ ...recent, ast, recent: activePath });
         }
       }
     };
@@ -62,7 +65,7 @@ export const useExplorer = () => {
     return () => {
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [recent, ast, changed]);
+  }, [recent, ast, changed, activePath]);
 
   useEffect(() => {
     if (!recent) return;
@@ -90,6 +93,7 @@ export const useExplorer = () => {
   }, [status]);
 
   const newFileClick = () => {
+    setCCVisible(false);
     setNewPath(activePath.substring(0, activePath.lastIndexOf("/") + 1));
   };
 
