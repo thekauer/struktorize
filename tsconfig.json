@@ -1,15 +1,8 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "types": [
-      "cypress",
-      "@testing-library/cypress"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "types": ["cypress", "@testing-library/cypress"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -24,21 +17,11 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@/components/*": [
-        "components/*"
-      ],
-      "@/pages/*": [
-        "pages/*"
-      ],
-      "@/styles/*": [
-        "styles/*"
-      ],
-      "@/hooks/*": [
-        "hooks/*"
-      ],
-      "@/lib/*": [
-        "lib/*"
-      ]
+      "@/components/*": ["components/*"],
+      "@/pages/*": ["pages/*"],
+      "@/styles/*": ["styles/*"],
+      "@/hooks/*": ["hooks/*"],
+      "@/lib/*": ["lib/*"]
     },
     "plugins": [
       {
@@ -54,7 +37,5 @@
     "jest.setup.js",
     "jest.config.js"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

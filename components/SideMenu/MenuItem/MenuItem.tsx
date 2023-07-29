@@ -1,4 +1,4 @@
-import * as S from "./MenuItem.atoms";
+import * as S from './MenuItem.atoms';
 
 interface MenuItemProps {
   src: string;

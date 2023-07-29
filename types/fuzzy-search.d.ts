@@ -1,1 +1,1 @@
-declare module "fuzzy-search";
+declare module 'fuzzy-search';

@@ -1,8 +1,8 @@
-import { useMemo } from "react";
-import KaTeX, { ParseError, TrustContext } from "katex";
+import { useMemo } from 'react';
+import KaTeX, { ParseError, TrustContext } from 'katex';
 
 const trustHandler = ({ command }: TrustContext) => {
-  return command === "\\htmlStyle";
+  return command === '\\htmlStyle';
 };
 
 const createMathComponent = (Component: any, { displayMode }: any): any => {
@@ -67,7 +67,7 @@ interface LatexProps {
 export const Latex = ({ children }: LatexProps) => {
   return (
     <InlineMath>
-      {children === " " || children === "" ? "\\;" : children}
+      {children === ' ' || children === '' ? '\\;' : children}
     </InlineMath>
   );
 };

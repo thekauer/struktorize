@@ -1,10 +1,10 @@
-import { useEffect } from "react";
-import { useAstState } from "../../hooks/useAST";
-import { Render } from "../Ast/Render/Render";
-import { useEditor } from "./useEditor";
-import * as S from "./Editor.atoms";
-import { CodeCompletion } from "./CodeCompletion/CodeCompletion";
-import { useCodeCompletion } from "./CodeCompletion/useCodeCompletion";
+import { useEffect } from 'react';
+import { useAstState } from '../../hooks/useAST';
+import { Render } from '../Ast/Render/Render';
+import { useEditor } from './useEditor';
+import * as S from './Editor.atoms';
+import { CodeCompletion } from './CodeCompletion/CodeCompletion';
+import { useCodeCompletion } from './CodeCompletion/useCodeCompletion';
 
 const Root = () => {
   const { ast } = useAstState();

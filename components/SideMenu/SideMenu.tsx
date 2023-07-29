@@ -1,35 +1,35 @@
-import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useState } from "react";
-import { useTheme } from "../../hooks/useTheme";
-import { Export } from "./Export/Export";
-import { Files } from "./Files/Files";
-import { MenuItem } from "./MenuItem/MenuItem";
-import { Profile } from "./Profile/Profile";
-import * as S from "./SideMenu.atoms";
+import { useSession } from 'next-auth/react';
+import { useEffect, useMemo, useState } from 'react';
+import { useTheme } from '../../hooks/useTheme';
+import { Export } from './Export/Export';
+import { Files } from './Files/Files';
+import { MenuItem } from './MenuItem/MenuItem';
+import { Profile } from './Profile/Profile';
+import * as S from './SideMenu.atoms';
 
 export const SideMenu = () => {
-  const [activeMenu, setActiveMenu] = useState<string | undefined>("files");
+  const [activeMenu, setActiveMenu] = useState<string | undefined>('files');
   const [showMenu, setShowMenu] = useState<boolean>(true);
   const { theme, setTheme, setAstTheme } = useTheme();
   const { data: session, status } = useSession();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "b" && e.ctrlKey) {
+      if (e.key === 'b' && e.ctrlKey) {
         setShowMenu((sm) => !sm);
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 
-  const moonSrc = theme === "dark" ? "./moon.png" : "./moon_filled.png";
+  const moonSrc = theme === 'dark' ? './moon.png' : './moon_filled.png';
   const moonClick = () => {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
-    setAstTheme(theme === "dark" ? "light" : "dark");
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    setAstTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
   const menus: Record<string, JSX.Element> = useMemo(
@@ -38,10 +38,10 @@ export const SideMenu = () => {
       export: <Export />,
       profile: <Profile />,
     }),
-    []
+    [],
   );
 
-  const topMenuItems = ["files", "export"];
+  const topMenuItems = ['files', 'export'];
   const menuItemClick = (name: string) => () => {
     setShowMenu((sm) => (activeMenu === name ? !sm : true));
     setActiveMenu(name);
@@ -49,7 +49,7 @@ export const SideMenu = () => {
 
   const ActiveMenu: any = useMemo(
     () => (activeMenu ? () => menus[activeMenu] : null),
-    [activeMenu]
+    [activeMenu],
   );
 
   return (
@@ -66,10 +66,10 @@ export const SideMenu = () => {
           ))}
         </S.MenuTray>
         <S.MenuTray>
-          {status === "authenticated" && session.user?.image && (
+          {status === 'authenticated' && session.user?.image && (
             <S.Profile
               src={session.user?.image}
-              onClick={menuItemClick("profile")}
+              onClick={menuItemClick('profile')}
               referrerPolicy="no-referrer"
             />
           )}

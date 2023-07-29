@@ -1,9 +1,9 @@
-import { Ast } from "../../../lib/ast";
-import { Branch } from "../Branch/Branch";
-import { Function } from "../Function/Function";
-import { Loop } from "../Loop/Loop";
-import { Signature } from "../Signature/Signature";
-import { Statement } from "../Statement/Statement";
+import { Ast } from '../../../lib/ast';
+import { Branch } from '../Branch/Branch';
+import { Function } from '../Function/Function';
+import { Loop } from '../Loop/Loop';
+import { Signature } from '../Signature/Signature';
+import { Statement } from '../Statement/Statement';
 
 interface RenderProps {
   head?: Ast | Ast[];
@@ -11,11 +11,11 @@ interface RenderProps {
 
 export const Render = ({ head }: RenderProps) => {
   const typeMap = new Map<string, any>([
-    ["function", Function],
-    ["signature", Signature],
-    ["statement", Statement],
-    ["branch", Branch],
-    ["loop", Loop],
+    ['function', Function],
+    ['signature', Signature],
+    ['statement', Statement],
+    ['branch', Branch],
+    ['loop', Loop],
   ]);
 
   if (!head) return null;

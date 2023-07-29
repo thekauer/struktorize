@@ -1,7 +1,7 @@
-import { useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
-import * as S from "./CodeCompletion.atoms";
-import { CodeCompletionItem } from "./useCodeCompletion";
+import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import * as S from './CodeCompletion.atoms';
+import { CodeCompletionItem } from './useCodeCompletion';
 
 interface CodeCompletionProps {
   items: CodeCompletionItem[];
@@ -18,10 +18,10 @@ export const CodeCompletion = ({
   useEffect(() => {
     const item = itemsRef.current[selected];
     if (!item) return;
-    item.scrollIntoView({ block: "nearest" });
+    item.scrollIntoView({ block: 'nearest' });
   }, [selected]);
 
-  const targetContainer = document.querySelector(".hovered");
+  const targetContainer = document.querySelector('.hovered');
   if (!visible || items.length === 0 || !targetContainer) return null;
 
   return createPortal(
@@ -33,7 +33,7 @@ export const CodeCompletion = ({
             ref={(row: HTMLDivElement) => {
               itemsRef.current[index] = row;
             }}
-            key={item.type + "_" + item.value}
+            key={item.type + '_' + item.value}
           >
             <img src={`/cc/${item.type}.svg`} alt="variable" />
             <span>{item.value}</span>
@@ -42,6 +42,6 @@ export const CodeCompletion = ({
         ))}
       </S.RowContainer>
     </S.Container>,
-    targetContainer
+    targetContainer,
   );
 };

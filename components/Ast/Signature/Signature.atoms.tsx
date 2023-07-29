@@ -1,5 +1,5 @@
-import styled, { css } from "styled-components";
-import { StyleProps } from "../../../style/styleProps";
+import styled, { css } from 'styled-components';
+import { StyleProps } from '../../../style/styleProps';
 
 export const Container = styled.div<StyleProps>`
   padding: 0.5em;

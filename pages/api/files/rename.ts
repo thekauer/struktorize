@@ -1,5 +1,5 @@
-import { NextRequest } from "next/server";
-import z from "zod";
+import { NextRequest } from 'next/server';
+import z from 'zod';
 import {
   astSchmea,
   BadRequest,
@@ -10,7 +10,7 @@ import {
   NotFound,
   Ok,
   Unauthorized,
-} from "lib/serverUtils";
+} from 'lib/serverUtils';
 import {
   deleteFile,
   doesFileExist,
@@ -18,7 +18,7 @@ import {
   getUserData,
   updateFile,
   updateFileAndRecent,
-} from "lib/repository";
+} from 'lib/repository';
 
 const rename = z.object({
   ast: astSchmea,
@@ -37,12 +37,12 @@ export default async function handler(req: NextRequest) {
 
   const userId = token.id;
 
-  if (req.method !== "POST") return NotAllowed();
+  if (req.method !== 'POST') return NotAllowed();
 
   const body = await getBody(req);
   const moveSchema = rename.safeParse(body);
   if (!moveSchema.success) {
-    return BadRequest("Invalid schema");
+    return BadRequest('Invalid schema');
   }
 
   const { from, to, ast } = moveSchema.data;
@@ -50,14 +50,14 @@ export default async function handler(req: NextRequest) {
   const userData = await getUserData(userId);
   const oldFile = userData?.files[userData?.recent];
   if (!oldFile) {
-    return NotFound("File not found");
+    return NotFound('File not found');
   }
 
   if (await doesFileExist(userId, to)) {
-    return Conflict("File already exists");
+    return Conflict('File already exists');
   }
 
-  const newFile = { path: to, type: "file" as const, ast };
+  const newFile = { path: to, type: 'file' as const, ast };
 
   const recentWillChange = from === userData.recent;
 
@@ -70,5 +70,5 @@ export default async function handler(req: NextRequest) {
 }
 
 export const config = {
-  runtime: "experimental-edge",
+  runtime: 'experimental-edge',
 };

@@ -1,8 +1,8 @@
-import { useNode } from "../../../hooks/useAST";
-import { BranchAst } from "../../../lib/ast";
-import { AbstractText } from "../AbstractText/AbstractText";
-import { Render } from "../Render/Render";
-import * as S from "./Branch.atoms";
+import { useNode } from '../../../hooks/useAST';
+import { BranchAst } from '../../../lib/ast';
+import { AbstractText } from '../AbstractText/AbstractText';
+import { Render } from '../Render/Render';
+import * as S from './Branch.atoms';
 
 export const Branch = ({ text, ifBranch, elseBranch, path }: BranchAst) => {
   const containerProps = useNode(path);

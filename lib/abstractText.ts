@@ -10,7 +10,7 @@ import {
   Symbol,
   traverse,
   Variable,
-} from "./ast";
+} from './ast';
 
 const getLast = <T extends AbstractChar>(text: AbstractText) => {
   return text.at(-1) as T | undefined;
@@ -20,61 +20,61 @@ const doesEndWithScript = (text: AbstractText) => {
   const last = getLast(text);
   if (!last) return false;
 
-  return last.type === "subscript" || last.type === "superscript";
+  return last.type === 'subscript' || last.type === 'superscript';
 };
 
 const doesEndWithVariable = (text: AbstractText) => {
-  return getLast(text)?.type === "variable";
+  return getLast(text)?.type === 'variable';
 };
 
-export type InsertMode = "normal" | "inside";
+export type InsertMode = 'normal' | 'inside';
 
 const isInsertInsideAvaiable = (char: AbstractChar) => {
   switch (char.type) {
-    case "subscript":
-    case "superscript":
+    case 'subscript':
+    case 'superscript':
       return true;
   }
   return false;
 };
 
 const OPERATOR_MAP: Record<string, Operator> = {
-  "&": { type: "and" },
-  "|": { type: "or" },
-  "=": { type: "eq" },
-  "<": { type: "lt" },
-  ">": { type: "gt" },
-  ":": { type: "colon" },
-  ",": { type: "comma" },
-  ";": { type: "semicolon" },
-  "(": { type: "lp" },
-  ")": { type: "rp" },
-  "[": { type: "lb" },
-  "]": { type: "rb" },
-  "{": { type: "lc" },
-  "}": { type: "rc" },
-  "*": { type: "star" },
-  "!": { type: "bang" },
-  " ": { type: "space" },
-  "-": { type: "minus" },
+  '&': { type: 'and' },
+  '|': { type: 'or' },
+  '=': { type: 'eq' },
+  '<': { type: 'lt' },
+  '>': { type: 'gt' },
+  ':': { type: 'colon' },
+  ',': { type: 'comma' },
+  ';': { type: 'semicolon' },
+  '(': { type: 'lp' },
+  ')': { type: 'rp' },
+  '[': { type: 'lb' },
+  ']': { type: 'rb' },
+  '{': { type: 'lc' },
+  '}': { type: 'rc' },
+  '*': { type: 'star' },
+  '!': { type: 'bang' },
+  ' ': { type: 'space' },
+  '-': { type: 'minus' },
 };
 
 const DOUBLE_OPERATOR_MAP: Record<string, Symbol | Operator> = {
-  "&&": { type: "land" },
-  "||": { type: "lor" },
-  "!=": { type: "neq" },
-  "<=": { type: "le" },
-  ">=": { type: "ge" },
-  ":=": { type: "coloneq" },
-  "  ": { type: "space" },
-  "->": { type: "arrow" },
+  '&&': { type: 'land' },
+  '||': { type: 'lor' },
+  '!=': { type: 'neq' },
+  '<=': { type: 'le' },
+  '>=': { type: 'ge' },
+  ':=': { type: 'coloneq' },
+  '  ': { type: 'space' },
+  '->': { type: 'arrow' },
 };
 
 const operatorToChar = (op: AbstractChar) => {
   return (
     Object.entries(OPERATOR_MAP).find(
-      ([_, value]) => value.type === op.type
-    )?.[0] || "undefined"
+      ([_, value]) => value.type === op.type,
+    )?.[0] || 'undefined'
   );
 };
 
@@ -95,21 +95,21 @@ const isOperatorType = (char: AbstractChar) => {
 };
 
 const isBannedFirstChar = (char: AbstractChar) => {
-  return ["space", "superscript", "subscript"].includes(char.type);
+  return ['space', 'superscript', 'subscript'].includes(char.type);
 };
 
 const isSpaceScript = (first: AbstractChar, second: AbstractChar) => {
-  if (first.type !== "space") return false;
-  return second.type === "superscript" || second.type === "subscript";
+  if (first.type !== 'space') return false;
+  return second.type === 'superscript' || second.type === 'subscript';
 };
 
 const isSameScriptTwice = (first: AbstractChar, second: AbstractChar) => {
-  const script = ["superscript", "subscript"];
+  const script = ['superscript', 'subscript'];
   return script.includes(first.type) && first.type === second.type;
 };
 
 export const addText =
-  (newText: string, insertMode: InsertMode = "normal") =>
+  (newText: string, insertMode: InsertMode = 'normal') =>
   (currentText: AbstractText): AbstractText => {
     const last = getLast(currentText);
 
@@ -117,23 +117,23 @@ export const addText =
       return addAbstractChar(OPERATOR_MAP[newText], insertMode)(currentText);
     }
 
-    if (!last) return [{ type: "variable", name: newText }];
-    if (insertMode === "inside" && isInsertInsideAvaiable(last)) {
+    if (!last) return [{ type: 'variable', name: newText }];
+    if (insertMode === 'inside' && isInsertInsideAvaiable(last)) {
       const lastInsertable = last as InsertInsideAvailable;
       return currentText.slice(0, -1).concat({
         ...lastInsertable,
-        text: addText(newText, "normal")(lastInsertable.text),
+        text: addText(newText, 'normal')(lastInsertable.text),
       });
     }
 
-    if (last.type === "variable") {
+    if (last.type === 'variable') {
       return currentText.slice(0, -1).concat({
         ...last,
         name: last.name + newText,
       });
     }
 
-    return currentText.concat({ type: "variable", name: newText });
+    return currentText.concat({ type: 'variable', name: newText });
   };
 
 export const addAbstractChar =
@@ -151,12 +151,12 @@ export const addAbstractChar =
         .concat(transformDoubleOperator(last, char));
     }
 
-    if (insertMode === "inside" && isInsertInsideAvaiable(last)) {
+    if (insertMode === 'inside' && isInsertInsideAvaiable(last)) {
       const lastInsertable = last as InsertInsideAvailable;
 
       return currentText.slice(0, -1).concat({
         ...lastInsertable,
-        text: addAbstractChar(char, "normal")(lastInsertable.text),
+        text: addAbstractChar(char, 'normal')(lastInsertable.text),
       });
     }
 
@@ -172,7 +172,7 @@ export const deleteLast = (text: AbstractText): AbstractText => {
     const lastText = getLast<Variable>(text)!.name;
     if (lastText.length > 1) {
       const newLastVariable: Variable = {
-        type: "variable",
+        type: 'variable',
         name: lastText.substring(0, lastText.length - 1),
       };
       return text.slice(0, -1).concat([newLastVariable]);
@@ -200,12 +200,12 @@ export const deleteLastVariable = (text: AbstractText): AbstractText => {
 const getAllVariablesInNode = (node: AstNode) => {
   return node.text.reduce((acc, curr) => {
     switch (curr.type) {
-      case "subscript":
-      case "superscript":
+      case 'subscript':
+      case 'superscript':
         return acc.concat(
-          curr.text.filter((char) => char.type === "variable") as Variable[]
+          curr.text.filter((char) => char.type === 'variable') as Variable[],
         );
-      case "variable":
+      case 'variable':
         acc.push(curr);
         return acc;
       default:
@@ -225,14 +225,14 @@ export const getLastText = (current: AstNode) => {
 
 export const getAllVariablesExceptCurrent = (body: Ast, current: AstNode) => {
   return getAllVariableNames(body).filter(
-    (variable) => variable !== getLastText(current)
+    (variable) => variable !== getLastText(current),
   );
 };
 
 export const getFunctionName = (text: AbstractText): string => {
-  return text[0]?.type === "variable" ? text[0]?.name : "";
+  return text[0]?.type === 'variable' ? text[0]?.name : '';
 };
 
 export const doesEndWithSpace = (text: AbstractText) => {
-  return text.at(-1)?.type === "space";
+  return text.at(-1)?.type === 'space';
 };

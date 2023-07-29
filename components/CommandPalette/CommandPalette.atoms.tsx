@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled from 'styled-components';
 
 //float at the middle top of the screen
 export const Container = styled.div`
@@ -32,7 +32,7 @@ export const Path = styled.span`
 
 export const File = styled.div<{ selected?: boolean }>`
   background-color: ${(props) =>
-    props.selected ? "var(--blue)" : "transparent"};
+    props.selected ? 'var(--blue)' : 'transparent'};
   border-radius: 5px;
   padding: 4px 8px;
 `;

@@ -1,7 +1,7 @@
-import { useNode } from "../../../hooks/useAST";
-import { SignatureAst } from "../../../lib/ast";
-import { AbstractText } from "../AbstractText/AbstractText";
-import * as S from "./Signature.atoms";
+import { useNode } from '../../../hooks/useAST';
+import { SignatureAst } from '../../../lib/ast';
+import { AbstractText } from '../AbstractText/AbstractText';
+import * as S from './Signature.atoms';
 
 export const Signature = ({ text, path }: SignatureAst) => {
   const containerProps = useNode(path);

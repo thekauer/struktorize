@@ -1,5 +1,5 @@
-import styled, { css } from "styled-components";
-import { StyleProps } from "../../../style/styleProps";
+import styled, { css } from 'styled-components';
+import { StyleProps } from '../../../style/styleProps';
 
 export const Condition = styled.div<StyleProps>`
   position: relative;
@@ -58,7 +58,7 @@ export const True = styled.div`
     position: absolute;
     left: 0.75em;
     bottom: -0.3em;
-    content: " ";
+    content: ' ';
     width: 1.5px;
     height: 2.2em;
     background-color: var(--mid);
@@ -77,7 +77,7 @@ export const False = styled.div`
     position: absolute;
     left: 0.125em;
     bottom: -0.3em;
-    content: " ";
+    content: ' ';
     width: 1.5px;
     height: 2.2em;
     background-color: var(--mid);

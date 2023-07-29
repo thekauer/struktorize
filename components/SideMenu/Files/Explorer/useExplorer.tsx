@@ -6,21 +6,21 @@ import React, {
   SetStateAction,
   ReactNode,
   useContext,
-} from "react";
-import { useAst, useAstState } from "../../../../hooks/useAST";
-import { debounce } from "../../../../lib/debounce";
-import { FileDTO } from "../../../../pages/api/files";
-import { File } from "@/lib/repository";
-import { useFiles } from "./useFiles";
-import { FileProps } from "./File/File";
-import { useSession } from "next-auth/react";
-import { useSetAtom } from "jotai";
-import { codeCompletionVisibleAtom } from "@/components/Editor/CodeCompletion/useCodeCompletion";
+} from 'react';
+import { useAst, useAstState } from '../../../../hooks/useAST';
+import { debounce } from '../../../../lib/debounce';
+import { FileDTO } from '../../../../pages/api/files';
+import { File } from '@/lib/repository';
+import { useFiles } from './useFiles';
+import { FileProps } from './File/File';
+import { useSession } from 'next-auth/react';
+import { useSetAtom } from 'jotai';
+import { codeCompletionVisibleAtom } from '@/components/Editor/CodeCompletion/useCodeCompletion';
 
 const warnBeforeExit = (e: any) => {
   const confirmationMessage =
-    "It looks like you have been editing something. " +
-    "If you leave before saving, your changes will be lost.";
+    'It looks like you have been editing something. ' +
+    'If you leave before saving, your changes will be lost.';
 
   (e || window.event).returnValue = confirmationMessage; //Gecko + IE
   return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
@@ -53,17 +53,17 @@ export const useExplorer = () => {
   useEffect(() => {
     if (!recent) return;
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === "s") {
+      if (e.ctrlKey && e.key === 's') {
         e.preventDefault();
         if (changed) {
           saveFile({ ...recent, ast, recent: activePath });
         }
       }
     };
-    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener('keydown', onKeyDown);
 
     return () => {
-      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener('keydown', onKeyDown);
     };
   }, [recent, ast, changed, activePath]);
 
@@ -76,35 +76,35 @@ export const useExplorer = () => {
           saveFile({ ...recent!, ast: state.ast });
         }
       }, 10000),
-      "save"
+      'save',
     );
   }, [recent]);
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (status !== 'authenticated') return;
 
     addChangeListener((state) => {
       if (state.changed) {
-        window.addEventListener("beforeunload", warnBeforeExit);
+        window.addEventListener('beforeunload', warnBeforeExit);
       } else {
-        window.removeEventListener("beforeunload", warnBeforeExit);
+        window.removeEventListener('beforeunload', warnBeforeExit);
       }
-    }, "warnExit");
+    }, 'warnExit');
   }, [status]);
 
   const newFileClick = () => {
     setCCVisible(false);
-    setNewPath(activePath.substring(0, activePath.lastIndexOf("/") + 1));
+    setNewPath(activePath.substring(0, activePath.lastIndexOf('/') + 1));
   };
 
   const focusRoot = () =>
-    document.querySelector<HTMLDivElement>("#root-container")?.focus();
+    document.querySelector<HTMLDivElement>('#root-container')?.focus();
 
   const onFileClick = (path: string) => {
     if (activePath === path) return;
 
     const nextFile = files.find((f: any) => f.path === path);
-    if (nextFile?.type === "file") {
+    if (nextFile?.type === 'file') {
       saveFile({ ...recent!, ast, recent: nextFile.path });
       load(nextFile.ast as any, nextFile.path);
       setActivePath(path);
@@ -115,7 +115,7 @@ export const useExplorer = () => {
   const refreshClick = () => refetch();
 
   const activeFile = files.find(
-    (f: FileDTO) => f.path === activePath && f.type === "file"
+    (f: FileDTO) => f.path === activePath && f.type === 'file',
   ) as FileDTO;
 
   const newFile: FileProps = {

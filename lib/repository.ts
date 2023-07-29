@@ -1,7 +1,7 @@
-import { Redis } from "@upstash/redis";
-import { DEFAULT_FUNCTION } from "constants/defaultFunction";
-import { Ast } from "./ast";
-import { makeId } from "./serverUtils";
+import { Redis } from '@upstash/redis';
+import { DEFAULT_FUNCTION } from 'constants/defaultFunction';
+import { Ast } from './ast';
+import { makeId } from './serverUtils';
 
 let redis: Redis;
 export function getRedis() {
@@ -16,12 +16,12 @@ export function getRedis() {
 
 export type File = {
   ast: Ast;
-  type: "file";
+  type: 'file';
   path: string;
   sharedId?: string;
 };
 
-export type NewFile = Omit<File, "id">;
+export type NewFile = Omit<File, 'id'>;
 
 export type Files = Record<string, File>;
 
@@ -34,13 +34,13 @@ type UserDataInRedis = { recent: string } & Record<`/${string}`, File>;
 
 export async function getUserData(userId: string) {
   const userData = (await getRedis().hgetall(
-    `user:${userId}`
+    `user:${userId}`,
   )) as UserDataInRedis;
   if (!userData) return null;
   return {
     recent: userData.recent,
     files: Object.fromEntries(
-      Object.entries(userData).filter(([key]) => key !== "recent")
+      Object.entries(userData).filter(([key]) => key !== 'recent'),
     ),
   } as UserData;
 }
@@ -64,12 +64,12 @@ async function createDefaultUserIfNotExists(userId: string) {
   if (userData !== null) return null;
   const DEFAULT_FILE = {
     ast: DEFAULT_FUNCTION,
-    type: "file",
-    path: "/main",
+    type: 'file',
+    path: '/main',
   } as File;
   const DEFAULT_USERDATA = {
-    ["/main"]: DEFAULT_FILE,
-    recent: "/main",
+    ['/main']: DEFAULT_FILE,
+    recent: '/main',
   } as UserDataInRedis;
 
   return await getRedis().hset(`user:${userId}`, DEFAULT_USERDATA);
@@ -87,7 +87,7 @@ export async function updateFile(userId: string, file: NewFile) {
 export async function updateFileAndRecent(
   userId: string,
   file: NewFile,
-  recent?: string
+  recent?: string,
 ) {
   const newFile = await createDefaultUserIfNotExists(userId);
   if (newFile) return newFile;
@@ -124,7 +124,7 @@ export async function shareFile(userId: string, path: string) {
   const id = makeId();
 
   try {
-    const shareResult = getRedis().json.set(`shared:${id}`, "$", {
+    const shareResult = getRedis().json.set(`shared:${id}`, '$', {
       key: `user:${userId}`,
       path,
     });

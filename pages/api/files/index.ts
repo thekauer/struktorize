@@ -1,4 +1,4 @@
-import { Ast } from "lib/ast";
+import { Ast } from 'lib/ast';
 import {
   getFile,
   getUserData,
@@ -6,7 +6,7 @@ import {
   doesFileExist,
   updateFileAndRecent,
   deleteFile,
-} from "lib/repository";
+} from 'lib/repository';
 import {
   BadRequest,
   NotFound,
@@ -18,9 +18,9 @@ import {
   getToken,
   astSchmea,
   Created,
-} from "lib/serverUtils";
-import { NextRequest } from "next/server";
-import z from "zod";
+} from 'lib/serverUtils';
+import { NextRequest } from 'next/server';
+import z from 'zod';
 
 export type FilesDTO = FileDTO[];
 
@@ -34,11 +34,11 @@ export type UserDataDTO = {
 const get = async (req: NextRequest, token: Token) => {
   const userId = token.id;
 
-  const param = req.nextUrl.searchParams.get("path");
+  const param = req.nextUrl.searchParams.get('path');
   if (param !== null) {
     const path = pathParam.safeParse(param);
     if (!path.success) {
-      return BadRequest("Invalid path");
+      return BadRequest('Invalid path');
     }
 
     const file = await getFile(userId, path.data);
@@ -55,7 +55,7 @@ const get = async (req: NextRequest, token: Token) => {
   }
 
   const files = Object.values(userData.files).sort((a, b) =>
-    b.path.localeCompare(a.path)
+    b.path.localeCompare(a.path),
   );
   const recent =
     userData.files[userData.recent] || Object.values(userData.files)[0];
@@ -64,7 +64,7 @@ const get = async (req: NextRequest, token: Token) => {
 };
 
 const fileValidator = z.object({
-  type: z.literal("file"),
+  type: z.literal('file'),
   path: z.string(),
   ast: astSchmea,
   recent: z.string().optional(),
@@ -86,7 +86,7 @@ const put = async (req: NextRequest, token: Token) => {
 };
 
 const newFileValidator = z.object({
-  type: z.literal("file"),
+  type: z.literal('file'),
   path: z.string(),
   ast: astSchmea.optional(),
 });
@@ -108,16 +108,16 @@ const post = async (req: NextRequest, token: Token) => {
     return Conflict();
   }
 
-  const name = file.path.split("/").pop();
+  const name = file.path.split('/').pop();
   const ast = {
     signature: {
-      text: [{ type: "variable", name: `${name}` }],
-      type: "signature",
-      path: "signature",
+      text: [{ type: 'variable', name: `${name}` }],
+      type: 'signature',
+      path: 'signature',
     },
     body: [],
-    type: "function",
-    path: "",
+    type: 'function',
+    path: '',
   } as Ast;
 
   await updateFileAndRecent(userId, { ...file, ast: file.ast || ast });
@@ -128,7 +128,7 @@ const del = async (req: NextRequest, token: Token) => {
   const userId = token.id;
 
   const pathValidator = pathParam.safeParse(
-    req.nextUrl.searchParams.get("path")
+    req.nextUrl.searchParams.get('path'),
   );
   if (!pathValidator.success) {
     return BadRequest();
@@ -148,13 +148,13 @@ export default async function handler(req: NextRequest) {
   }
 
   switch (req.method) {
-    case "GET":
+    case 'GET':
       return get(req, token);
-    case "PUT":
+    case 'PUT':
       return put(req, token);
-    case "POST":
+    case 'POST':
       return post(req, token);
-    case "DELETE":
+    case 'DELETE':
       return del(req, token);
   }
 
@@ -162,5 +162,5 @@ export default async function handler(req: NextRequest) {
 }
 
 export const config = {
-  runtime: "experimental-edge",
+  runtime: 'experimental-edge',
 };

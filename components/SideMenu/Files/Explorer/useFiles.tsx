@@ -1,11 +1,11 @@
-import { ShareDTO } from "@/pages/api/files/share";
-import { useAst, useAstState } from "@/hooks/useAST";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
-import { FileDTO, NewFileDTO, UserDataDTO } from "../../../../pages/api/files";
-import { File } from "@/lib/repository";
-import { Ast } from "@/lib/ast";
-import { useSession } from "next-auth/react";
+import { ShareDTO } from '@/pages/api/files/share';
+import { useAst, useAstState } from '@/hooks/useAST';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
+import { FileDTO, NewFileDTO, UserDataDTO } from '../../../../pages/api/files';
+import { File } from '@/lib/repository';
+import { Ast } from '@/lib/ast';
+import { useSession } from 'next-auth/react';
 
 export const useFiles = () => {
   const queryClient = useQueryClient();
@@ -14,8 +14,8 @@ export const useFiles = () => {
   const { status } = useSession();
 
   const { data, refetch } = useQuery(
-    ["files"],
-    () => axios.get<UserDataDTO>("/api/files").then((res) => res.data),
+    ['files'],
+    () => axios.get<UserDataDTO>('/api/files').then((res) => res.data),
     {
       onSuccess: async ({ files }) => {
         const isFirstLoad = files.length === 0;
@@ -24,59 +24,59 @@ export const useFiles = () => {
         const firstFileDto: FileDTO = {
           ast,
           path: `/${functionName}`,
-          type: "file",
+          type: 'file',
         };
-        await axios.post("/api/files", firstFileDto);
-        queryClient.invalidateQueries(["files"]);
+        await axios.post('/api/files', firstFileDto);
+        queryClient.invalidateQueries(['files']);
       },
       staleTime: Infinity,
       cacheTime: Infinity,
-      enabled: status === "authenticated",
-    }
+      enabled: status === 'authenticated',
+    },
   );
 
   type Mutation =
-    | { method: "delete"; payload: { path: string } }
+    | { method: 'delete'; payload: { path: string } }
     | {
-        method: "post";
+        method: 'post';
         payload: { isRename: true; to: string; from: string; ast: Ast };
       }
-    | { method: "post"; payload: { isRename: false; newFile: NewFileDTO } }
-    | { method: "put"; payload: { file: FileDTO } };
+    | { method: 'post'; payload: { isRename: false; newFile: NewFileDTO } }
+    | { method: 'put'; payload: { file: FileDTO } };
 
   const { mutate } = useMutation(
     ({ method, payload }: Mutation) => {
       switch (method) {
-        case "delete": {
+        case 'delete': {
           return axios.delete(`/api/files?path=${payload.path}`);
         }
-        case "post": {
+        case 'post': {
           if (payload.isRename) {
             const { to, from, ast } = payload;
             return axios.post(`/api/files/rename`, { to, from, ast });
           }
-          return axios.post("/api/files", payload.newFile);
+          return axios.post('/api/files', payload.newFile);
         }
-        case "put":
-          return axios[method]("/api/files", payload.file);
+        case 'put':
+          return axios[method]('/api/files', payload.file);
       }
     },
     {
       onMutate: async ({ payload, method }) => {
-        await queryClient.cancelQueries({ queryKey: ["files"] });
-        const previousFiles = queryClient.getQueryData<UserDataDTO>(["files"]);
+        await queryClient.cancelQueries({ queryKey: ['files'] });
+        const previousFiles = queryClient.getQueryData<UserDataDTO>(['files']);
 
         const updater = (userDataDto?: UserDataDTO): UserDataDTO => {
           if (!userDataDto) return previousFiles!;
           const { files, recent } = userDataDto;
 
           switch (method) {
-            case "post":
+            case 'post':
               if (payload.isRename) {
                 const renamedFile: File = {
                   path: payload.to,
                   ast: payload.ast,
-                  type: "file",
+                  type: 'file',
                 };
                 const filesAndRenamedFile = [
                   ...files.filter((f) => f.path !== payload.from),
@@ -90,9 +90,9 @@ export const useFiles = () => {
                 recent: newFile,
                 files: [...files, newFile],
               };
-            case "delete": {
+            case 'delete': {
               const filesWithoutFile = files.filter(
-                (f) => f.path !== payload.path
+                (f) => f.path !== payload.path,
               );
               const nextFile = filesWithoutFile[0];
               load(nextFile.ast as any, nextFile.path);
@@ -101,7 +101,7 @@ export const useFiles = () => {
                 files: filesWithoutFile,
               };
             }
-            case "put":
+            case 'put':
               return {
                 recent,
                 files: [
@@ -111,23 +111,23 @@ export const useFiles = () => {
               };
           }
         };
-        queryClient.setQueryData(["files"], updater);
+        queryClient.setQueryData(['files'], updater);
 
         return { previousFiles };
       },
       onError: (_err, _newFile, context: any) => {
-        queryClient.setQueryData(["files"], context.previousFiles);
+        queryClient.setQueryData(['files'], context.previousFiles);
       },
       onSettled: () => {
-        queryClient.invalidateQueries({ queryKey: ["files"] });
+        queryClient.invalidateQueries({ queryKey: ['files'] });
       },
-    }
+    },
   );
 
   const saveFile = (file: FileDTO) => {
     mutate({
       payload: { file },
-      method: "put",
+      method: 'put',
     });
     save();
   };
@@ -135,17 +135,17 @@ export const useFiles = () => {
   const createFile = (path: string) => {
     mutate({
       payload: {
-        newFile: { path, type: "file" },
+        newFile: { path, type: 'file' },
         isRename: false,
       },
-      method: "post",
+      method: 'post',
     });
   };
 
   const deleteFile = (path: string) => {
     mutate({
       payload: { path },
-      method: "delete",
+      method: 'delete',
     });
   };
 
@@ -157,7 +157,7 @@ export const useFiles = () => {
         to,
         isRename: true,
       },
-      method: "post",
+      method: 'post',
     });
     save();
   };
@@ -173,7 +173,7 @@ export const useFiles = () => {
   const recent = data?.recent;
 
   const setActivePath = (recentPath: string) => {
-    queryClient.setQueryData(["files"], {
+    queryClient.setQueryData(['files'], {
       files,
       recent: files.find((f) => f.path === recentPath) || recent,
     });

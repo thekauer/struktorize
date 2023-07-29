@@ -5,7 +5,7 @@ import {
   SetStateAction,
   useContext,
   useState,
-} from "react";
+} from 'react';
 
 interface ThemeProps {
   theme: string;
@@ -21,8 +21,8 @@ interface ThemeProps {
 export const ThemeContext = createContext<ThemeProps>(null as any);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [theme, setTheme] = useState("dark");
-  const [astTheme, setAstTheme] = useState("dark");
+  const [theme, setTheme] = useState('dark');
+  const [astTheme, setAstTheme] = useState('dark');
   const [showScope, setShowScope] = useState(true);
 
   return (

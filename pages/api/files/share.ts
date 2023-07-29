@@ -1,4 +1,4 @@
-import { getFile, shareFile } from "lib/repository";
+import { getFile, shareFile } from 'lib/repository';
 import {
   BadRequest,
   Created,
@@ -9,9 +9,9 @@ import {
   NotFound,
   Ok,
   Unauthorized,
-} from "lib/serverUtils";
-import { NextRequest } from "next/server";
-import { z } from "zod";
+} from 'lib/serverUtils';
+import { NextRequest } from 'next/server';
+import { z } from 'zod';
 
 const shareValidator = z.object({
   path: z.string(),
@@ -32,7 +32,7 @@ export default async function handler(req: NextRequest) {
   }
 
   try {
-    if (req.method !== "POST") throw NotAllowed();
+    if (req.method !== 'POST') throw NotAllowed();
   } catch (err) {
     return err;
   }
@@ -61,5 +61,5 @@ export default async function handler(req: NextRequest) {
 }
 
 export const config = {
-  runtime: "experimental-edge",
+  runtime: 'experimental-edge',
 };

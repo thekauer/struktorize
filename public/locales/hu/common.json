@@ -38,11 +38,7 @@
         "vagy",
         "a kezdéshez"
       ],
-      "openCheatSheet": [
-        "Nyomj",
-        ", hogy megnyisd a",
-        "puskát"
-      ]
+      "openCheatSheet": ["Nyomj", ", hogy megnyisd a", "puskát"]
     }
   },
   "cheatSheet": {

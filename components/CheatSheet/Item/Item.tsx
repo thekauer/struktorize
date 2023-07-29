@@ -1,6 +1,6 @@
-import { Latex } from "@/components/Ast/Latex/Latex";
-import { Fragment } from "react";
-import * as S from "./Item.atoms";
+import { Latex } from '@/components/Ast/Latex/Latex';
+import { Fragment } from 'react';
+import * as S from './Item.atoms';
 
 interface ItemBase {
   id: string;
@@ -10,13 +10,13 @@ interface ItemBase {
 }
 
 export interface Kbd extends ItemBase {
-  type: "Kbd";
+  type: 'Kbd';
   pressed: (e: KeyboardEvent) => boolean;
   shortcut: string[];
 }
 
 export interface Latex extends ItemBase {
-  type: "Latex";
+  type: 'Latex';
   shortcut: string;
 }
 
@@ -24,7 +24,7 @@ export type ItemProps = Kbd | Latex;
 
 export const Item = ({ image, name, shortcut, type, active }: ItemProps) => {
   const Shortcut =
-    type !== "Kbd" ? (
+    type !== 'Kbd' ? (
       <S.Mark active={active}>{shortcut}</S.Mark>
     ) : (
       shortcut.map((s, index, { length }) => (
@@ -32,14 +32,14 @@ export const Item = ({ image, name, shortcut, type, active }: ItemProps) => {
           <S.Kbd key={index} active={active}>
             {s}
           </S.Kbd>
-          {index !== length - 1 && " + "}
+          {index !== length - 1 && ' + '}
         </Fragment>
       ))
     );
 
   return (
     <S.Container>
-      {type === "Latex" ? (
+      {type === 'Latex' ? (
         <S.Center active={active}>
           <Latex>{image}</Latex>
         </S.Center>

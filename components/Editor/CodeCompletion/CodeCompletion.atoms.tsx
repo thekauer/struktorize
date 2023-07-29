@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled from 'styled-components';
 
 export const Container = styled.div`
   position: relative;
@@ -41,5 +41,5 @@ export const Row = styled.div<{ selected?: boolean }>`
 export const Tab = styled.span<{ selected?: boolean }>`
   font-weight: bold;
   ${({ selected }) =>
-    !selected ? "color: var(--text-secondary);" : "color: var(--s-text);"}
+    !selected ? 'color: var(--text-secondary);' : 'color: var(--s-text);'}
 `;

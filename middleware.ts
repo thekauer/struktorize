@@ -1,4 +1,4 @@
-import withAuth from "next-auth/middleware";
+import withAuth from 'next-auth/middleware';
 
 export default withAuth({
   callbacks: {
@@ -6,4 +6,4 @@ export default withAuth({
   },
 });
 
-export const config = { matcher: ["/api"], runtime: "experimental-edge" };
+export const config = { matcher: ['/api'], runtime: 'experimental-edge' };

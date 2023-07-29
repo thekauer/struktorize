@@ -1,25 +1,25 @@
-import { useTranslation } from "next-i18next";
-import { useEffect, useState } from "react";
-import { useActiveItems } from "../../hooks/useActiveItems";
-import * as S from "./CheatSheet.atoms";
-import { Item } from "./Item/Item";
+import { useTranslation } from 'next-i18next';
+import { useEffect, useState } from 'react';
+import { useActiveItems } from '../../hooks/useActiveItems';
+import * as S from './CheatSheet.atoms';
+import { Item } from './Item/Item';
 
 export const CheatSheet = () => {
   const { ITEMS: items, active } = useActiveItems();
-  const { t } = useTranslation(["common"], { keyPrefix: "cheatSheet" });
+  const { t } = useTranslation(['common'], { keyPrefix: 'cheatSheet' });
   const [showCheatSheet, setShowCheatSheet] = useState(false);
 
   useEffect(() => {
     const infoToggle = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === "i") {
+      if (e.ctrlKey && e.key === 'i') {
         setShowCheatSheet((prev) => !prev);
       }
     };
 
-    document.addEventListener("keydown", infoToggle);
+    document.addEventListener('keydown', infoToggle);
 
     return () => {
-      document.removeEventListener("keydown", infoToggle);
+      document.removeEventListener('keydown', infoToggle);
     };
   }, []);
 
@@ -27,7 +27,7 @@ export const CheatSheet = () => {
 
   return (
     <S.Container>
-      <S.Title>{t("title")}</S.Title>
+      <S.Title>{t('title')}</S.Title>
       <S.Close onClick={() => setShowCheatSheet(false)}>
         <S.Cross src="/cross.png" />
       </S.Close>

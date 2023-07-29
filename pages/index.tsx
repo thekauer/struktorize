@@ -1,13 +1,13 @@
-import Head from "next/head";
-import { Editor } from "@/components/Editor/Editor";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import { Layout } from "@/components/Layout/Layout";
-import { getSession, useSession } from "next-auth/react";
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import { File, getUserData } from "@/lib/repository";
-import { SSRConfig } from "next-i18next";
-import { useEffect } from "react";
-import { useAst } from "@/hooks/useAST";
+import Head from 'next/head';
+import { Editor } from '@/components/Editor/Editor';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { Layout } from '@/components/Layout/Layout';
+import { getSession, useSession } from 'next-auth/react';
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import { File, getUserData } from '@/lib/repository';
+import { SSRConfig } from 'next-i18next';
+import { useEffect } from 'react';
+import { useAst } from '@/hooks/useAST';
 
 export const getServerSideProps: GetServerSideProps<
   {
@@ -15,8 +15,8 @@ export const getServerSideProps: GetServerSideProps<
   } & SSRConfig
 > = async ({ req, locale }) => {
   const translations = await serverSideTranslations(locale!, [
-    "common",
-    "footer",
+    'common',
+    'footer',
   ]);
   const session = await getSession({ req });
   if (!session || !session.user) {
@@ -58,7 +58,7 @@ export default function Home({ recent }: HomeProps) {
     load(recent.ast, recent.path);
   }, [recent]);
 
-  if (status === "loading") return null;
+  if (status === 'loading') return null;
 
   return (
     <>

@@ -5,8 +5,8 @@ import React, {
   useContext,
   useReducer,
   MouseEvent,
-} from "react";
-import { DEFAULT_FUNCTION } from "../constants/defaultFunction";
+} from 'react';
+import { DEFAULT_FUNCTION } from '../constants/defaultFunction';
 import {
   Ast,
   up,
@@ -25,7 +25,7 @@ import {
   get,
   AstNode,
   AbstractChar,
-} from "../lib/ast";
+} from '../lib/ast';
 import {
   addAbstractChar,
   addText,
@@ -33,8 +33,8 @@ import {
   deleteLastVariable,
   getFunctionName,
   InsertMode,
-} from "@/lib/abstractText";
-import { useTheme } from "./useTheme";
+} from '@/lib/abstractText';
+import { useTheme } from './useTheme';
 
 type ChangeListener = (state: State) => void;
 
@@ -63,40 +63,40 @@ type State = {
 };
 
 type Action =
-  | { type: "up"; payload: { select?: boolean; move?: boolean } }
-  | { type: "down"; payload: { select?: boolean; move?: boolean } }
-  | { type: "left"; payload: { select?: boolean; move?: boolean } }
-  | { type: "right"; payload: { select?: boolean; move?: boolean } }
-  | { type: "add"; payload: Ast }
+  | { type: 'up'; payload: { select?: boolean; move?: boolean } }
+  | { type: 'down'; payload: { select?: boolean; move?: boolean } }
+  | { type: 'left'; payload: { select?: boolean; move?: boolean } }
+  | { type: 'right'; payload: { select?: boolean; move?: boolean } }
+  | { type: 'add'; payload: Ast }
   | {
-      type: "text";
+      type: 'text';
       payload: { text: string; insertMode?: InsertMode };
     }
   | {
-      type: "insertSymbol";
+      type: 'insertSymbol';
       payload: { symbol: AbstractChar; insertMode?: InsertMode };
     }
-  | { type: "setInsertMode"; payload: { insertMode: InsertMode } }
-  | { type: "backspace"; payload: { force: boolean } }
-  | { type: "popLastText" }
-  | { type: "setScope"; payload: string[] }
-  | { type: "load"; payload: { ast: Ast; path: string } }
+  | { type: 'setInsertMode'; payload: { insertMode: InsertMode } }
+  | { type: 'backspace'; payload: { force: boolean } }
+  | { type: 'popLastText' }
+  | { type: 'setScope'; payload: string[] }
+  | { type: 'load'; payload: { ast: Ast; path: string } }
   | {
-      type: "addChangeListener";
+      type: 'addChangeListener';
       payload: { key: string; listener: ChangeListener };
     }
-  | { type: "callChangeListeners" }
-  | { type: "save" }
-  | { type: "select"; payload: string[][] }
-  | { type: "deselect"; payload: string[][] }
-  | { type: "deselectAll" }
-  | { type: "undo" }
-  | { type: "redo" };
+  | { type: 'callChangeListeners' }
+  | { type: 'save' }
+  | { type: 'select'; payload: string[][] }
+  | { type: 'deselect'; payload: string[][] }
+  | { type: 'deselectAll' }
+  | { type: 'undo' }
+  | { type: 'redo' };
 
 function navigate(
   moveScope: (scope: string[], ast: Ast) => string[],
   state: State,
-  action: Action & { payload: { select?: boolean; move?: boolean } }
+  action: Action & { payload: { select?: boolean; move?: boolean } },
 ) {
   const { scope, ast } = state;
 
@@ -140,15 +140,15 @@ function updateHistory(state: State): State {
 function reducer(state: State, action: Action): State {
   const { ast, scope } = state;
   switch (action.type) {
-    case "up":
+    case 'up':
       return navigate(up, state, action);
-    case "down":
+    case 'down':
       return navigate(down, state, action);
-    case "left":
+    case 'left':
       return navigate(left, state, action);
-    case "right":
+    case 'right':
       return navigate(right, state, action);
-    case "add": {
+    case 'add': {
       return pushHistory({
         ...state,
         ...add(scope, ast, action.payload),
@@ -156,14 +156,14 @@ function reducer(state: State, action: Action): State {
       });
     }
 
-    case "text": {
+    case 'text': {
       const cst = edit(
         scope,
         ast,
         addText(
           action.payload.text,
-          action.payload.insertMode ?? state.insertMode
-        )
+          action.payload.insertMode ?? state.insertMode,
+        ),
       );
 
       return updateHistory({
@@ -173,18 +173,18 @@ function reducer(state: State, action: Action): State {
       });
     }
 
-    case "setInsertMode": {
+    case 'setInsertMode': {
       return { ...state, insertMode: action.payload.insertMode };
     }
 
-    case "insertSymbol": {
+    case 'insertSymbol': {
       const cst = edit(
         scope,
         ast,
         addAbstractChar(
           action.payload.symbol,
-          action.payload.insertMode ?? state.insertMode
-        )
+          action.payload.insertMode ?? state.insertMode,
+        ),
       );
 
       return updateHistory({
@@ -194,7 +194,7 @@ function reducer(state: State, action: Action): State {
       });
     }
 
-    case "backspace":
+    case 'backspace':
       if (isEmpty(scope, ast) || action.payload.force) {
         const removed = remove(scope, ast, true);
         const newScope = up(removed.scope, removed.ast);
@@ -202,18 +202,18 @@ function reducer(state: State, action: Action): State {
         return { ...state, scope: newScope, ast: removed.ast, changed: true };
       }
       return { ...state, ...edit(scope, ast, deleteLast) };
-    case "popLastText":
+    case 'popLastText':
       return { ...state, ...edit(scope, ast, deleteLastVariable) };
-    case "setScope":
+    case 'setScope':
       return { ...state, ast, scope: action.payload };
-    case "load":
+    case 'load':
       return {
         ...state,
         ...action.payload,
-        scope: ["signature"],
+        scope: ['signature'],
         changed: false,
       };
-    case "addChangeListener":
+    case 'addChangeListener':
       return {
         ...state,
         changeListeners: {
@@ -221,33 +221,33 @@ function reducer(state: State, action: Action): State {
           [action.payload.key]: action.payload.listener,
         },
       };
-    case "callChangeListeners":
+    case 'callChangeListeners':
       Object.values(state.changeListeners).forEach((listener) =>
-        listener?.(state)
+        listener?.(state),
       );
       return state;
-    case "save":
+    case 'save':
       return { ...state, changed: false };
-    case "select":
+    case 'select':
       return {
         ...state,
         selected: select(state.selected, action.payload, state.ast),
       };
-    case "deselect":
+    case 'deselect':
       return {
         ...state,
         selected: deselect(state.selected, action.payload, state.ast),
       };
-    case "deselectAll":
+    case 'deselectAll':
       return { ...state, selected: new Set<string>() };
 
-    case "undo": {
+    case 'undo': {
       const index = Math.max(state.history_index - 1, 0);
       const cst = state.history[index];
       return { ...state, ...cst, history_index: index };
     }
 
-    case "redo": {
+    case 'redo': {
       const index = Math.min(state.history_index + 1, state.history.length - 1);
       const cst = state.history[index];
       return { ...state, ...cst, history_index: index };
@@ -258,19 +258,19 @@ function reducer(state: State, action: Action): State {
 }
 
 const defaultCST = {
-  scope: ["signature"],
+  scope: ['signature'],
   ast: DEFAULT_FUNCTION,
 };
 
 const defaultState: State = {
   ...defaultCST,
-  path: "/main",
+  path: '/main',
   changeListeners: {},
   changed: false,
   selected: new Set<string>(),
   history: [defaultCST],
   history_index: 0,
-  insertMode: "normal",
+  insertMode: 'normal',
 };
 
 interface AstProviderProps {
@@ -306,33 +306,33 @@ export const useAstState = () => useContext(AstStateContext);
 
 export const useAst = () => {
   const dispatch = useContext(AstContext);
-  const callChangeListeners = () => dispatch({ type: "callChangeListeners" });
+  const callChangeListeners = () => dispatch({ type: 'callChangeListeners' });
   const defaultNavigationPayload = {
     select: false,
     move: false,
   };
 
   const up = (payload = defaultNavigationPayload) =>
-    dispatch({ type: "up", payload });
+    dispatch({ type: 'up', payload });
   const down = (payload = defaultNavigationPayload) =>
-    dispatch({ type: "down", payload });
+    dispatch({ type: 'down', payload });
   const left = (payload = defaultNavigationPayload) =>
-    dispatch({ type: "left", payload });
+    dispatch({ type: 'left', payload });
   const right = (payload = defaultNavigationPayload) =>
-    dispatch({ type: "right", payload });
+    dispatch({ type: 'right', payload });
   const addStatement = () => {
     dispatch({
-      type: "add",
-      payload: { type: "statement", path: "", text: [] },
+      type: 'add',
+      payload: { type: 'statement', path: '', text: [] },
     });
     callChangeListeners();
   };
   const addIf = () => {
     dispatch({
-      type: "add",
+      type: 'add',
       payload: {
-        type: "branch",
-        path: "",
+        type: 'branch',
+        path: '',
         text: [],
       },
     });
@@ -340,55 +340,55 @@ export const useAst = () => {
   };
   const addLoop = () => {
     dispatch({
-      type: "add",
-      payload: { type: "loop", body: [], path: "", text: [] },
+      type: 'add',
+      payload: { type: 'loop', body: [], path: '', text: [] },
     });
     callChangeListeners();
   };
   const backspace = (n = 1) => {
     for (let i = 0; i < n; i++)
-      dispatch({ type: "backspace", payload: { force: false } });
+      dispatch({ type: 'backspace', payload: { force: false } });
     callChangeListeners();
   };
   const deleteBlock = () => {
-    dispatch({ type: "backspace", payload: { force: true } });
+    dispatch({ type: 'backspace', payload: { force: true } });
     callChangeListeners();
   };
   const popLastText = () => {
-    dispatch({ type: "popLastText" });
+    dispatch({ type: 'popLastText' });
     callChangeListeners();
   };
   const edit = (text: string, insertMode?: InsertMode) => {
-    dispatch({ type: "text", payload: { text, insertMode } });
+    dispatch({ type: 'text', payload: { text, insertMode } });
     callChangeListeners();
   };
   const setInsertMode = (insertMode: InsertMode) => {
-    dispatch({ type: "setInsertMode", payload: { insertMode } });
+    dispatch({ type: 'setInsertMode', payload: { insertMode } });
   };
   const insert = (symbol: AbstractChar, insertMode?: InsertMode) => {
-    dispatch({ type: "insertSymbol", payload: { symbol, insertMode } });
+    dispatch({ type: 'insertSymbol', payload: { symbol, insertMode } });
     callChangeListeners();
   };
   const setScope = (scope: string[]) =>
-    dispatch({ type: "setScope", payload: scope });
+    dispatch({ type: 'setScope', payload: scope });
   const load = (ast: Ast, path: string) => {
-    dispatch({ type: "load", payload: { ast, path } });
+    dispatch({ type: 'load', payload: { ast, path } });
   };
   const addChangeListener = (
     listener: ChangeListener,
-    key = `${Date.now()}_${Math.random()}`
-  ) => dispatch({ type: "addChangeListener", payload: { key, listener } });
+    key = `${Date.now()}_${Math.random()}`,
+  ) => dispatch({ type: 'addChangeListener', payload: { key, listener } });
   const save = () => {
-    dispatch({ type: "save" });
+    dispatch({ type: 'save' });
     callChangeListeners();
   };
   const select = (selection: string[][]) =>
-    dispatch({ type: "select", payload: selection });
+    dispatch({ type: 'select', payload: selection });
   const deselect = (selection: string[][]) =>
-    dispatch({ type: "deselect", payload: selection });
-  const deselectAll = () => dispatch({ type: "deselectAll" });
-  const undo = () => dispatch({ type: "undo" });
-  const redo = () => dispatch({ type: "redo" });
+    dispatch({ type: 'deselect', payload: selection });
+  const deselectAll = () => dispatch({ type: 'deselectAll' });
+  const undo = () => dispatch({ type: 'undo' });
+  const redo = () => dispatch({ type: 'redo' });
 
   return {
     up,
@@ -419,11 +419,11 @@ export const useAst = () => {
 export const useNode = (path: string | null) => {
   const { scope, selected } = useContext(AstStateContext);
 
-  const hovered = scope.join(".") === path;
-  const isSelected = selected.has(path || "");
+  const hovered = scope.join('.') === path;
+  const isSelected = selected.has(path || '');
   const { setScope, select, deselect, deselectAll } = useAst();
   const onClick = (e: MouseEvent<HTMLDivElement>) => {
-    const scopeToSet = path?.split(".") || [];
+    const scopeToSet = path?.split('.') || [];
     setScope(scopeToSet);
 
     if (!(e.ctrlKey || e.shiftKey)) {
@@ -443,12 +443,12 @@ export const useNode = (path: string | null) => {
     hovered,
     selected: isSelected,
     onClick,
-    className: hovered ? "hovered" : undefined,
+    className: hovered ? 'hovered' : undefined,
   };
 };
 
 export const useNodeInScope = () => {
   const { scope, ast } = useContext(AstStateContext);
-  if (scope.length === 0) return get(["signature"], ast);
+  if (scope.length === 0) return get(['signature'], ast);
   return get(scope, ast) as AstNode;
 };

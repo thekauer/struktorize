@@ -1,6 +1,6 @@
-import { useTheme } from "../../hooks/useTheme";
-import { KeyboardEvent, useRef } from "react";
-import { useAst } from "../../hooks/useAST";
+import { useTheme } from '../../hooks/useTheme';
+import { KeyboardEvent, useRef } from 'react';
+import { useAst } from '../../hooks/useAST';
 
 interface UseEditorProps {
   readonly?: boolean;
@@ -27,22 +27,22 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
 
   const getKey = (e: KeyboardEvent) => {
-    if (e.key === "Dead" && e.code === "Digit3") return "^";
+    if (e.key === 'Dead' && e.code === 'Digit3') return '^';
     return e.key;
   };
 
   const handleUndoRedo = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.ctrlKey && e.shiftKey && e.key === "Z") {
+    if (e.ctrlKey && e.shiftKey && e.key === 'Z') {
       redo();
     }
-    if (e.ctrlKey && e.key === "z") {
+    if (e.ctrlKey && e.key === 'z') {
       undo();
     }
   };
 
   const handleDeleteBlock = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.ctrlKey && e.key === "Backspace") {
-      setInsertMode("normal");
+    if (e.ctrlKey && e.key === 'Backspace') {
+      setInsertMode('normal');
       deleteBlock();
     }
   };
@@ -60,20 +60,20 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     const canDeselect = !(e.shiftKey || e.altKey);
     if (!disableNavigation) {
       switch (key) {
-        case "ArrowUp":
+        case 'ArrowUp':
           up(navigationPayload);
           if (canDeselect) deselectAll();
           return;
-        case "ArrowDown":
+        case 'ArrowDown':
           down(navigationPayload);
           if (canDeselect) deselectAll();
           return;
-        case "ArrowLeft":
+        case 'ArrowLeft':
           left(navigationPayload);
           if (canDeselect) deselectAll();
           return;
-        case "ArrowRight":
-          setInsertMode("normal");
+        case 'ArrowRight':
+          setInsertMode('normal');
 
           right(navigationPayload);
           if (canDeselect) deselectAll();
@@ -83,20 +83,20 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     if (readonly) return;
 
     switch (key) {
-      case "Backspace":
-        setInsertMode("normal");
+      case 'Backspace':
+        setInsertMode('normal');
         backspace();
         return;
-      case "Enter":
+      case 'Enter':
         addStatement();
         return;
-      case "^":
-        insert({ type: "superscript", text: [] }, "normal");
-        setInsertMode("inside");
+      case '^':
+        insert({ type: 'superscript', text: [] }, 'normal');
+        setInsertMode('inside');
         return;
-      case "_":
-        insert({ type: "subscript", text: [] }, "normal");
-        setInsertMode("inside");
+      case '_':
+        insert({ type: 'subscript', text: [] }, 'normal');
+        setInsertMode('inside');
         return;
     }
 
@@ -109,7 +109,7 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
   };
 
   const containerProps = {
-    id: "root-container",
+    id: 'root-container',
     className: `s-${astTheme}`,
     onKeyDown: handleKeydown,
     ref: rootRef,

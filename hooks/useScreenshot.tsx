@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { toPng, toBlob } from "html-to-image";
+import { useState } from 'react';
+import { toPng, toBlob } from 'html-to-image';
 
 const useScreenshot = () => {
   const [image, setImage] = useState<string>();
@@ -7,7 +7,7 @@ const useScreenshot = () => {
 
   const takeScreenShot = async (node: HTMLElement) => {
     if (!node) {
-      throw new Error("You should provide correct html node.");
+      throw new Error('You should provide correct html node.');
     }
 
     try {
@@ -20,12 +20,12 @@ const useScreenshot = () => {
 
   const downloadScreenshot = async (node: HTMLElement) => {
     if (!node) {
-      throw new Error("You should provide correct html node.");
+      throw new Error('You should provide correct html node.');
     }
 
     const downloadURI = (uri: string) => {
-      let link = document.createElement("a");
-      link.download = "structogram.png";
+      let link = document.createElement('a');
+      link.download = 'structogram.png';
       link.href = uri;
       link.click();
     };
@@ -40,7 +40,7 @@ const useScreenshot = () => {
 
   const screenshotToClipboard = async (node: HTMLElement) => {
     if (!node) {
-      throw new Error("You should provide correct html node.");
+      throw new Error('You should provide correct html node.');
     }
     const blob = await toBlob(node);
     navigator.clipboard.write([
