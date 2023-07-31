@@ -1,4 +1,6 @@
-import { useTranslation } from 'next-i18next';
+'use client';
+
+import { useTranslation } from '@/i18n/client';
 import { useEffect, useState } from 'react';
 import { useActiveItems } from '../../hooks/useActiveItems';
 import * as S from './CheatSheet.atoms';
@@ -29,7 +31,7 @@ export const CheatSheet = () => {
     <S.Container>
       <S.Title>{t('title')}</S.Title>
       <S.Close onClick={() => setShowCheatSheet(false)}>
-        <S.Cross src="/cross.png" />
+        <S.Cross $src="/cross.png" />
       </S.Close>
       <S.Grid>
         {items.map((item) => (

@@ -1,30 +1,17 @@
+'use client';
+
 import { Editor } from '@/components/Editor/Editor';
 import { useAst } from '@/hooks/useAST';
-import { getSharedFile } from 'lib/repository';
-import { InferGetServerSidePropsType, NextPageContext } from 'next';
 import { useEffect } from 'react';
 import * as S from '@/components/Layout/Layout.atoms';
 import { useTheme } from '@/hooks/useTheme';
-import Head from 'next/head';
+import { File } from '@/lib/repository';
 
-export const getServerSideProps = async ({
-  query,
-}: {
-  query: NextPageContext['query'];
-}) => {
-  const { fileId } = query;
-  const file = await getSharedFile(fileId as string);
+interface PageProps {
+  file?: File | null;
+}
 
-  return {
-    props: {
-      file,
-    },
-  };
-};
-
-export default function Page({
-  file,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function Page({ file }: PageProps) {
   const { theme } = useTheme();
 
   const { load } = useAst();
@@ -33,16 +20,9 @@ export default function Page({
     load(file.ast, file.path);
   }, [file]);
 
-  const name = file?.path.split('/').pop();
-
   return (
     <>
-      <Head>
-        <title>{name} - Structorize</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <S.Container theme={theme}>
+      <S.Container className={theme}>
         <S.MainContainer>
           <S.Main>
             {file ? (

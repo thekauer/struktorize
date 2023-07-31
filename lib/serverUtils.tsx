@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server';
-import { getToken as authGetToken } from 'next-auth/jwt';
 import { z } from 'zod';
 import { Ast } from './ast';
 
@@ -43,15 +42,8 @@ export type Token = {
   locale: string;
 };
 
-export async function getToken(req: NextRequest): Promise<Token | null> {
-  return (await authGetToken({ req })) as Token;
-}
-
-export async function getBody(req: NextRequest) {
-  const blob = await req.blob();
-  const text = await blob.text();
-  const body = JSON.parse(text);
-  return body;
+export async function getBody(req: Request) {
+  return await req.json();
 }
 
 export function makeId() {

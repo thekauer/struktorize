@@ -1,8 +1,8 @@
-import { ShareDTO } from '@/pages/api/files/share';
+import { ShareDTO } from '@/api/files/share/route';
 import { useAst, useAstState } from '@/hooks/useAST';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { FileDTO, NewFileDTO, UserDataDTO } from '../../../../pages/api/files';
+import { FileDTO, NewFileDTO, UserDataDTO } from '@/api/files/route';
 import { File } from '@/lib/repository';
 import { Ast } from '@/lib/ast';
 import { useSession } from 'next-auth/react';

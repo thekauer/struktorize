@@ -3,7 +3,7 @@ import {
   KBD_ITEMS,
   LATEX_ITEMS,
 } from 'constants/defaultCheatSheetItems';
-import { useTranslation } from 'next-i18next';
+import { useTranslation } from '@/i18n/client';
 import { useEffect, useMemo, useState } from 'react';
 
 export const useActiveItems = () => {

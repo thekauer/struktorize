@@ -440,8 +440,8 @@ export const useNode = (path: string | null) => {
   };
 
   return {
-    hovered,
-    selected: isSelected,
+    $hovered: hovered,
+    $selected: isSelected,
     onClick,
     className: hovered ? 'hovered' : undefined,
   };

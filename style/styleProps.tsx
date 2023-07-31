@@ -1,5 +1,5 @@
 export interface StyleProps {
-  hovered?: boolean;
-  selected?: boolean;
-  active?: boolean;
+  $hovered?: boolean;
+  $selected?: boolean;
+  $active?: boolean;
 }

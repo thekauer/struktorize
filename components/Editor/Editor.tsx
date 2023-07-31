@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect } from 'react';
 import { useAstState } from '../../hooks/useAST';
 import { Render } from '../Ast/Render/Render';

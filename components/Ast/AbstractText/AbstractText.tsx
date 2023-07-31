@@ -1,3 +1,5 @@
+'use client';
+
 import { useAstState } from '@/hooks/useAST';
 import { InsertMode } from '@/lib/abstractText';
 import {

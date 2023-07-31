@@ -1,3 +1,5 @@
+'use client';
+
 import { useNode } from '../../../hooks/useAST';
 import { StatementAst } from '../../../lib/ast';
 import { AbstractText } from '../AbstractText/AbstractText';

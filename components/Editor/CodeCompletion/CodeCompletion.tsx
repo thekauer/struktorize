@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import * as S from './CodeCompletion.atoms';
@@ -29,7 +31,7 @@ export const CodeCompletion = ({
       <S.RowContainer>
         {items.map((item, index) => (
           <S.Row
-            selected={selected === index}
+            $selected={selected === index}
             ref={(row: HTMLDivElement) => {
               itemsRef.current[index] = row;
             }}
@@ -37,7 +39,7 @@ export const CodeCompletion = ({
           >
             <img src={`/cc/${item.type}.svg`} alt="variable" />
             <span>{item.value}</span>
-            <S.Tab selected={selected === index}>[Tab]</S.Tab>
+            <S.Tab $selected={selected === index}>[Tab]</S.Tab>
           </S.Row>
         ))}
       </S.RowContainer>

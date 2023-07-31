@@ -1,7 +1,9 @@
+'use client';
+
 import * as SM from '../SideMenu.atoms';
 import * as S from './Profile.atoms';
 import { useSession, signOut } from 'next-auth/react';
-import { useTranslation } from 'next-i18next';
+import { useTranslation } from '@/i18n/client';
 import { ChangeEvent, useState } from 'react';
 
 export const Profile = () => {
@@ -13,6 +15,7 @@ export const Profile = () => {
     setLanguage(value);
     i18n.changeLanguage(value);
   };
+  const email = session?.user?.email;
 
   return (
     <SM.Container>
@@ -20,7 +23,7 @@ export const Profile = () => {
       <S.Container>
         <S.Profile src={session!.user?.image!} />
         <SM.Span>{session!.user?.name}</SM.Span>
-        <SM.Span>{session!.user?.email}</SM.Span>
+        <SM.Span>{email}</SM.Span>
         <SM.Label htmlFor="language">
           {t('language')}{' '}
           <SM.Select value={language} onChange={onLanguageChange}>

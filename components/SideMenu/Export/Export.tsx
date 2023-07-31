@@ -1,6 +1,8 @@
+'use client';
+
 import { codeCompletionVisibleAtom } from '@/components/Editor/CodeCompletion/useCodeCompletion';
 import { useSetAtom } from 'jotai';
-import { useTranslation } from 'next-i18next';
+import { useTranslation } from '@/i18n/client';
 import { ChangeEventHandler } from 'react';
 import { useScreenshot } from '../../../hooks/useScreenshot';
 import { useTheme } from '../../../hooks/useTheme';

@@ -1,8 +1,10 @@
+'use client';
+
 import { MouseEvent, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import * as S from './File.atoms';
 import * as ES from '../Explorer.atoms';
-import { useTranslation } from 'next-i18next';
+import { useTranslation } from '@/i18n/client';
 import toast from 'react-hot-toast';
 import { useAst, useAstState } from '@/hooks/useAST';
 import { useExplorer } from '../useExplorer';
@@ -163,12 +165,12 @@ export const File = ({ path, isNew }: FileProps) => {
 
   return (
     <S.Container
-      active={path === activePath}
+      $active={path === activePath}
       onKeyDown={onKeyDown}
       onClick={onFileClick}
       tabIndex={-1}
     >
-      <S.Image src={'/structogram.png'} />
+      <S.Image $src={'/structogram.png'} />
       {editing ? (
         <S.Input ref={inputRef} />
       ) : (
@@ -179,12 +181,12 @@ export const File = ({ path, isNew }: FileProps) => {
           </S.Name>
           <S.FileMenu>
             <ES.MenuItem
-              src="/share.svg"
+              $src="/share.svg"
               onClick={handleShare}
               title={t('share')}
             />
             <ES.MenuItem
-              src="/rename.svg"
+              $src="/rename.svg"
               onClick={(e) => {
                 e.stopPropagation();
                 handleRename();
@@ -192,7 +194,7 @@ export const File = ({ path, isNew }: FileProps) => {
               title={t('rename')}
             />
             <ES.MenuItem
-              src="/bin.svg"
+              $src="/bin.svg"
               onClick={handleDelete}
               title={t('delete')}
             />

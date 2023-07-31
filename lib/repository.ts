@@ -32,7 +32,8 @@ export type UserData = {
 
 type UserDataInRedis = { recent: string } & Record<`/${string}`, File>;
 
-export async function getUserData(userId: string) {
+export async function getUserData(userId?: string) {
+  if (!userId) return null;
   const userData = (await getRedis().hgetall(
     `user:${userId}`,
   )) as UserDataInRedis;

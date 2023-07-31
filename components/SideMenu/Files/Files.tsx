@@ -1,7 +1,9 @@
+'use client';
+
 import * as SM from '../SideMenu.atoms';
 import { useSession, signIn } from 'next-auth/react';
 import dynamic from 'next/dynamic';
-import { useTranslation } from 'next-i18next';
+import { useTranslation } from '@/i18n/client';
 
 const Explorer = dynamic(
   () => import('./Explorer/Explorer').then((mod) => mod.Explorer as any),

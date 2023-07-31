@@ -29,8 +29,8 @@ export const Loop = styled.div<StyleProps>`
     background-color: var(--s-active);
   }
 
-  ${({ hovered }) =>
-    hovered &&
+  ${({ $hovered }) =>
+    $hovered &&
     css`
       &,
       & + div {
@@ -38,25 +38,25 @@ export const Loop = styled.div<StyleProps>`
         cursor: pointer;
       }
     `}
-  ${({ active }) =>
-    active &&
+  ${({ $active }) =>
+    $active &&
     css`
       &,
       & + div {
         background-color: var(--s-active);
       }
     `}
-    ${({ selected }) =>
-    selected &&
+    ${({ $selected }) =>
+    $selected &&
     css`
       &,
       & + div {
         background-color: var(--s-selected);
       }
     `}
-  ${({ selected, hovered }) =>
-    selected &&
-    hovered &&
+  ${({ $selected, $hovered }) =>
+    $selected &&
+    $hovered &&
     css`
       &,
       & + div {

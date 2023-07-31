@@ -1,12 +1,9 @@
-import { NextRequest } from 'next/server';
 import z from 'zod';
 import {
   astSchmea,
   BadRequest,
   Conflict,
   getBody,
-  getToken,
-  NotAllowed,
   NotFound,
   Ok,
   Unauthorized,
@@ -14,11 +11,11 @@ import {
 import {
   deleteFile,
   doesFileExist,
-  getFile,
   getUserData,
   updateFile,
   updateFileAndRecent,
 } from 'lib/repository';
+import { auth } from '@/auth/auth';
 
 const rename = z.object({
   ast: astSchmea,
@@ -28,16 +25,14 @@ const rename = z.object({
 
 export type RenameDTO = z.infer<typeof rename>;
 
-export default async function handler(req: NextRequest) {
-  const token = await getToken(req);
+export const POST = auth(async (req) => {
+  const user = req.auth.user;
 
-  if (!token) {
+  if (!user) {
     return Unauthorized();
   }
 
-  const userId = token.id;
-
-  if (req.method !== 'POST') return NotAllowed();
+  const userId = user.id;
 
   const body = await getBody(req);
   const moveSchema = rename.safeParse(body);
@@ -67,8 +62,6 @@ export default async function handler(req: NextRequest) {
   await deleteFile(userId, from);
 
   return Ok();
-}
+});
 
-export const config = {
-  runtime: 'experimental-edge',
-};
+export const runtime = 'edge';

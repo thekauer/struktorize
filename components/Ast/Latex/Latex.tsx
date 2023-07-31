@@ -1,5 +1,7 @@
+'use client';
+
 import { useMemo } from 'react';
-import KaTeX, { ParseError, TrustContext } from 'katex';
+import KaTeX, { TrustContext } from 'katex';
 
 const trustHandler = ({ command }: TrustContext) => {
   return command === '\\htmlStyle';
@@ -25,7 +27,7 @@ const createMathComponent = (Component: any, { displayMode }: any): any => {
 
         return { html, error: undefined };
       } catch (error) {
-        if (error instanceof ParseError || error instanceof TypeError) {
+        if (error instanceof KaTeX.ParseError || error instanceof TypeError) {
           return { error };
         }
 

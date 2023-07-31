@@ -30,9 +30,9 @@ export const Path = styled.span`
   color: var(--text-secondary);
 `;
 
-export const File = styled.div<{ selected?: boolean }>`
+export const File = styled.div<{ $selected?: boolean }>`
   background-color: ${(props) =>
-    props.selected ? 'var(--blue)' : 'transparent'};
+    props.$selected ? 'var(--blue)' : 'transparent'};
   border-radius: 5px;
   padding: 4px 8px;
 `;

@@ -2,7 +2,6 @@
   "compilerOptions": {
     "target": "es6",
     "lib": ["dom", "dom.iterable", "esnext"],
-    "types": ["cypress", "@testing-library/cypress"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -21,11 +20,17 @@
       "@/pages/*": ["pages/*"],
       "@/styles/*": ["styles/*"],
       "@/hooks/*": ["hooks/*"],
-      "@/lib/*": ["lib/*"]
+      "@/lib/*": ["lib/*"],
+      "@/i18n/*": ["app/i18n/*"],
+      "@/auth/*": ["app/api/auth/*"],
+      "@/api/*": ["app/api/*"]
     },
     "plugins": [
       {
         "name": "typescript-styled-plugin"
+      },
+      {
+        "name": "next"
       }
     ]
   },
@@ -35,7 +40,8 @@
     "**/*.tsx",
     "types.d.ts",
     "jest.setup.js",
-    "jest.config.js"
+    "jest.config.js",
+    ".next/types/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }

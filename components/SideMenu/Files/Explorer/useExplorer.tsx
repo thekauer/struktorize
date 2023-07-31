@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import { useAst, useAstState } from '../../../../hooks/useAST';
 import { debounce } from '../../../../lib/debounce';
-import { FileDTO } from '../../../../pages/api/files';
+import { FileDTO } from '@/api/files/route';
 import { File } from '@/lib/repository';
 import { useFiles } from './useFiles';
 import { FileProps } from './File/File';

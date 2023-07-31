@@ -1,5 +1,7 @@
+'use client';
+
 import { useEffect, useRef, useState } from 'react';
-import { FileDTO } from '../../pages/api/files';
+import { FileDTO } from '@/api/files/route';
 import { File } from '@/lib/repository';
 import { useExplorer } from '../SideMenu/Files/Explorer/useExplorer';
 import * as S from './CommandPalette.atoms';
@@ -95,7 +97,7 @@ export const CommandPalette = () => {
           const path = splits.slice(0, -1).join('/');
 
           return (
-            <S.File selected={index === selected} key={f.path}>
+            <S.File $selected={index === selected} key={f.path}>
               <span>{name}</span> <S.Path>{path}</S.Path>
             </S.File>
           );

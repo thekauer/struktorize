@@ -19,25 +19,25 @@ export const Container = styled.div<StyleProps>`
     background-color: var(--s-hovered);
     cursor: pointer;
   }
-  ${({ hovered }) =>
-    hovered &&
+  ${({ $hovered }) =>
+    $hovered &&
     css`
       background-color: var(--s-hovered);
       cursor: pointer;
     `}
-  ${({ active }) =>
-    active &&
+  ${({ $active }) =>
+    $active &&
     css`
       background-color: var(--s-active);
     `}
-    ${({ selected }) =>
-    selected &&
+    ${({ $selected }) =>
+    $selected &&
     css`
       background-color: var(--s-selected);
     `}
-  ${({ selected, hovered }) =>
-    selected &&
-    hovered &&
+  ${({ $selected, $hovered }) =>
+    $selected &&
+    $hovered &&
     css`
       background-color: var(--s-selected-hovered);
     `}

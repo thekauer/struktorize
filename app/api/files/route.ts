@@ -1,3 +1,4 @@
+import { auth } from '@/auth/auth';
 import { Ast } from 'lib/ast';
 import {
   getFile,
@@ -14,8 +15,6 @@ import {
   Unauthorized,
   getBody,
   Conflict,
-  Token,
-  getToken,
   astSchmea,
   Created,
 } from 'lib/serverUtils';
@@ -31,8 +30,14 @@ export type UserDataDTO = {
   files: File[];
 };
 
-const get = async (req: NextRequest, token: Token) => {
-  const userId = token.id;
+export const GET = auth(async (req) => {
+  const user = req.auth.user;
+
+  if (!user) {
+    return Unauthorized();
+  }
+
+  const userId = user.id;
 
   const param = req.nextUrl.searchParams.get('path');
   if (param !== null) {
@@ -61,7 +66,7 @@ const get = async (req: NextRequest, token: Token) => {
     userData.files[userData.recent] || Object.values(userData.files)[0];
 
   return Ok({ files, recent });
-};
+});
 
 const fileValidator = z.object({
   type: z.literal('file'),
@@ -72,8 +77,14 @@ const fileValidator = z.object({
 
 export type FileDTO = z.infer<typeof fileValidator>;
 
-const put = async (req: NextRequest, token: Token) => {
-  const userId = token.id;
+export const PUT = auth(async (req) => {
+  const user = req.auth.user;
+
+  if (!user) {
+    return Unauthorized();
+  }
+
+  const userId = user.id;
   const body = await getBody(req);
 
   const schema = fileValidator.safeParse(body);
@@ -83,7 +94,7 @@ const put = async (req: NextRequest, token: Token) => {
 
   await updateFileAndRecent(userId, schema.data, schema.data.recent);
   return Ok();
-};
+});
 
 const newFileValidator = z.object({
   type: z.literal('file'),
@@ -93,8 +104,14 @@ const newFileValidator = z.object({
 
 export type NewFileDTO = z.infer<typeof newFileValidator>;
 
-const post = async (req: NextRequest, token: Token) => {
-  const userId = token.id;
+export const POST = auth(async (req) => {
+  const user = req.auth.user;
+
+  if (!user) {
+    return Unauthorized();
+  }
+
+  const userId = user.id;
   const body = await getBody(req);
 
   const schema = newFileValidator.safeParse(body);
@@ -122,10 +139,16 @@ const post = async (req: NextRequest, token: Token) => {
 
   await updateFileAndRecent(userId, { ...file, ast: file.ast || ast });
   return Created();
-};
+});
 
-const del = async (req: NextRequest, token: Token) => {
-  const userId = token.id;
+export const DELETE = auth(async (req) => {
+  const user = req.auth.user;
+
+  if (!user) {
+    return Unauthorized();
+  }
+
+  const userId = user.id;
 
   const pathValidator = pathParam.safeParse(
     req.nextUrl.searchParams.get('path'),
@@ -138,29 +161,6 @@ const del = async (req: NextRequest, token: Token) => {
 
   await deleteFile(userId, path);
   return Ok();
-};
+});
 
-export default async function handler(req: NextRequest) {
-  const token = await getToken(req);
-
-  if (!token) {
-    return Unauthorized();
-  }
-
-  switch (req.method) {
-    case 'GET':
-      return get(req, token);
-    case 'PUT':
-      return put(req, token);
-    case 'POST':
-      return post(req, token);
-    case 'DELETE':
-      return del(req, token);
-  }
-
-  return BadRequest();
-}
-
-export const config = {
-  runtime: 'experimental-edge',
-};
+export const runtime = 'edge';

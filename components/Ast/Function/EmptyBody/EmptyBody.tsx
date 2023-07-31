@@ -1,4 +1,6 @@
-import { useTranslation } from 'next-i18next';
+'use client';
+
+import { useTranslation } from '@/i18n/client';
 import * as S from './EmptyBody.atoms';
 
 const OPEN_CHEATSHEET_FALLBACK = ['Press', 'to open the', 'cheat sheet'];
@@ -9,7 +11,7 @@ export const EmptyBody = () => {
   });
   const shouldFallback = !i18n.language;
 
-  const openCheatSheet = shouldFallback
+  const openCheatSheet: typeof OPEN_CHEATSHEET_FALLBACK = shouldFallback
     ? OPEN_CHEATSHEET_FALLBACK
     : t('openCheatSheet', { returnObjects: true });
 

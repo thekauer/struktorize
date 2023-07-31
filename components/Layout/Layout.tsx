@@ -1,3 +1,5 @@
+'use client';
+
 import FocusTrap from 'focus-trap-react';
 import { ReactNode } from 'react';
 import { useTheme } from '../../hooks/useTheme';

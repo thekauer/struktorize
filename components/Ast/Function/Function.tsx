@@ -1,3 +1,5 @@
+'use client';
+
 import { FunctionAst } from '../../../lib/ast';
 import { Render } from '../Render/Render';
 import { EmptyBody } from './EmptyBody/EmptyBody';

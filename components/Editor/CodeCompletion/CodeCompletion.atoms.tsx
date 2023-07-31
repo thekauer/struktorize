@@ -27,7 +27,7 @@ export const RowContainer = styled.div`
   }
 `;
 
-export const Row = styled.div<{ selected?: boolean }>`
+export const Row = styled.div<{ $selected?: boolean }>`
   position: relative;
   display: flex;
   justify-content: space-between;
@@ -35,11 +35,11 @@ export const Row = styled.div<{ selected?: boolean }>`
   padding: 0.125rem;
   padding-left: 0.25rem;
   color: var(--s-text);
-  ${({ selected }) => selected && `background: var(--blue-light)`};
+  ${({ $selected }) => $selected && `background: var(--blue-light)`};
 `;
 
-export const Tab = styled.span<{ selected?: boolean }>`
+export const Tab = styled.span<{ $selected?: boolean }>`
   font-weight: bold;
-  ${({ selected }) =>
-    !selected ? 'color: var(--text-secondary);' : 'color: var(--s-text);'}
+  ${({ $selected }) =>
+    !$selected ? 'color: var(--text-secondary);' : 'color: var(--s-text);'}
 `;
