@@ -32,17 +32,8 @@
   },
   "main": {
     "emptyBody": {
-      "getStarted": [
-        "Press",
-        "or type",
-        "or",
-        "to get started"
-      ],
-      "openCheatSheet": [
-        "Press",
-        "to open the",
-        "cheat sheet"
-      ]
+      "getStarted": ["Press", "or type", "or", "to get started"],
+      "openCheatSheet": ["Press", "to open the", "cheat sheet"]
     }
   },
   "cheatSheet": {

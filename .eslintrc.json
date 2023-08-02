@@ -1,18 +1,15 @@
 {
   "root": true,
-  "extends": [
-    "next/core-web-vitals",
-    "prettier"
-  ],
-  "plugins": [
-    "testing-library",
-    "prettier"
-  ],
+  "extends": ["next/core-web-vitals", "prettier"],
+  "plugins": ["testing-library", "prettier"],
   "rules": {
     "prettier/prettier": [
       "error",
       {
-        "endOfLine": "auto"
+        "endOfLine": "auto",
+        "useTabs": false,
+        "printWidth": 80,
+        "trailingComma": "all"
       }
     ]
   },
@@ -22,9 +19,7 @@
         "**/__tests__/**/*.[jt]s?(x)",
         "**/?(*.)+(spec|test).[jt]s?(x)"
       ],
-      "extends": [
-        "plugin:testing-library/react"
-      ]
+      "extends": ["plugin:testing-library/react"]
     }
   ]
 }

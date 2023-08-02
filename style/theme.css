@@ -1,126 +1,127 @@
 :root {
-    --light: #2d2d2d;
-    --mid: #252526;
-    --dark: #1e1e1e;
-    --text:white;
-    --text-secondary: #888;
-    --blue: #007acc;
-    --blue-light: #0099ff;
+  --light: #2d2d2d;
+  --mid: #252526;
+  --dark: #1e1e1e;
+  --text: white;
+  --text-secondary: #888;
+  --blue: #007acc;
+  --blue-light: #0099ff;
 
-    --s-bg: #1e1e1e;
-    --s-border:#252526;
-    --s-text: white;
-    --s-hovered: #2d2d2d;
-    --s-selected:#264f78;
-    --s-selected-hovered:#32699f;
-    --s-active:#007acc;
-    --s-container: #1e1e1e;
-    --s-root: #1e1e1e;
-    --s-shadow: none;
-
+  --s-bg: #1e1e1e;
+  --s-border: #252526;
+  --s-text: white;
+  --s-hovered: #2d2d2d;
+  --s-selected: #264f78;
+  --s-selected-hovered: #32699f;
+  --s-active: #007acc;
+  --s-container: #1e1e1e;
+  --s-root: #1e1e1e;
+  --s-shadow: none;
 }
 
 .s-dark {
-    --s-bg: #1e1e1e;
-    --s-border:#252526;
-    --s-text: white;
-    --s-hovered: #2d2d2d;
-    --s-selected:#264f78;
-    --s-selected-hovered:#32699f;
-    --s-active:#007acc;
-    --s-container: #1e1e1e;
-    --s-root: #1e1e1e;
-    --s-script: #252526;
-    --s-shadow: none;
+  --s-bg: #1e1e1e;
+  --s-border: #252526;
+  --s-text: white;
+  --s-hovered: #2d2d2d;
+  --s-selected: #264f78;
+  --s-selected-hovered: #32699f;
+  --s-active: #007acc;
+  --s-container: #1e1e1e;
+  --s-root: #1e1e1e;
+  --s-script: #252526;
+  --s-shadow: none;
 }
 
 .s-light {
-    --s-bg: #fafafa;
-    --s-border:#eaeaeb;
-    --s-text: black;
-    --s-hovered: #e5e5e5;
-    --s-selected:#264f78;
-    --s-selected-hovered:#32699f;
-    --s-active:#007acc;
-    --s-container: #fafafa;
-    --s-root: #fafafa;
-    --s-script: white;
-    --s-shadow: none;
+  --s-bg: #fafafa;
+  --s-border: #eaeaeb;
+  --s-text: black;
+  --s-hovered: #e5e5e5;
+  --s-selected: #264f78;
+  --s-selected-hovered: #32699f;
+  --s-active: #007acc;
+  --s-container: #fafafa;
+  --s-root: #fafafa;
+  --s-script: white;
+  --s-shadow: none;
 }
 
 .s-white-on-black {
-    --s-bg: white;
-    --s-border:black;
-    --s-text: black;
-    --s-hovered: #e5e5e5;
-    --s-selected:#264f78;
-    --s-selected-hovered:#32699f;
-    --s-active:#007acc;
-    --s-container: white;
-    --s-root: white;
-    --s-script: #fafafa;
-    --s-shadow: none;
+  --s-bg: white;
+  --s-border: black;
+  --s-text: black;
+  --s-hovered: #e5e5e5;
+  --s-selected: #264f78;
+  --s-selected-hovered: #32699f;
+  --s-active: #007acc;
+  --s-container: white;
+  --s-root: white;
+  --s-script: #fafafa;
+  --s-shadow: none;
 }
 
 .s-black-on-white {
-    --s-bg: black;
-    --s-border:white;
-    --s-text: white;
-    --s-hovered: #2d2d2d;
-    --s-selected:#264f78;
-    --s-selected-hovered:#32699f;
-    --s-active:#007acc;
-    --s-container: black;
-    --s-root: black;
-    --s-script: #1e1e1e;
-    --s-shadow: none;
+  --s-bg: black;
+  --s-border: white;
+  --s-text: white;
+  --s-hovered: #2d2d2d;
+  --s-selected: #264f78;
+  --s-selected-hovered: #32699f;
+  --s-active: #007acc;
+  --s-container: black;
+  --s-root: black;
+  --s-script: #1e1e1e;
+  --s-shadow: none;
 }
 
 .dark {
-    --light: #2d2d2d;
-    --mid: #252526;
-    --dark: #1e1e1e;
-    --text:white;
-    --text-secondary: #888;
+  --light: #2d2d2d;
+  --mid: #252526;
+  --dark: #1e1e1e;
+  --text: white;
+  --text-secondary: #888;
 }
 
 .light {
-    --light: #e5e5e5;
-    --mid: #eaeaeb;
-    --dark: #fafafa;
-    --text: #000;
-    --text-secondary: #535486;
+  --light: #e5e5e5;
+  --mid: #eaeaeb;
+  --dark: #fafafa;
+  --text: #000;
+  --text-secondary: #535486;
 }
 
 html {
-    font-family: Consolas, monospace;
+  font-family: Consolas, monospace;
 }
 
-html, body, #__next {
-    margin: 0;
-    height: 100%;
-    overflow: hidden;
+html,
+body,
+#__next {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 ::-webkit-scrollbar {
   width: 1em;
 }
- 
+
 ::-webkit-scrollbar-track {
-  background-color: var(--dark)
+  background-color: var(--dark);
 }
- 
+
 ::-webkit-scrollbar-thumb {
   background-color: var(--s-hovered);
   outline: 1px solid var(--s-hovered);
 }
 
 ::-webkit-scrollbar-corner {
-  background: rgba(0,0,0,0);
+  background: rgba(0, 0, 0, 0);
 }
 
 * {
-    padding: 0;
-    margin:0;
-    box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
 }

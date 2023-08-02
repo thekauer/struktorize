@@ -1,17 +1,15 @@
-import { getFile, shareFile } from "lib/repository";
+import { auth } from '@/auth/auth';
+import { getFile, shareFile } from 'lib/repository';
 import {
   BadRequest,
   Created,
   getBody,
-  getToken,
   InternalServerError,
-  NotAllowed,
   NotFound,
   Ok,
   Unauthorized,
-} from "lib/serverUtils";
-import { NextRequest } from "next/server";
-import { z } from "zod";
+} from 'lib/serverUtils';
+import { z } from 'zod';
 
 const shareValidator = z.object({
   path: z.string(),
@@ -24,17 +22,11 @@ export type ShareDTO = {
   id: string;
 };
 
-export default async function handler(req: NextRequest) {
-  const token = await getToken(req);
+export const POST = auth(async (req) => {
+  const user = req.auth.user;
 
-  if (!token) {
+  if (!user) {
     return Unauthorized();
-  }
-
-  try {
-    if (req.method !== "POST") throw NotAllowed();
-  } catch (err) {
-    return err;
   }
 
   const body = await getBody(req);
@@ -43,7 +35,7 @@ export default async function handler(req: NextRequest) {
     return BadRequest();
   }
   const { path } = shareSchema.data;
-  const userId = token.id;
+  const userId = user.id;
 
   const file = await getFile(userId, path);
   if (!file) {
@@ -58,8 +50,6 @@ export default async function handler(req: NextRequest) {
   if (id === null) return InternalServerError();
 
   return Created({ id });
-}
+});
 
-export const config = {
-  runtime: "experimental-edge",
-};
+export const runtime = 'edge';

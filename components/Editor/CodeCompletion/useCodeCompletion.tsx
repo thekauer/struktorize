@@ -1,24 +1,24 @@
-import { useAst, useAstState, useNodeInScope } from "@/hooks/useAST";
-import { defaultCodeCompletions } from "constants/defaultCodeCompletions";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import FuzzySearch from "fuzzy-search";
-import { FunctionAst, AbstractChar } from "@/lib/ast";
+import { useAst, useAstState, useNodeInScope } from '@/hooks/useAST';
+import { defaultCodeCompletions } from 'constants/defaultCodeCompletions';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import FuzzySearch from 'fuzzy-search';
+import { FunctionAst, AbstractChar } from '@/lib/ast';
 import {
   doesEndWithSpace,
   getAllVariablesExceptCurrent,
   getLastText,
-} from "@/lib/abstractText";
-import { atom, useAtom } from "jotai";
+} from '@/lib/abstractText';
+import { atom, useAtom } from 'jotai';
 
 export const codeCompletionVisibleAtom = atom(false);
 
 export type CodeCompletionItem =
   | {
       value: string;
-      type: "variable" | "keyword";
+      type: 'variable' | 'keyword';
     }
   | {
-      type: "symbol";
+      type: 'symbol';
       value: string;
       symbol: AbstractChar;
     };
@@ -26,7 +26,7 @@ export type CodeCompletionItem =
 export const useCodeCompletion = () => {
   const [selected, setSelected] = useState(0);
   const [visible, setVisible] = useAtom(codeCompletionVisibleAtom);
-  const pathRef = useRef("");
+  const pathRef = useRef('');
   const mountedref = useRef(false);
   const node = useNodeInScope();
   const { addIf, addLoop, edit, insert, popLastText, setInsertMode } = useAst();
@@ -37,12 +37,12 @@ export const useCodeCompletion = () => {
   const allItems: CodeCompletionItem[] = [
     ...defaultCodeCompletions,
     ...getAllVariablesExceptCurrent(functionAst, node).map((value) => ({
-      type: "variable" as const,
+      type: 'variable' as const,
       value,
     })),
   ];
 
-  const searcher = new FuzzySearch(allItems, ["value"], {
+  const searcher = new FuzzySearch(allItems, ['value'], {
     sort: true,
   });
 
@@ -62,15 +62,15 @@ export const useCodeCompletion = () => {
   const complete = (item: CodeCompletionItem) => {
     popLastText();
     switch (item.value) {
-      case "if":
+      case 'if':
         addIf();
         break;
-      case "loop":
+      case 'loop':
         addLoop();
         break;
 
       default:
-        if (item.type === "symbol") {
+        if (item.type === 'symbol') {
           insert(item.symbol);
 
           return;
@@ -85,14 +85,14 @@ export const useCodeCompletion = () => {
       mountedref.current = true;
     }
     const keydown = (e: KeyboardEvent) => {
-      if (e.key === " " && e.ctrlKey) {
+      if (e.key === ' ' && e.ctrlKey) {
         setVisible(true);
         setSelected(0);
       }
     };
 
-    window.addEventListener("keydown", keydown);
-    return () => window.removeEventListener("keydown", keydown);
+    window.addEventListener('keydown', keydown);
+    return () => window.removeEventListener('keydown', keydown);
   }, []);
 
   useEffect(() => {
@@ -104,32 +104,32 @@ export const useCodeCompletion = () => {
       e.stopPropagation();
       e.preventDefault();
       switch (e.key) {
-        case "ArrowDown":
+        case 'ArrowDown':
           setSelected((prev) => (prev < length - 1 ? prev + 1 : 0));
           break;
-        case "ArrowUp":
+        case 'ArrowUp':
           setSelected((prev) => (prev > 0 ? prev - 1 : length - 1));
           break;
-        case "ArrowRight":
-          setInsertMode("normal");
+        case 'ArrowRight':
+          setInsertMode('normal');
           break;
-        case "Tab":
+        case 'Tab':
           complete(items[selected]);
-          document.querySelector<HTMLDivElement>("#root-container")?.focus();
+          document.querySelector<HTMLDivElement>('#root-container')?.focus();
           setVisible(false);
           break;
-        case " ":
-        case "Escape":
+        case ' ':
+        case 'Escape':
           setVisible(false);
           break;
         default:
           setSelected(0);
       }
     };
-    window.addEventListener("keydown", keydown);
+    window.addEventListener('keydown', keydown);
 
     return () => {
-      window.removeEventListener("keydown", keydown);
+      window.removeEventListener('keydown', keydown);
     };
   }, [shown, items, selected]);
 

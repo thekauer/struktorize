@@ -1,5 +1,5 @@
-import styled, { css } from "styled-components";
-import { StyleProps } from "../../../style/styleProps";
+import styled, { css } from 'styled-components';
+import { StyleProps } from '../../../style/styleProps';
 
 export const Container = styled.div<StyleProps>`
   padding: 0.5em;
@@ -20,25 +20,25 @@ export const Container = styled.div<StyleProps>`
     border: 1px solid var(--s-active);
   }
 
-  ${({ hovered }) =>
-    hovered &&
+  ${({ $hovered }) =>
+    $hovered &&
     css`
       background-color: var(--s-hovered);
       cursor: pointer;
     `}
-  ${({ active }) =>
-    active &&
+  ${({ $active }) =>
+    $active &&
     css`
       border: 1px solid var(--s-active);
     `}
-    ${({ selected }) =>
-    selected &&
+    ${({ $selected }) =>
+    $selected &&
     css`
       background-color: var(--s-selected);
     `}
-  ${({ selected, hovered }) =>
-    selected &&
-    hovered &&
+  ${({ $selected, $hovered }) =>
+    $selected &&
+    $hovered &&
     css`
       background-color: var(--s-selected-hovered);
     `}

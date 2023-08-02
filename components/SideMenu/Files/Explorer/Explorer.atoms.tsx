@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled from 'styled-components';
 
 export const Container = styled.div`
   display: flex;
@@ -28,12 +28,12 @@ export const Menu = styled.div`
   padding: 0 0.5rem;
 `;
 
-export const MenuItem = styled.div<{ src: string }>`
+export const MenuItem = styled.div<{ $src: string }>`
   width: 1rem;
   height: 1rem;
   background: var(--text-secondary);
-  -webkit-mask: url(${(props) => props.src}) center center / contain no-repeat;
-  mask: url(${(props) => props.src}) center center / contain no-repeat;
+  -webkit-mask: url(${(props) => props.$src}) center center / contain no-repeat;
+  mask: url(${(props) => props.$src}) center center / contain no-repeat;
   cursor: pointer;
 
   &:hover {

@@ -1,22 +1,24 @@
-import { useTranslation } from "next-i18next";
-import * as S from "./EmptyBody.atoms";
+'use client';
 
-const OPEN_CHEATSHEET_FALLBACK = ["Press", "to open the", "cheat sheet"];
+import { useTranslation } from '@/i18n/client';
+import * as S from './EmptyBody.atoms';
+
+const OPEN_CHEATSHEET_FALLBACK = ['Press', 'to open the', 'cheat sheet'];
 
 export const EmptyBody = () => {
-  const { t, i18n } = useTranslation(["common"], {
-    keyPrefix: "main.emptyBody",
+  const { t, i18n } = useTranslation(['common'], {
+    keyPrefix: 'main.emptyBody',
   });
   const shouldFallback = !i18n.language;
 
-  const openCheatSheet = shouldFallback
+  const openCheatSheet: typeof OPEN_CHEATSHEET_FALLBACK = shouldFallback
     ? OPEN_CHEATSHEET_FALLBACK
-    : t("openCheatSheet", { returnObjects: true });
+    : t('openCheatSheet', { returnObjects: true });
 
   return (
     <S.Container>
       <span>
-        {openCheatSheet[0]} <S.Kbd>Ctrl</S.Kbd> + <S.Kbd>i</S.Kbd>{" "}
+        {openCheatSheet[0]} <S.Kbd>Ctrl</S.Kbd> + <S.Kbd>i</S.Kbd>{' '}
         {openCheatSheet[1]} <S.Blue>{openCheatSheet[2]}</S.Blue>.
       </span>
     </S.Container>

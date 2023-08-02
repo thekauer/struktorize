@@ -1,15 +1,17 @@
-import { MouseEvent, useEffect, useRef, useState } from "react";
-import { flushSync } from "react-dom";
-import * as S from "./File.atoms";
-import * as ES from "../Explorer.atoms";
-import { useTranslation } from "next-i18next";
-import toast from "react-hot-toast";
-import { useAst, useAstState } from "@/hooks/useAST";
-import { useExplorer } from "../useExplorer";
-import { useFiles } from "../useFiles";
-import { Ast } from "lib/ast";
-import { useSetAtom } from "jotai";
-import { codeCompletionVisibleAtom } from "@/components/Editor/CodeCompletion/useCodeCompletion";
+'use client';
+
+import { MouseEvent, useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+import * as S from './File.atoms';
+import * as ES from '../Explorer.atoms';
+import { useTranslation } from '@/i18n/client';
+import toast from 'react-hot-toast';
+import { useAst, useAstState } from '@/hooks/useAST';
+import { useExplorer } from '../useExplorer';
+import { useFiles } from '../useFiles';
+import { Ast } from 'lib/ast';
+import { useSetAtom } from 'jotai';
+import { codeCompletionVisibleAtom } from '@/components/Editor/CodeCompletion/useCodeCompletion';
 
 export interface FileProps {
   path: string;
@@ -19,7 +21,7 @@ export interface FileProps {
 export const File = ({ path, isNew }: FileProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(isNew);
-  const { t } = useTranslation(["common"], { keyPrefix: "menu.files" });
+  const { t } = useTranslation(['common'], { keyPrefix: 'menu.files' });
   const { files, activePath, setNewPath } = useExplorer();
   const { changed, ast } = useAstState();
   const { load } = useAst();
@@ -42,12 +44,12 @@ export const File = ({ path, isNew }: FileProps) => {
   }, [isNew]);
 
   const focusRoot = () =>
-    document.querySelector<HTMLDivElement>("#root-container")?.focus();
+    document.querySelector<HTMLDivElement>('#root-container')?.focus();
 
   const onFileClick = () => {
     if (path === activePath) return;
     const nextFile = files.find((f: any) => f.path === path);
-    if (nextFile?.type === "file") {
+    if (nextFile?.type === 'file') {
       saveFile({ ...recent!, ast, recent: nextFile.path });
       load(nextFile.ast as any, nextFile.path);
       setActivePath(path);
@@ -71,16 +73,16 @@ export const File = ({ path, isNew }: FileProps) => {
     createFile(path);
     setNewPath(null);
 
-    const name = path.substring(path.lastIndexOf("/") + 1);
+    const name = path.substring(path.lastIndexOf('/') + 1);
     const newAst = {
       signature: {
-        text: [{ type: "variable", name: `${name}` }],
-        type: "signature",
-        path: "signature",
+        text: [{ type: 'variable', name: `${name}` }],
+        type: 'signature',
+        path: 'signature',
       },
       body: [],
-      type: "function",
-      path: "",
+      type: 'function',
+      path: '',
     } as Ast;
 
     load(newAst, path);
@@ -92,7 +94,7 @@ export const File = ({ path, isNew }: FileProps) => {
   };
 
   const validName = (name: string) => {
-    if (name === "") return false;
+    if (name === '') return false;
     const isConflictingFileName = files.find((f) => f.path === `/${name}`);
     if (isConflictingFileName) return false;
     const nameHasOnlyAsciiLetters = !/^[a-zA-Z0-9]+$/.test(name);
@@ -103,21 +105,21 @@ export const File = ({ path, isNew }: FileProps) => {
   const handleShare = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     if (!path) {
-      toast.error(t("errorGeneratingLink"));
+      toast.error(t('errorGeneratingLink'));
       return;
     }
 
     const shareFileAndCopyIdToClipboard = async () => {
       const id = await shareFile(path);
       await navigator.clipboard.writeText(
-        `${process.env.NEXT_PUBLIC_SITE_URL}/${id}`
+        `${process.env.NEXT_PUBLIC_SITE_URL}/${id}`,
       );
     };
 
     toast.promise(shareFileAndCopyIdToClipboard(), {
-      loading: t("generatingLink"),
-      success: t("copyToClipboard"),
-      error: t("errorGeneratingLink"),
+      loading: t('generatingLink'),
+      success: t('copyToClipboard'),
+      error: t('errorGeneratingLink'),
     });
   };
 
@@ -136,23 +138,23 @@ export const File = ({ path, isNew }: FileProps) => {
       const newName = inputRef.current?.value!;
       if (!validName(newName)) return;
 
-      const oldPath = path.substring(0, path.lastIndexOf("/") + 1);
+      const oldPath = path.substring(0, path.lastIndexOf('/') + 1);
       renameFile(thisFile, oldPath + newName);
     }
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     switch (e.key) {
-      case "Enter":
+      case 'Enter':
         handleRename();
         if (isNew) createNewFile(path + inputRef.current?.value!);
         break;
 
-      case "Delete":
+      case 'Delete':
         handleDelete();
         break;
 
-      case "Escape":
+      case 'Escape':
         if (editing) setEditing(false);
         onEscape();
         break;
@@ -163,38 +165,38 @@ export const File = ({ path, isNew }: FileProps) => {
 
   return (
     <S.Container
-      active={path === activePath}
+      $active={path === activePath}
       onKeyDown={onKeyDown}
       onClick={onFileClick}
       tabIndex={-1}
     >
-      <S.Image src={"/structogram.png"} />
+      <S.Image $src={'/structogram.png'} />
       {editing ? (
         <S.Input ref={inputRef} />
       ) : (
         <>
-          <S.Name title={path.split("/").pop()}>
-            {isChanged && "*"}
-            {path.split("/").pop()}
+          <S.Name title={path.split('/').pop()}>
+            {isChanged && '*'}
+            {path.split('/').pop()}
           </S.Name>
           <S.FileMenu>
             <ES.MenuItem
-              src="/share.svg"
+              $src="/share.svg"
               onClick={handleShare}
-              title={t("share")}
+              title={t('share')}
             />
             <ES.MenuItem
-              src="/rename.svg"
+              $src="/rename.svg"
               onClick={(e) => {
                 e.stopPropagation();
                 handleRename();
               }}
-              title={t("rename")}
+              title={t('rename')}
             />
             <ES.MenuItem
-              src="/bin.svg"
+              $src="/bin.svg"
               onClick={handleDelete}
-              title={t("delete")}
+              title={t('delete')}
             />
           </S.FileMenu>
         </>

@@ -1,4 +1,4 @@
-import styled, { css } from "styled-components";
+import styled, { css } from 'styled-components';
 
 export const Container = styled.aside`
   position: relative;
@@ -43,10 +43,10 @@ export const Close = styled.button`
   }
 `;
 
-export const Cross = styled.div<{ src: string }>`
+export const Cross = styled.div<{ $src: string }>`
   width: 0.5rem;
   height: 0.5rem;
   background: var(--text-secondary);
-  -webkit-mask: url(${(props) => props.src}) center center / contain no-repeat;
-  mask: url(${(props) => props.src}) center center / contain no-repeat;
+  -webkit-mask: url(${(props) => props.$src}) center center / contain no-repeat;
+  mask: url(${(props) => props.$src}) center center / contain no-repeat;
 `;

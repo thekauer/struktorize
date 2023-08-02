@@ -1,10 +1,10 @@
-import styled, { css } from "styled-components";
+import styled, { css } from 'styled-components';
 
 export const FileMenu = styled.div`
   display: none;
 `;
 
-export const Container = styled.div<{ active?: boolean }>`
+export const Container = styled.div<{ $active?: boolean }>`
   display: flex;
   position: relative;
   align-items: center;
@@ -15,7 +15,7 @@ export const Container = styled.div<{ active?: boolean }>`
   padding: 0.25rem;
 
   ${(props) =>
-    props.active &&
+    props.$active &&
     css`
       background-color: var(--light);
     `}
@@ -40,13 +40,13 @@ export const Container = styled.div<{ active?: boolean }>`
   }
 `;
 
-export const Image = styled.div<{ src: string }>`
+export const Image = styled.div<{ $src: string }>`
   height: 1rem;
   width: 1rem;
   margin-left: 1rem;
   background: var(--text-secondary);
-  -webkit-mask: url(${(props) => props.src}) center center / contain no-repeat;
-  mask: url(${(props) => props.src}) center center / contain no-repeat;
+  -webkit-mask: url(${(props) => props.$src}) center center / contain no-repeat;
+  mask: url(${(props) => props.$src}) center center / contain no-repeat;
 `;
 
 export const Name = styled.span`
@@ -67,12 +67,12 @@ export const Input = styled.input`
   }
 `;
 
-export const Button = styled.div<{ src: string }>`
+export const Button = styled.div<{ $src: string }>`
   width: 1rem;
   height: 1rem;
   background: var(--text-secondary);
-  -webkit-mask: url(${(props) => props.src}) center center / contain no-repeat;
-  mask: url(${(props) => props.src}) center center / contain no-repeat;
+  -webkit-mask: url(${(props) => props.$src}) center center / contain no-repeat;
+  mask: url(${(props) => props.$src}) center center / contain no-repeat;
   cursor: pointer;
 
   &:hover {

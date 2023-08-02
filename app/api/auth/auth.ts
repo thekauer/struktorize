@@ -1,8 +1,8 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
-import GithubProvider from "next-auth/providers/github";
-import GoogleProvider from "next-auth/providers/google";
+import NextAuth, { NextAuthConfig } from 'next-auth';
+import GithubProvider from 'next-auth/providers/github';
+import GoogleProvider from 'next-auth/providers/google';
 
-export const authOptions: NextAuthOptions = {
+export const authConfig: NextAuthConfig = {
   providers: [
     GithubProvider({
       clientId: process.env.GITHUB_ID!,
@@ -14,7 +14,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
   },
 
   jwt: {
@@ -39,4 +39,7 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-export default NextAuth(authOptions);
+export const {
+  handlers: { GET, POST },
+  auth,
+} = NextAuth(authConfig);
