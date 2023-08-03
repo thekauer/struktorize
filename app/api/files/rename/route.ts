@@ -35,12 +35,12 @@ export const POST = auth(async (req) => {
   const userId = user.id;
 
   const body = await getBody(req);
-  const moveSchema = rename.safeParse(body);
-  if (!moveSchema.success) {
+  const renameScema = rename.safeParse(body);
+  if (!renameScema.success) {
     return BadRequest('Invalid schema');
   }
 
-  const { from, to, ast } = moveSchema.data;
+  const { from, to, ast } = renameScema.data;
 
   const userData = await getUserData(userId);
   const oldFile = userData?.files[userData?.recent];
