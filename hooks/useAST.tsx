@@ -6,7 +6,7 @@ import React, {
   useReducer,
   MouseEvent,
 } from 'react';
-import { DEFAULT_FUNCTION } from '../constants/defaultFunction';
+import { DEFAULT_FUNCTION } from '@/constants/defaultFunction';
 import {
   Ast,
   up,

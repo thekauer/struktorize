@@ -1,5 +1,5 @@
 import { Redis } from '@upstash/redis';
-import { DEFAULT_FUNCTION } from 'constants/defaultFunction';
+import { DEFAULT_FUNCTION } from '@/constants/defaultFunction';
 import { Ast } from './ast';
 import { makeId } from './serverUtils';
 

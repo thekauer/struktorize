@@ -2,7 +2,7 @@ import {
   ITEMS,
   KBD_ITEMS,
   LATEX_ITEMS,
-} from 'constants/defaultCheatSheetItems';
+} from '@/constants/defaultCheatSheetItems';
 import { useTranslation } from '@/i18n/client';
 import { useEffect, useMemo, useState } from 'react';
 
