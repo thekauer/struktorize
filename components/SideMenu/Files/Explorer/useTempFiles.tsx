@@ -3,7 +3,7 @@ import { getFunctionName } from '@/lib/abstractText';
 import { Ast, FunctionAst } from '@/lib/ast';
 import { File } from '@/lib/repository';
 import { useSession } from 'next-auth/react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useCreateFile } from './useCreateFile';
 import { useFiles } from './useFiles';
 
@@ -11,12 +11,14 @@ export const useTempFiles = () => {
   const { status } = useSession();
   const { ast, changed } = useAstState();
   const { load } = useAst();
-  const { files } = useFiles();
+  const { files, isLoading } = useFiles();
   const createFile = useCreateFile();
+  const ran = useRef(false);
 
   const TEMP_FILE_KEY = 'tempFile';
 
   useEffect(() => {
+    if (ran.current) return;
     if (status === 'authenticated') {
       const getFile = () => {
         const tempAst = localStorage.getItem(TEMP_FILE_KEY);
@@ -44,14 +46,26 @@ export const useTempFiles = () => {
       };
 
       const ogFile = getFile();
-      if (!ogFile) return;
+      if (!ogFile) {
+        if (files.length === 0 && !isLoading) {
+          createFile.mutate({
+            type: 'file',
+            path: '/main',
+          });
+        }
+        return;
+      }
 
       const file = maybeRenameFile(ogFile);
       if (files.length === 0) load(file.ast, file.path);
       createFile.mutate(file);
       localStorage.removeItem(TEMP_FILE_KEY);
     }
-  }, [status, ast, files]);
+
+    return () => {
+      ran.current = true;
+    };
+  }, [status, ast, files, isLoading]);
 
   useEffect(() => {
     if (status === 'unauthenticated' && changed) {

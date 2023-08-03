@@ -7,7 +7,7 @@ export const useFiles = () => {
   const queryClient = useQueryClient();
   const { status } = useSession();
 
-  const { data, refetch } = useQuery(
+  const { data, refetch, isLoading } = useQuery(
     ['files'],
     () => axios.get<UserDataDTO>('/api/files').then((res) => res.data),
     {
@@ -28,6 +28,7 @@ export const useFiles = () => {
 
   return {
     refetch,
+    isLoading,
     files,
     recent,
     setActivePath,
