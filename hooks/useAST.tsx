@@ -473,6 +473,7 @@ export const AstProvider = ({ children }: AstProviderProps) => {
     editing,
     cursor,
     indexCursor,
+    path,
   } = state;
 
   const signatureText = (ast as FunctionAst).signature.text;

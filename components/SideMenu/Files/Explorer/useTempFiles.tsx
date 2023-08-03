@@ -1,72 +1,82 @@
-import { useAst, useAstState } from '@/hooks/useAST';
+import { useAstState } from '@/hooks/useAST';
 import { getFunctionName } from '@/lib/abstractText';
-import { Ast, FunctionAst } from '@/lib/ast';
+import { FunctionAst } from '@/lib/ast';
 import { File } from '@/lib/repository';
 import { useSession } from 'next-auth/react';
 import { useEffect, useRef } from 'react';
 import { useCreateFile } from './useCreateFile';
 import { useFiles } from './useFiles';
 
-export const useTempFiles = () => {
+const TEMP_FILE_KEY = 'tempFile';
+
+export const useLoadTempFile = () => {
   const { status } = useSession();
-  const { ast, changed } = useAstState();
-  const { load } = useAst();
+  const { ast } = useAstState();
   const { files, isLoading } = useFiles();
   const createFile = useCreateFile();
   const ran = useRef(false);
 
-  const TEMP_FILE_KEY = 'tempFile';
-
   useEffect(() => {
     if (ran.current) return;
-    if (status === 'authenticated') {
-      const getFile = () => {
-        const tempAst = localStorage.getItem(TEMP_FILE_KEY);
-        if (tempAst)
-          try {
-            const ast = JSON.parse(tempAst);
-            const path = `/${getFunctionName(
-              (ast as FunctionAst).signature.text,
-            )}`;
-            const type = 'file';
+    const getFile = () => {
+      const tempAst = localStorage.getItem(TEMP_FILE_KEY);
+      if (tempAst)
+        try {
+          const ast = JSON.parse(tempAst);
+          const path = `/${getFunctionName(
+            (ast as FunctionAst).signature.text,
+          )}`;
+          const type = 'file';
 
-            return { type, path, ast } as File;
-          } catch (e) {}
+          return { type, path, ast } as File;
+        } catch (e) {}
+    };
+
+    const maybeRenameFile = (file: File) => {
+      if (!files.some((f) => f.path === file.path)) return file;
+      let i = 1;
+      while (files.some((f) => f.path === `${file.path}${i}`) && i < 100) i++;
+
+      return {
+        ...file,
+        path: `${file.path}${i}`,
       };
+    };
 
-      const maybeRenameFile = (file: File) => {
-        if (!files.some((f) => f.path === file.path)) return file;
-        let i = 1;
-        while (files.some((f) => f.path === `${file.path}${i}`) && i < 100) i++;
+    const ogFile = getFile();
 
-        return {
-          ...file,
-          path: `${file.path}${i}`,
-        };
-      };
-
-      const ogFile = getFile();
-      if (!ogFile) {
-        if (files.length === 0 && !isLoading) {
+    const saveFile = () => {
+      if (status === 'authenticated' && !isLoading) {
+        ran.current = true;
+        const hasAccount = files.length > 0;
+        const changed = !!ogFile;
+        console.log({ changed, hasAccount, files });
+        if (!changed) {
+          if (hasAccount) return;
+          console.log('create new empty file');
           createFile.mutate({
             type: 'file',
             path: '/main',
           });
+          return;
         }
-        return;
+
+        const file = maybeRenameFile(ogFile);
+
+        createFile.mutate(file);
+        console.log('saving file');
+        localStorage.removeItem(TEMP_FILE_KEY);
       }
-
-      const file = maybeRenameFile(ogFile);
-      if (files.length === 0) load(file.ast, file.path);
-      createFile.mutate(file);
-      localStorage.removeItem(TEMP_FILE_KEY);
-    }
-
-    return () => {
-      ran.current = true;
     };
-  }, [status, ast, files, isLoading]);
 
+    saveFile();
+  }, [status, ast, files, isLoading]);
+};
+
+export const useSaveTempFile = () => {
+  const { ast, changed } = useAstState();
+
+  const { status } = useSession();
   useEffect(() => {
     if (status === 'unauthenticated' && changed) {
       localStorage.setItem(TEMP_FILE_KEY, JSON.stringify(ast));

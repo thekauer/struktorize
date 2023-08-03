@@ -16,7 +16,6 @@ import { FileProps } from './File/File';
 import { useSession } from 'next-auth/react';
 import { useSetAtom } from 'jotai';
 import { codeCompletionVisibleAtom } from '@/components/Editor/CodeCompletion/useCodeCompletion';
-import { useTempFiles } from './useTempFiles';
 import { useSaveCurrentFile } from './useSaveCurrentFile';
 import { useSelectFile } from './useSelectFile';
 
@@ -54,8 +53,6 @@ export const useExplorer = () => {
   const selectFile = useSelectFile();
   const activePath = recent?.path!;
   const setCCVisible = useSetAtom(codeCompletionVisibleAtom);
-
-  useTempFiles();
 
   useEffect(() => {
     if (!recent) return;
