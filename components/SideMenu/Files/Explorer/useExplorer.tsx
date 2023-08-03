@@ -17,7 +17,6 @@ import { useSession } from 'next-auth/react';
 import { useSetAtom } from 'jotai';
 import { codeCompletionVisibleAtom } from '@/components/Editor/CodeCompletion/useCodeCompletion';
 import { useTempFiles } from './useTempFiles';
-import { useSaveFile } from './useSaveFile';
 import { useSaveCurrentFile } from './useSaveCurrentFile';
 import { useSelectFile } from './useSelectFile';
 
@@ -46,7 +45,7 @@ export const ExplorerProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useExplorer = () => {
-  const { addChangeListener, load } = useAst();
+  const { addChangeListener } = useAst();
   const { newPath, setNewPath } = useContext(explorerContext);
   const { changed } = useAstState();
   const { status } = useSession();
