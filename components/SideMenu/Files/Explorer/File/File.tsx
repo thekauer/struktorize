@@ -8,11 +8,9 @@ import { useTranslation } from '@/i18n/client';
 import toast from 'react-hot-toast';
 import { useAst, useAstState } from '@/hooks/useAST';
 import { useExplorer } from '../useExplorer';
-import { useFiles } from '../useFiles';
 import { Ast } from 'lib/ast';
 import { useSetAtom } from 'jotai';
 import { codeCompletionVisibleAtom } from '@/components/Editor/CodeCompletion/useCodeCompletion';
-import { useSaveFile } from '../useSaveFile';
 import { useCreateFile } from '../useCreateFile';
 import { useDeleteFile } from '../useDeleteFile';
 import { useRenameFile } from '../useRenameFile';
@@ -32,8 +30,6 @@ export const File = ({ path, isNew }: FileProps) => {
   const { files, activePath, setNewPath } = useExplorer();
   const { changed, ast } = useAstState();
   const { load } = useAst();
-  const { setActivePath, recent } = useFiles();
-  const saveFile = useSaveFile();
   const saveCurrentFile = useSaveCurrentFile();
   const createFile = useCreateFile();
   const deleteFile = useDeleteFile();
@@ -58,9 +54,6 @@ export const File = ({ path, isNew }: FileProps) => {
     if (nextFile?.type === 'file') {
       saveCurrentFile.mutate();
       selectFile.mutate(path);
-      // saveFile({ ...recent!, ast, recent: nextFile.path });
-      // load(nextFile.ast as any, nextFile.path);
-      // setActivePath(path);
       focusRoot();
     }
   };
@@ -77,7 +70,6 @@ export const File = ({ path, isNew }: FileProps) => {
     if (!validName(newName)) return;
     if (changed) {
       saveCurrentFile.mutate();
-      // saveFile({ ...recent!, ast });
     }
     createFile.mutate({ type: 'file', path });
     setNewPath(null);

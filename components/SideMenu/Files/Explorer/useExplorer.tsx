@@ -48,10 +48,9 @@ export const ExplorerProvider = ({ children }: { children: ReactNode }) => {
 export const useExplorer = () => {
   const { addChangeListener, load } = useAst();
   const { newPath, setNewPath } = useContext(explorerContext);
-  const { changed, ast } = useAstState();
+  const { changed } = useAstState();
   const { status } = useSession();
-  const { refetch, files, recent, setActivePath } = useFiles();
-  // const saveFile = useSaveFile();
+  const { refetch, files, recent } = useFiles();
   const saveCurrentFile = useSaveCurrentFile();
   const selectFile = useSelectFile();
   const activePath = recent?.path!;
@@ -65,7 +64,6 @@ export const useExplorer = () => {
       if (e.ctrlKey && e.key === 's') {
         e.preventDefault();
         if (changed) {
-          // saveFile({ ...recent, ast, recent: activePath });
           saveCurrentFile.mutate();
         }
       }
@@ -75,16 +73,12 @@ export const useExplorer = () => {
     return () => {
       window.removeEventListener('keydown', onKeyDown);
     };
-    // }, [recent, ast, changed, activePath]);
   }, [recent, changed]);
 
   useEffect(() => {
-    // if (!recent) return;
-
     addChangeListener(
       debounce((state) => {
         if (state.changed) {
-          // saveFile({ ...recent!, ast: state.ast });
           saveCurrentFile.mutate();
         }
       }, 10000),
@@ -117,10 +111,7 @@ export const useExplorer = () => {
 
     const nextFile = files.find((f: any) => f.path === path);
     if (nextFile?.type === 'file') {
-      // saveFile({ ...recent!, ast, recent: nextFile.path });
       saveCurrentFile.mutate();
-      // load(nextFile.ast as any, nextFile.path);
-      // setActivePath(path);
       selectFile.mutate(path);
       focusRoot();
     }
