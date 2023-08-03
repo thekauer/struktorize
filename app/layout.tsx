@@ -9,17 +9,13 @@ export const runtime = 'edge';
 
 interface RootLayoutProps {
   children: React.ReactNode;
-  params: { lng: string };
 }
 
-export default function RootLayout({
-  children,
-  params: { lng },
-}: RootLayoutProps) {
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html>
       <body>
-        <Providers lang={lng}>
+        <Providers>
           <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
         </Providers>
         <Analytics />

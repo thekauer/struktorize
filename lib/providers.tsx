@@ -4,24 +4,15 @@ import { ThemeProvider } from '../hooks/useTheme';
 import { SessionProvider } from 'next-auth/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AstProvider } from '@/hooks/useAST';
-import { atom, Provider as JotaiProvider, useSetAtom } from 'jotai';
-import { useEffect } from 'react';
+import { Provider as JotaiProvider } from 'jotai';
 
 const queryClient = new QueryClient();
-export const lngAtom = atom('hu');
 
 interface ProviderProps {
   children: React.ReactNode;
-  lang: string;
 }
 
-export function Providers({ children, lang }: ProviderProps) {
-  const setLang = useSetAtom(lngAtom);
-
-  useEffect(() => {
-    setLang(lang);
-  }, [lang]);
-
+export function Providers({ children }: ProviderProps) {
   return (
     <SessionProvider>
       <QueryClientProvider client={queryClient}>
