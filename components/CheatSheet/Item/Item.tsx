@@ -25,11 +25,11 @@ export type ItemProps = Kbd | Latex;
 export const Item = ({ image, name, shortcut, type, active }: ItemProps) => {
   const Shortcut =
     type !== 'Kbd' ? (
-      <S.Mark active={active}>{shortcut}</S.Mark>
+      <S.Mark $active={active}>{shortcut}</S.Mark>
     ) : (
       shortcut.map((s, index, { length }) => (
         <Fragment key={index}>
-          <S.Kbd key={index} active={active}>
+          <S.Kbd key={index} $active={active}>
             {s}
           </S.Kbd>
           {index !== length - 1 && ' + '}
@@ -40,11 +40,11 @@ export const Item = ({ image, name, shortcut, type, active }: ItemProps) => {
   return (
     <S.Container>
       {type === 'Latex' ? (
-        <S.Center active={active}>
+        <S.Center $active={active}>
           <Latex>{image}</Latex>
         </S.Center>
       ) : (
-        <S.Image src={image} active={active} />
+        <S.Image $src={image} $active={active} />
       )}
       <S.Name>{name}</S.Name>
       <S.Shortcut>{Shortcut}</S.Shortcut>

@@ -15,8 +15,8 @@ export const Explorer = () => {
   return (
     <S.Container>
       <S.Menu>
-        <S.MenuItem src={'/new_file.png'} onClick={newFileClick} />
-        <S.MenuItem src={'/refresh.png'} onClick={refreshClick} />
+        <S.MenuItem $src={'/new_file.png'} onClick={newFileClick} />
+        <S.MenuItem $src={'/refresh.png'} onClick={refreshClick} />
       </S.Menu>
       <S.FileContainer>
         {sortedFiles.map((file) => (

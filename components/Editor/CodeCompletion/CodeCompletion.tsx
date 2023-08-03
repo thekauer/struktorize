@@ -32,7 +32,7 @@ export const CodeCompletion = ({
       <S.RowContainer>
         {items.map((item, index) => (
           <S.Row
-            selected={selected === index}
+            $selected={selected === index}
             ref={(row: HTMLDivElement) => {
               itemsRef.current[index] = row;
             }}
