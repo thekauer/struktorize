@@ -152,3 +152,13 @@ export async function getSharedFile(id: string) {
 
   return (await getRedis().hget(key, path)) as File;
 }
+export async function getRecent(userId: string) {
+  const userData = await getUserData(userId);
+  return userData?.recent || null;
+}
+
+export async function setRecent(userId: string, path: string) {
+  return await getRedis().hset(`user:${userId}`, {
+    recent: path,
+  });
+}

@@ -47,6 +47,7 @@ type StateContext = {
   ast: Ast;
   scope: string[];
   functionName: string;
+  path: string;
   changed: boolean;
   selected: Set<string>;
   insertMode: InsertMode;
@@ -481,6 +482,7 @@ export const AstProvider = ({ children }: AstProviderProps) => {
 
   const stateContext = {
     ast,
+    path,
     scope: showScope ? scope : [],
     functionName,
     changed,

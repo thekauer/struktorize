@@ -7,6 +7,7 @@ import {
   doesFileExist,
   updateFileAndRecent,
   deleteFile,
+  updateFile,
 } from 'lib/repository';
 import {
   BadRequest,
@@ -18,7 +19,6 @@ import {
   astSchmea,
   Created,
 } from 'lib/serverUtils';
-import { NextRequest } from 'next/server';
 import z from 'zod';
 
 export type FilesDTO = FileDTO[];
@@ -72,7 +72,6 @@ const fileValidator = z.object({
   type: z.literal('file'),
   path: z.string(),
   ast: astSchmea,
-  recent: z.string().optional(),
 });
 
 export type FileDTO = z.infer<typeof fileValidator>;
@@ -92,7 +91,7 @@ export const PUT = auth(async (req) => {
     return BadRequest();
   }
 
-  await updateFileAndRecent(userId, schema.data, schema.data.recent);
+  await updateFile(userId, schema.data);
   return Ok();
 });
 
@@ -138,7 +137,7 @@ export const POST = auth(async (req) => {
     path: '',
   } as Ast;
 
-  await updateFileAndRecent(userId, { ...file, ast: file.ast || ast });
+  await updateFile(userId, { ...file, ast: file.ast || ast });
   return Created();
 });
 

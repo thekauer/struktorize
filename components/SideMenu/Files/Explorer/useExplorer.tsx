@@ -16,6 +16,10 @@ import { FileProps } from './File/File';
 import { useSession } from 'next-auth/react';
 import { useSetAtom } from 'jotai';
 import { codeCompletionVisibleAtom } from '@/components/Editor/CodeCompletion/useCodeCompletion';
+import { useTempFiles } from './useTempFiles';
+import { useSaveFile } from './useSaveFile';
+import { useSaveCurrentFile } from './useSaveCurrentFile';
+import { useSelectFile } from './useSelectFile';
 
 const warnBeforeExit = (e: any) => {
   const confirmationMessage =
@@ -46,9 +50,14 @@ export const useExplorer = () => {
   const { newPath, setNewPath } = useContext(explorerContext);
   const { changed, ast } = useAstState();
   const { status } = useSession();
-  const { saveFile, refetch, files, recent, setActivePath } = useFiles();
+  const { refetch, files, recent, setActivePath } = useFiles();
+  // const saveFile = useSaveFile();
+  const saveCurrentFile = useSaveCurrentFile();
+  const selectFile = useSelectFile();
   const activePath = recent?.path!;
   const setCCVisible = useSetAtom(codeCompletionVisibleAtom);
+
+  useTempFiles();
 
   useEffect(() => {
     if (!recent) return;
@@ -56,7 +65,8 @@ export const useExplorer = () => {
       if (e.ctrlKey && e.key === 's') {
         e.preventDefault();
         if (changed) {
-          saveFile({ ...recent, ast, recent: activePath });
+          // saveFile({ ...recent, ast, recent: activePath });
+          saveCurrentFile.mutate();
         }
       }
     };
@@ -65,20 +75,22 @@ export const useExplorer = () => {
     return () => {
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [recent, ast, changed, activePath]);
+    // }, [recent, ast, changed, activePath]);
+  }, [recent, changed]);
 
   useEffect(() => {
-    if (!recent) return;
+    // if (!recent) return;
 
     addChangeListener(
       debounce((state) => {
         if (state.changed) {
-          saveFile({ ...recent!, ast: state.ast });
+          // saveFile({ ...recent!, ast: state.ast });
+          saveCurrentFile.mutate();
         }
       }, 10000),
       'save',
     );
-  }, [recent]);
+  }, []);
 
   useEffect(() => {
     if (status !== 'authenticated') return;
@@ -105,9 +117,11 @@ export const useExplorer = () => {
 
     const nextFile = files.find((f: any) => f.path === path);
     if (nextFile?.type === 'file') {
-      saveFile({ ...recent!, ast, recent: nextFile.path });
-      load(nextFile.ast as any, nextFile.path);
-      setActivePath(path);
+      // saveFile({ ...recent!, ast, recent: nextFile.path });
+      saveCurrentFile.mutate();
+      // load(nextFile.ast as any, nextFile.path);
+      // setActivePath(path);
+      selectFile.mutate(path);
       focusRoot();
     }
   };
