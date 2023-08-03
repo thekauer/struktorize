@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { NewFileDTO, UserDataDTO } from '@/api/files/route';
 import { File } from '@/lib/repository';
+import { Ast } from '@/lib/ast';
 
 export const useCreateFile = () => {
   const queryClient = useQueryClient();
@@ -19,9 +20,26 @@ export const useCreateFile = () => {
           if (!userDataDto) return previousFiles!;
           const { files, recent } = userDataDto;
 
+          const path = newFile.path;
+          const name = path.substring(path.lastIndexOf('/') + 1);
+          const newAst = {
+            signature: {
+              text: [{ type: 'variable', name: `${name}` }],
+              type: 'signature',
+              path: 'signature',
+            },
+            body: [],
+            type: 'function',
+            path: '',
+          } as Ast;
+
+          const file: File = !newFile.ast
+            ? { ...newFile, ast: newAst }
+            : (newFile as File);
+
           return {
             recent,
-            files: [...files, newFile as File],
+            files: [...files, file],
           };
         };
         queryClient.setQueryData(['files'], updater);

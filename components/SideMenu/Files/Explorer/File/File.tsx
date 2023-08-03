@@ -72,6 +72,7 @@ export const File = ({ path, isNew }: FileProps) => {
       saveCurrentFile.mutate();
     }
     createFile.mutate({ type: 'file', path });
+    selectFile.mutate(path);
     setNewPath(null);
 
     const name = path.substring(path.lastIndexOf('/') + 1);
@@ -153,7 +154,10 @@ export const File = ({ path, isNew }: FileProps) => {
     switch (e.key) {
       case 'Enter':
         handleRename();
-        if (isNew) createNewFile(path + inputRef.current?.value!);
+        if (isNew) {
+          const newPath = path + inputRef.current?.value!;
+          createNewFile(newPath);
+        }
         break;
 
       case 'Delete':
