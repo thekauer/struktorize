@@ -284,6 +284,21 @@ const incrementAt = (scope: Scope, ast: Ast, depth: number): Scope => {
   return incrementAt(parentScope, ast, depth - 1);
 };
 
+const clearIndexes = (scope: Scope, ast: Ast) => {
+  const node = get(scope, ast);
+  const text = traverse(node, (node) =>
+    (node as TraversableAstNode).text.filter(
+      (text) =>
+        !(
+          (text.type === 'subscript' || text.type === 'superscript') &&
+          text.text.length === 0
+        ),
+    ),
+  );
+
+  return set(scope, ast, { ...node, text });
+};
+
 const prepare = (scope: Scope, node: Ast): Ast => {
   const path = incrementScope(scope).join('.');
   switch (node.type) {
@@ -877,6 +892,7 @@ export const remove = (scope: Scope, ast: Ast, strict = false): CST => {
 export const add = (scope: Scope, ast: Ast, node: Ast): CST => {
   if (isCaseOutsideSwitch(scope, node)) return { scope, ast };
 
+  ast = clearIndexes(scope, ast);
   const newNode = prepare(scope, node);
   const newBody = createBody(scope, ast, newNode);
   const newAst = isCaseInsideSwitch(scope, node)

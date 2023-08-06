@@ -151,6 +151,7 @@ function reducer(state: State, action: Action): State {
     case 'add': {
       return pushHistory({
         ...state,
+        insertMode: 'normal',
         ...add(scope, ast, action.payload),
         changed: true,
       });
@@ -460,6 +461,7 @@ export const useNode = (path: string | null) => {
   return {
     $hovered: hovered,
     $selected: isSelected,
+    $active: hovered,
     onClick,
     className: hovered ? 'hovered' : undefined,
   };

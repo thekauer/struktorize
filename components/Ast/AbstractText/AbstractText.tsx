@@ -11,6 +11,8 @@ import {
   Variable,
 } from '@/lib/ast';
 import { Latex } from '../Latex/Latex';
+import { useState } from 'react';
+import * as S from './AbstractText.atoms';
 
 interface AbstractTextProps {
   children: AbstractTextType;
@@ -111,7 +113,7 @@ const transform = (text: AbstractTextType, insertmode: InsertMode) => {
   return text
     .map((char, index, { length }): string => {
       const isLast = index === length - 1;
-      const isHighlighted = isLast && insertmode === 'inside'; //TODO: && insertmode is ""nside"
+      const isHighlighted = isLast && insertmode === 'inside';
       switch (char.type) {
         case 'variable': {
           const text = (char as Variable).name;
@@ -140,5 +142,19 @@ const transform = (text: AbstractTextType, insertmode: InsertMode) => {
 
 export const AbstractText = ({ children }: AbstractTextProps) => {
   const { insertMode } = useAstState();
-  return <Latex>{transform(children, insertMode)}</Latex>;
+  const text = transform(children, insertMode);
+  const [cursor, setCursor] = useState(text.length);
+
+  if (insertMode !== 'edit') return <Latex>{text}</Latex>;
+
+  const left = text.slice(0, cursor);
+  const right = text.slice(cursor);
+
+  return (
+    <>
+      <Latex>{left}</Latex>
+      <S.Cursor />
+      <Latex>{right}</Latex>
+    </>
+  );
 };
