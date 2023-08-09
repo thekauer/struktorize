@@ -2,6 +2,8 @@
 
 import { Ast } from '../../../lib/ast';
 import { Branch } from '../Branch/Branch';
+import { Switch } from '../Switch/Switch';
+import { Case } from '../Case/Case';
 import { Function } from '../Function/Function';
 import { Loop } from '../Loop/Loop';
 import { Signature } from '../Signature/Signature';
@@ -18,6 +20,8 @@ export const Render = ({ head }: RenderProps) => {
     ['statement', Statement],
     ['branch', Branch],
     ['loop', Loop],
+    ['switch', Switch],
+    ['case', Case],
   ]);
 
   if (!head) return null;

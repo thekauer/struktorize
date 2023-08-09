@@ -9,7 +9,8 @@ import { CodeCompletion } from './CodeCompletion/CodeCompletion';
 import { useCodeCompletion } from './CodeCompletion/useCodeCompletion';
 
 const Root = () => {
-  const { ast } = useAstState();
+  const { ast, scope } = useAstState();
+  console.log(scope, ast);
 
   return (
     <S.Root>

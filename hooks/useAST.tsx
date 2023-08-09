@@ -345,6 +345,21 @@ export const useAst = () => {
     });
     callChangeListeners();
   };
+  const addSwitch = () => {
+    dispatch({
+      type: 'add',
+      payload: { type: 'switch', cases: [], path: '' },
+    });
+    callChangeListeners();
+  };
+
+  const addCase = () => {
+    dispatch({
+      type: 'add',
+      payload: { type: 'case', body: [], path: '', text: [] },
+    });
+    callChangeListeners();
+  };
   const backspace = (n = 1) => {
     for (let i = 0; i < n; i++)
       dispatch({ type: 'backspace', payload: { force: false } });
@@ -398,6 +413,8 @@ export const useAst = () => {
     addStatement,
     addIf,
     addLoop,
+    addSwitch,
+    addCase,
     backspace,
     deleteBlock,
     popLastText,

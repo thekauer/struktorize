@@ -3,6 +3,8 @@ import { CodeCompletionItem } from '@/components/Editor/CodeCompletion/useCodeCo
 export const defaultCodeCompletions: CodeCompletionItem[] = [
   { value: 'if', type: 'keyword' },
   { value: 'loop', type: 'keyword' },
+  { value: 'switch', type: 'keyword' },
+  { value: 'case', type: 'keyword' },
   { value: 'pi', type: 'symbol', symbol: { type: 'pi' } },
   { value: 'epsilon', type: 'symbol', symbol: { type: 'epsilon' } },
   { value: 'in', type: 'symbol', symbol: { type: 'in' } },

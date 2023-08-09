@@ -1,4 +1,11 @@
-type AstType = 'function' | 'signature' | 'branch' | 'loop' | 'statement';
+type AstType =
+  | 'function'
+  | 'signature'
+  | 'branch'
+  | 'switch'
+  | 'case'
+  | 'loop'
+  | 'statement';
 
 export interface AstBase {
   path: string;
@@ -87,11 +94,22 @@ export interface BranchAst extends AstBase {
   elseBranch: AstNode[];
 }
 
+export interface CaseAst extends AstBase {
+  text: AbstractText;
+  body: AstNode[];
+}
+
+export interface SwitchAst extends AstBase {
+  cases: CaseAst[];
+}
+
 export type Ast =
   | FunctionAst
   | SignatureAst
   | BranchAst
   | LoopAst
+  | SwitchAst
+  | CaseAst
   | StatementAst;
 
 export type AstNode = Exclude<Ast, FunctionAst>;
@@ -107,7 +125,9 @@ export const get = (scope: Scope, ast: Ast) =>
   scope[0] === '' ? ast : scope.reduce((acc: any, curr) => acc[curr], ast);
 
 const grandParent = (scope: Scope, ast: Ast) => {
-  const parent = scope.slice(0, -2);
+  const isSwitch = scope.at(-2) === 'cases' && scope.at(-1) === '0';
+  const parent = isSwitch ? scope.slice(0, -4) : scope.slice(0, -2);
+  // const parent = scope.slice(0, -2);
   return parent.length === 0
     ? ast
     : parent.reduce((acc: any, curr) => acc[curr], ast);
@@ -129,15 +149,24 @@ const swapBranch = (scope: Scope, ast: Ast) => {
   return [...branchScope, otherBranch, Math.min(index, length - 1).toString()];
 };
 
-const getBody = (scope: Scope, ast: any | Ast) => {
+const getBodyName = (scope: Scope, ast: any | Ast) => {
   switch (ast.type) {
     case 'function':
     case 'loop':
-      return ast.body;
+      return 'body';
     case 'branch':
-      const last = scope.at(-2)!;
-      return ast[last];
+      return scope.at(-2)!;
+    case 'case':
+      return 'body';
+    case 'switch':
+      return 'cases';
+    default:
+      return 'body';
   }
+};
+
+const getBody = (scope: Scope, ast: any | Ast) => {
+  return ast[getBodyName(scope, ast)];
 };
 
 const isLast = (scope: Scope, ast: Ast) => {
@@ -259,13 +288,71 @@ const prepare = (scope: Scope, node: Ast): Ast => {
         path,
         body: [{ type: 'statement', path: `${path}.body.0`, text: [] }],
       } as Ast;
+    case 'switch':
+      return {
+        ...node,
+        path,
+        cases: [
+          {
+            type: 'case',
+            path: `${path}.cases.0`,
+            text: [],
+            body: [{ type: 'statement', path: `${path}.body.0`, text: [] }],
+          },
+          {
+            type: 'case',
+            path: `${path}.cases.1`,
+            text: [],
+            body: [{ type: 'statement', path: `${path}.body.0`, text: [] }],
+          },
+        ],
+      } as Ast;
+    case 'case':
+      return {
+        ...node,
+        path,
+        text: [],
+        body: [{ type: 'statement', path: `${path}.cases.0.body.0`, text: [] }],
+      } as Ast;
   }
 
   //TODO: remove this
   return node;
 };
 
+const getClosestSwitch = (scope: Scope, ast: Ast): SwitchAst | null => {
+  if (!scope.includes('cases')) return null;
+  if (scope.length < 2) return null;
+  const parent = get(scope.slice(0, -2), ast);
+  if (parent.type === 'switch') {
+    return parent as SwitchAst;
+  }
+  return getClosestSwitch(parent.path.split('.'), ast);
+};
+
+const incrementCase = (scope: Scope, ast: Ast): Scope => {
+  const parent = getClosestSwitch(scope, ast)!;
+  const parentScope = parent.path.split('.');
+  const max = parent.cases.length - 1;
+  const index = scopeIndex(scope) + 1;
+
+  return parentScope.concat('cases').concat(Math.min(max, index).toString());
+};
+
+const decrementCase = (scope: Scope): Scope => {
+  const index = scopeIndex(scope) - 1;
+
+  return scope.slice(0, -1).concat(Math.max(0, index).toString());
+};
+
 const createBody = (scope: Scope, ast: Ast, node: Ast) => {
+  if (node.type === 'case') {
+    const closestSwitch = getClosestSwitch(scope, ast)!;
+    const body = closestSwitch.cases;
+    const index = body.length;
+    return insert(scope, body, index, node);
+  }
+
   const parent = grandParent(scope, ast);
   const parentBody = getBody(scope, parent);
   const index = scopeIndex(scope);
@@ -288,7 +375,7 @@ const correctPathsHelper = (scope: Scope, ast: AstNode): AstNode => {
   const path = scope.join('.');
 
   switch (ast.type) {
-    case 'branch':
+    case 'branch': {
       const { ifBranch, elseBranch } = ast as BranchAst;
       return {
         ...ast,
@@ -306,7 +393,9 @@ const correctPathsHelper = (scope: Scope, ast: AstNode): AstNode => {
           ),
         ),
       };
-    case 'loop':
+    }
+
+    case 'loop': {
       const { body } = ast as LoopAst;
 
       return {
@@ -319,6 +408,37 @@ const correctPathsHelper = (scope: Scope, ast: AstNode): AstNode => {
           ),
         ),
       };
+    }
+
+    case 'switch': {
+      const { cases } = ast as SwitchAst;
+      return {
+        ...ast,
+        path,
+        cases: cases.map(
+          (child, index) =>
+            correctPathsHelper(
+              setIndex(`${path}.cases.0`, index).split('.'),
+              child,
+            ) as CaseAst,
+        ),
+      };
+    }
+
+    case 'case': {
+      const { body } = ast as CaseAst;
+      return {
+        ...ast,
+        path,
+        body: body.map((child, index) =>
+          correctPathsHelper(
+            setIndex(`${path}.body.0`, index).split('.'),
+            child,
+          ),
+        ),
+      };
+    }
+
     default:
       return { ...ast, path: scope.join('.') };
   }
@@ -339,15 +459,22 @@ const setBody = (scope: Scope, ast: Ast, body: Ast[]) => {
   const parent = grandParent(scope, ast);
   const newAst = structuredClone(ast);
   const parentScope = parent.path.split('.');
-  const bodyName = scope.at(-2) || 'body';
+  const bodyName = getBodyName(scope, parent);
   get(parentScope, newAst)[bodyName] = body;
   return correctPaths(newAst);
 };
 
-const set = (scope: Scope, ast: Ast, node: Ast): Ast => {
+const set = (scope: Scope, ast: Ast, node: Ast | Ast[]): Ast => {
   const newAst = structuredClone(ast);
   get(scope.slice(0, -1), newAst)[scope.at(-1)!] = node;
   return newAst;
+};
+
+const addCase = (scope: Scope, ast: Ast, body: Ast[]) => {
+  const parent = getClosestSwitch(scope, ast)!;
+  const parentScope = parent.path.split('.').concat('cases');
+  const newAst = set(parentScope, ast, body);
+  return correctPaths(newAst);
 };
 
 const isAddingToPlaceholder = (scope: Scope, ast: Ast, node: Ast) => {
@@ -362,6 +489,35 @@ const isAddingToPlaceholder = (scope: Scope, ast: Ast, node: Ast) => {
 const isOnCondition = (scope: Scope, ast: Ast) => {
   const current = get(scope, ast);
   return current.type === 'branch' || current.type === 'loop';
+};
+
+const isOnSwitch = (scope: Scope, ast: Ast) => {
+  const current = get(scope, ast);
+  return current.type === 'case';
+};
+
+const isCaseOutsideSwitch = (scope: Scope, node: Ast) => {
+  return node.type === 'case' && !scope.includes('cases');
+};
+
+const isCaseInsideSwitch = (scope: Scope, node: Ast) => {
+  return node.type === 'case' && scope.includes('cases');
+};
+
+const getScopeAfterAdd = (scope: Scope, ast: Ast, node: Ast) => {
+  if (isOnCondition(scope, ast)) return incrementScope(scope);
+  if (isOnSwitch(scope, ast) && node.type === 'switch') {
+    return incrementScope(scope.slice(0, -2)).concat(['cases', '0']);
+  }
+
+  if (node.type === 'case') {
+    const switchAst = getClosestSwitch(scope, ast)!;
+    const { length } = switchAst.cases;
+
+    return switchAst.path.split('.').concat(['cases', (length - 1).toString()]);
+  }
+
+  return down(scope, ast);
 };
 
 const getChildScopes = (scope: Scope, ast: Ast): Scope[] => {
@@ -388,38 +544,6 @@ const getChildScopes = (scope: Scope, ast: Ast): Scope[] => {
       ];
     default:
       return [scope];
-  }
-};
-export const up = (scope: Scope, ast: Ast): Scope => {
-  const last = scope.at(-1);
-  if (last === '0') {
-    const { type } = grandParent(scope, ast);
-    switch (type) {
-      case 'function':
-        return scope.slice(0, -2).concat('signature');
-      case 'branch':
-        return scope.slice(0, -2);
-      default:
-        return scope.slice(0, -2);
-    }
-  }
-
-  switch (last) {
-    case 'signature':
-      return scope;
-
-    //number
-    default:
-      const newScope = scope.slice(0, -1).concat((Number(last) - 1).toString());
-      const node = get(newScope, ast);
-      if (node.type === 'branch') {
-        return node.ifBranch.at(-1).path.split('.');
-      }
-      if (node.type === 'loop') {
-        return node.body.at(-1).path.split('.');
-      }
-
-      return newScope;
   }
 };
 
@@ -450,11 +574,83 @@ export const traverse = <T, U = T extends Array<any> ? T : T[]>(
         ...body.flatMap((child) => traverse(child, callback)),
       ].flat() as U;
     }
+    case 'switch': {
+      const { cases } = ast as SwitchAst;
+      return [
+        ...cases.flatMap((child) => traverse(child, callback)),
+      ].flat() as U;
+    }
+    case 'case': {
+      const { body } = ast as CaseAst;
+      return [
+        callback(ast as AstNode),
+        ...body.flatMap((child) => traverse(child, callback)),
+      ].flat() as U;
+    }
   }
   return [callback(ast as AstNode)].flat() as U;
 };
 
-export const down = (scope: Scope, ast: Ast): Scope => {
+const movement = (
+  move: (scope: Scope, ast: Ast, originalScope?: Scope) => Scope,
+) => {
+  return (scope: Scope, ast: Ast, originalScope: Scope = scope) => {
+    const newScope = move(scope, ast, originalScope);
+    const node = get(newScope, ast);
+    if (node.type === 'switch') {
+      return newScope.concat(['cases', '0']);
+    }
+    return newScope;
+  };
+};
+
+export const up = movement((scope: Scope, ast: Ast): Scope => {
+  const last = scope.at(-1);
+  if (last === '0') {
+    const { type } = grandParent(scope, ast);
+    switch (type) {
+      case 'function':
+        const current = get(scope, ast);
+        if (current.type === 'case') {
+          return scope.slice(0, -4).concat('signature');
+        }
+
+        return scope.slice(0, -2).concat('signature');
+      case 'branch':
+        return scope.slice(0, -2);
+      case 'case':
+        return scope.slice(0, -2);
+      default:
+        return scope.slice(0, -2);
+    }
+  }
+
+  switch (last) {
+    case 'signature':
+      return scope;
+
+    //number
+    default:
+      const newScope = scope.slice(0, -1).concat((Number(last) - 1).toString());
+      const node = get(newScope, ast);
+      if (node.type === 'branch') {
+        return node.ifBranch.at(-1).path.split('.');
+      }
+      if (node.type === 'loop') {
+        return node.body.at(-1).path.split('.');
+      }
+      if (node.type === 'switch') {
+        return node.cases.at(0).body.at(-1).path.split('.');
+      }
+      if (node.type === 'case') {
+        const newScope = scope.slice(0, -4);
+        return newScope.length === 0 ? ['signature'] : newScope;
+      }
+      return newScope;
+  }
+});
+
+export const down = movement((scope: Scope, ast: Ast): Scope => {
   if (isOnSignature(scope) && (ast as FunctionAst).body.length === 0) {
     return scope;
   }
@@ -466,74 +662,110 @@ export const down = (scope: Scope, ast: Ast): Scope => {
       return [...scope, 'ifBranch', '0'];
     case 'loop':
       return [...scope, 'body', '0'];
+    case 'case':
+      return [...scope, 'body', '0'];
 
     default:
       if (!isLast(scope, ast)) return incrementScope(scope);
 
       return tryIncrementScope(scope, ast);
   }
-};
+});
 
-export const left = (
-  scope: Scope,
-  ast: Ast,
-  originalScope: Scope = scope,
-): Scope => {
-  const parent = grandParent(scope, ast);
-  const parentScope = parent.path.split('.');
-  switch (parent.type) {
-    case 'loop':
-      return scope.slice(0, -2);
-    case 'branch': {
-      if (isOnIfBranch(scope)) {
-        const hitTheWall =
-          left(parentScope, ast, originalScope) === originalScope;
+export const left = movement(
+  (scope: Scope, ast: Ast, originalScope: Scope = scope): Scope => {
+    const parent = grandParent(scope, ast);
+    const parentScope = parent.path.split('.');
+    const current = get(scope, ast);
 
-        if (hitTheWall) {
-          return originalScope;
-        }
-
-        const leftScope = left(parentScope, ast, originalScope);
-        const leftNode = get(leftScope, ast);
-        const newScope = down(leftScope, ast);
-
-        return leftNode.type === 'branch' ? right(newScope, ast) : newScope;
-      }
-
-      return swapBranch(scope, ast);
+    if (current.type === 'case') {
+      return decrementCase(scope);
     }
 
-    default:
-      return originalScope;
-  }
-};
+    switch (parent.type) {
+      case 'loop':
+        return scope.slice(0, -2);
+      case 'branch': {
+        if (isOnIfBranch(scope)) {
+          const hitTheWall =
+            left(parentScope, ast, originalScope) === originalScope;
 
-export const right = (scope: Scope, ast: Ast, originalScope = scope): Scope => {
-  const parent = grandParent(scope, ast);
-  const parentScope = parent.path.split('.');
+          if (hitTheWall) {
+            return originalScope;
+          }
 
-  switch (parent.type) {
-    case 'function':
-      return originalScope;
-    case 'branch': {
-      if (!isOnIfBranch(scope)) {
-        const hitTheWall =
-          right(parentScope, ast, originalScope) === originalScope;
+          const leftScope = left(parentScope, ast, originalScope);
+          const leftNode = get(leftScope, ast);
+          const newScope = down(leftScope, ast);
 
-        if (hitTheWall) {
-          return originalScope;
+          return leftNode.type === 'branch' ? right(newScope, ast) : newScope;
         }
 
-        return down(right(parentScope, ast, originalScope), ast);
+        return swapBranch(scope, ast);
       }
 
-      return swapBranch(scope, ast);
+      case 'case': {
+        const nextCaseScope = decrementCase(parentScope);
+        const nextCase = get(nextCaseScope, ast);
+        const currentIndex = scopeIndex(current.path.split('.'));
+        const maxIndex = nextCase.body.length - 1;
+
+        return nextCaseScope.concat([
+          'body',
+          Math.min(currentIndex, maxIndex).toString(),
+        ]);
+      }
+
+      default:
+        return originalScope;
+    }
+  },
+);
+
+export const right = movement(
+  (scope: Scope, ast: Ast, originalScope = scope): Scope => {
+    const parent = grandParent(scope, ast);
+    const parentScope = parent.path.split('.');
+    const current = get(scope, ast);
+
+    if (current.type === 'case') {
+      return incrementCase(scope, ast);
     }
 
-    default:
-      return down(right(parentScope, ast), ast);
-  }
-};
+    switch (parent.type) {
+      case 'function':
+        return originalScope;
+      case 'branch': {
+        if (!isOnIfBranch(scope)) {
+          const hitTheWall =
+            right(parentScope, ast, originalScope) === originalScope;
+
+          if (hitTheWall) {
+            return originalScope;
+          }
+
+          return down(right(parentScope, ast, originalScope), ast);
+        }
+
+        return swapBranch(scope, ast);
+      }
+      case 'case': {
+        const nextCaseScope = incrementCase(parentScope, ast);
+        const nextCase = get(nextCaseScope, ast);
+        const currentIndex = scopeIndex(current.path.split('.'));
+        const maxIndex = nextCase.body.length - 1;
+
+        return nextCaseScope.concat([
+          'body',
+          Math.min(currentIndex, maxIndex).toString(),
+        ]);
+      }
+
+      default:
+        return down(right(parentScope, ast), ast);
+    }
+  },
+);
 
 export const remove = (scope: Scope, ast: Ast, strict = false): CST => {
   if (isOnSignature(scope)) return { scope, ast };
@@ -573,17 +805,19 @@ export const remove = (scope: Scope, ast: Ast, strict = false): CST => {
 };
 
 export const add = (scope: Scope, ast: Ast, node: Ast): CST => {
+  if (isCaseOutsideSwitch(scope, node)) return { scope, ast };
+
   const newNode = prepare(scope, node);
   const newBody = createBody(scope, ast, newNode);
-  const newAst = setBody(scope, ast, newBody);
-
-  const newScope = isOnCondition(scope, newAst)
-    ? incrementScope(scope)
-    : down(scope, newAst);
+  const newAst = isCaseInsideSwitch(scope, node)
+    ? addCase(scope, ast, newBody)
+    : setBody(scope, ast, newBody);
+  const newScope = getScopeAfterAdd(scope, newAst, node);
 
   if (isAddingToPlaceholder(scope, ast, node)) {
     return remove(scope, newAst);
   }
+
   return { scope: newScope, ast: newAst };
 };
 

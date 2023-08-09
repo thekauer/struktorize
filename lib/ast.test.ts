@@ -1,4 +1,4 @@
-import { down, up, left, right, remove, Ast } from './ast';
+import { down, up, left, right, remove, Ast, add, FunctionAst } from './ast';
 
 describe('ast', () => {
   describe('down', () => {
@@ -611,6 +611,243 @@ describe('ast', () => {
         const actual = down(scope, ast);
         const expected = 'body.1';
         expect(actual.join('.')).toBe(expected);
+      });
+    });
+
+    describe('switch/case', () => {
+      it("should go down to first case's condition", () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['signature'];
+        const actual = down(scope, ast);
+        expect(actual.join('.')).toBe('body.0.cases.0');
+      });
+
+      it("should go down to first case's body from its condition", () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '0'];
+        const actual = down(scope, ast);
+        expect(actual.join('.')).toBe('body.0.cases.0.body.0');
+      });
+
+      it("should go down to second case's body from its condition", () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '1'];
+        const actual = down(scope, ast);
+        expect(actual.join('.')).toBe('body.0.cases.1.body.0');
+      });
+
+      it('should not go down if switch is the last ast and the scope is on the last ast of the first case', () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '0', 'body', '0'];
+        const actual = down(scope, ast);
+        expect(actual.join('.')).toBe('body.0.cases.0.body.0');
+      });
+
+      it('should not go down if switch is the last ast and the scope is on the last ast of the second case', () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '1', 'body', '0'];
+        const actual = down(scope, ast);
+        expect(actual.join('.')).toBe('body.0.cases.1.body.0');
       });
     });
   });
@@ -1251,6 +1488,196 @@ describe('ast', () => {
         expect(actual.join('.')).toBe('body.0.ifBranch.2');
       });
     });
+
+    describe('switch/case', () => {
+      it('should go up from switch condition to signature when switch is the first ast', () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '0'];
+        const actual = up(scope, ast);
+        expect(actual.join('.')).toBe('signature');
+      });
+
+      it("should go up from the second cases's condition to signature when switch is the first ast", () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '1'];
+        const actual = up(scope, ast);
+        expect(actual.join('.')).toBe('signature');
+      });
+
+      it('should go up from the first statement in the first case to the switch/case condition', () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '0', 'body', '0'];
+        const actual = up(scope, ast);
+        expect(actual.join('.')).toBe('body.0.cases.0');
+      });
+
+      it("should go up from the first statement in the second case to the second case's condition", () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '1', 'body', '0'];
+        const actual = up(scope, ast);
+        expect(actual.join('.')).toBe('body.0.cases.1');
+      });
+    });
   });
 
   describe('left', () => {
@@ -1523,6 +1950,258 @@ describe('ast', () => {
         expect(actual.join('.')).toBe('body.0.ifBranch.0');
       });
     });
+
+    describe('switch/case', () => {
+      it("should go left from second case's condition to the first case's condition", () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '1'];
+        const actual = left(scope, ast);
+        expect(actual.join('.')).toBe('body.0.cases.0');
+      });
+
+      it("should go left from second case's first ast to the first case's first ast", () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '1', 'body', '0'];
+        const actual = left(scope, ast);
+        expect(actual.join('.')).toBe('body.0.cases.0.body.0');
+      });
+
+      it("should go left from second case's second ast to the first case's second ast", () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.1',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.1',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '1', 'body', '1'];
+        const actual = left(scope, ast);
+        expect(actual.join('.')).toBe('body.0.cases.0.body.1');
+      });
+
+      it("should go left from second case's last ast to the first case's last ast when there are more nodes inside second case", () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.1',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '1', 'body', '1'];
+        const actual = left(scope, ast);
+        expect(actual.join('.')).toBe('body.0.cases.0.body.0');
+      });
+
+      it('should not go left from the leftmost case', () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '0'];
+        const actual = left(scope, ast);
+        expect(actual.join('.')).toBe('body.0.cases.0');
+      });
+    });
   });
 
   describe('right', () => {
@@ -1748,6 +2427,306 @@ describe('ast', () => {
         expect(actual.join('.')).toBe('body.0.elseBranch.0');
       });
     });
+
+    describe('switch/case', () => {
+      it("should go right from first case's condition to the second case's condition", () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.2',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.2.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '0'];
+        const actual = right(scope, ast);
+        expect(actual.join('.')).toBe('body.0.cases.1');
+      });
+
+      it("should go right from first case's first ast to the second case's first ast", () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.2',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.2.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '0', 'body', '0'];
+        const actual = right(scope, ast);
+        expect(actual.join('.')).toBe('body.0.cases.1.body.0');
+      });
+
+      it("should go right from first case's second ast to the second case's second ast", () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.1',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.1',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.2',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.2.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '0', 'body', '1'];
+        const actual = right(scope, ast);
+        expect(actual.join('.')).toBe('body.0.cases.1.body.1');
+      });
+
+      it("should go right from first case's last ast to the second case's last ast when there are more nodes inside the first case", () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.1',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.2',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.2.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '0', 'body', '1'];
+        const actual = right(scope, ast);
+        expect(actual.join('.')).toBe('body.0.cases.1.body.0');
+      });
+
+      it('should not go right from the rightmost case', () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '1'];
+        const actual = right(scope, ast);
+        expect(actual.join('.')).toBe('body.0.cases.1');
+      });
+    });
   });
 
   describe('remove', () => {
@@ -1809,6 +2788,431 @@ describe('ast', () => {
       } as any;
 
       expect(actual).toEqual(expected);
+    });
+  });
+
+  describe('add', () => {
+    describe('switch', () => {
+      it('should add switch to the function', () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['signature'];
+
+        const actual = add(scope, ast, { type: 'switch', cases: [], path: '' });
+        expect(actual.scope.join('.')).toBe('body.0.cases.0');
+        const actualAst = actual.ast as FunctionAst;
+        expect(actualAst.body).toEqual([
+          {
+            type: 'switch',
+            cases: [
+              {
+                type: 'case',
+                path: 'body.0.cases.0',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.0.cases.0.body.0',
+                  },
+                ],
+              },
+              {
+                type: 'case',
+                path: 'body.0.cases.1',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.0.cases.1.body.0',
+                  },
+                ],
+              },
+            ],
+            path: 'body.0',
+          },
+        ]);
+      });
+
+      it('should add switch below a switch', () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '0'];
+
+        const actual = add(scope, ast, { type: 'switch', cases: [], path: '' });
+        expect(actual.scope.join('.')).toBe('body.1.cases.0');
+
+        const actualAst = actual.ast as FunctionAst;
+
+        expect(actualAst.body[1]).toEqual({
+          type: 'switch',
+          cases: [
+            {
+              type: 'case',
+              path: 'body.1.cases.0',
+              text: [],
+              body: [
+                {
+                  type: 'statement',
+                  text: [],
+                  path: 'body.1.cases.0.body.0',
+                },
+              ],
+            },
+            {
+              type: 'case',
+              path: 'body.1.cases.1',
+              text: [],
+              body: [
+                {
+                  type: 'statement',
+                  text: [],
+                  path: 'body.1.cases.1.body.0',
+                },
+              ],
+            },
+          ],
+          path: 'body.1',
+        });
+      });
+      it('should add switch inside a switch', () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '0', 'body', '0'];
+
+        const actual = add(scope, ast, { type: 'switch', cases: [], path: '' });
+        expect(actual.scope.join('.')).toBe('body.0.cases.0.body.1.cases.0');
+
+        const actualAst = actual.ast as FunctionAst;
+
+        expect(actualAst.body).toEqual([
+          {
+            type: 'switch',
+            cases: [
+              {
+                type: 'case',
+                path: 'body.0.cases.0',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.0.cases.0.body.0',
+                  },
+                  {
+                    type: 'switch',
+                    cases: [
+                      {
+                        type: 'case',
+                        path: 'body.0.cases.0.body.1.cases.0',
+                        text: [],
+                        body: [
+                          {
+                            type: 'statement',
+                            text: [],
+                            path: 'body.0.cases.0.body.1.cases.0.body.0',
+                          },
+                        ],
+                      },
+                      {
+                        type: 'case',
+                        path: 'body.0.cases.0.body.1.cases.1',
+                        text: [],
+                        body: [
+                          {
+                            type: 'statement',
+                            text: [],
+                            path: 'body.0.cases.0.body.1.cases.1.body.0',
+                          },
+                        ],
+                      },
+                    ],
+                    path: 'body.0.cases.0.body.1',
+                  },
+                ],
+              },
+              {
+                type: 'case',
+                path: 'body.0.cases.1',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.0.cases.1.body.0',
+                  },
+                ],
+              },
+            ],
+            path: 'body.0',
+          },
+        ]);
+      });
+    });
+
+    describe('case', () => {
+      it('should not add a case if there is no switch', () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['signature'];
+
+        const actual = add(scope, ast, {
+          type: 'case',
+          cases: [],
+          path: '',
+          text: [],
+        });
+        expect(actual.scope.join('.')).toBe('signature');
+        const actualAst = actual.ast as FunctionAst;
+        expect(actualAst).toEqual(ast);
+      });
+
+      it('should not add case if scope is outside switch', () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['signature'];
+
+        const actual = add(scope, ast, {
+          type: 'case',
+          cases: [],
+          path: '',
+          text: [],
+        });
+        expect(actual.scope.join('.')).toBe('signature');
+        const actualAst = actual.ast as FunctionAst;
+        expect(actualAst).toEqual(ast);
+      });
+
+      it('should add case inside a switch', () => {
+        const ast = {
+          signature: {
+            type: 'signature',
+            path: 'signature',
+            text: [{ type: 'variable', name: 'none' }],
+          },
+          body: [
+            {
+              type: 'switch',
+              cases: [
+                {
+                  type: 'case',
+                  path: 'body.0.cases.0',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.0.body.0',
+                    },
+                  ],
+                },
+                {
+                  type: 'case',
+                  path: 'body.0.cases.1',
+                  text: [],
+                  body: [
+                    {
+                      type: 'statement',
+                      text: [],
+                      path: 'body.0.cases.1.body.0',
+                    },
+                  ],
+                },
+              ],
+              path: 'body.0',
+            },
+          ],
+          type: 'function',
+          path: '',
+        } as Ast;
+        const scope = ['body', '0', 'cases', '0'];
+
+        const actual = add(scope, ast, {
+          type: 'case',
+          path: '',
+          text: [],
+        });
+        expect(actual.scope.join('.')).toBe('body.0.cases.2');
+        const actualAst = actual.ast as FunctionAst;
+        expect(actualAst.body).toEqual([
+          {
+            type: 'switch',
+            cases: [
+              {
+                type: 'case',
+                path: 'body.0.cases.0',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.0.cases.0.body.0',
+                  },
+                ],
+              },
+              {
+                type: 'case',
+                path: 'body.0.cases.1',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.0.cases.1.body.0',
+                  },
+                ],
+              },
+              {
+                type: 'case',
+                path: 'body.0.cases.2',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.0.cases.2.body.0',
+                  },
+                ],
+              },
+            ],
+            path: 'body.0',
+          },
+        ]);
+      });
     });
   });
 
