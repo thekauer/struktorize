@@ -125,9 +125,8 @@ export const get = (scope: Scope, ast: Ast) =>
   scope[0] === '' ? ast : scope.reduce((acc: any, curr) => acc[curr], ast);
 
 const grandParent = (scope: Scope, ast: Ast) => {
-  const isSwitch = scope.at(-2) === 'cases' && scope.at(-1) === '0';
+  const isSwitch = scope.at(-2) === 'cases';
   const parent = isSwitch ? scope.slice(0, -4) : scope.slice(0, -2);
-  // const parent = scope.slice(0, -2);
   return parent.length === 0
     ? ast
     : parent.reduce((acc: any, curr) => acc[curr], ast);
@@ -137,15 +136,18 @@ const isOnSignature = (scope: Scope) => {
   return scope[0] === 'signature';
 };
 
-const isOnIfBranch = (scope: Scope) => scope.at(-2) === 'ifBranch';
+const isOnIfBranch = (scope: Scope, ast: Ast) => {
+  const parent = grandParent(scope, ast);
+  return scope.at(parent.path.split('.').length) === 'ifBranch';
+};
 
 const swapBranch = (scope: Scope, ast: Ast) => {
   const parent = grandParent(scope, ast);
-  const otherBranch = isOnIfBranch(scope) ? 'elseBranch' : 'ifBranch';
+  const otherBranch = isOnIfBranch(scope, ast) ? 'elseBranch' : 'ifBranch';
   const index = scopeIndex(scope);
   const { length } = parent[otherBranch];
 
-  const branchScope = scope.slice(0, -2);
+  const branchScope = parent.path.split('.');
   return [...branchScope, otherBranch, Math.min(index, length - 1).toString()];
 };
 
@@ -208,6 +210,12 @@ const tryIncrementScope = (
     return isTheLast ? originalScope : incrementScope(scope);
   }
 
+  if (parent.type === 'case') {
+    const parentScope = parent.path.split('.').slice(0, -2);
+    return !isTheLast
+      ? incrementScope(scope)
+      : tryIncrementScope(parentScope, ast, depth++, originalScope);
+  }
   const parentScope = parent.path.split('.');
   return !isTheLast
     ? incrementScope(scope)
@@ -505,16 +513,17 @@ const isCaseInsideSwitch = (scope: Scope, node: Ast) => {
 };
 
 const getScopeAfterAdd = (scope: Scope, ast: Ast, node: Ast) => {
-  if (isOnCondition(scope, ast)) return incrementScope(scope);
-  if (isOnSwitch(scope, ast) && node.type === 'switch') {
-    return incrementScope(scope.slice(0, -2)).concat(['cases', '0']);
-  }
-
   if (node.type === 'case') {
     const switchAst = getClosestSwitch(scope, ast)!;
     const { length } = switchAst.cases;
 
     return switchAst.path.split('.').concat(['cases', (length - 1).toString()]);
+  }
+  if (isOnCondition(scope, ast)) return incrementScope(scope);
+  if (isOnSwitch(scope, ast)) {
+    const newScope = incrementScope(scope.slice(0, -2));
+    if (node.type === 'switch') return newScope.concat('cases', '0');
+    return newScope;
   }
 
   return down(scope, ast);
@@ -606,19 +615,23 @@ const movement = (
 
 export const up = movement((scope: Scope, ast: Ast): Scope => {
   const last = scope.at(-1);
+
+  const current = get(scope, ast);
+  if (current?.type === 'case') {
+    const newScope = scope.slice(0, -2);
+    const isTop = newScope.length === 0 || newScope.at(-1) === '0';
+    const last = newScope.at(-1);
+    return isTop
+      ? ['signature']
+      : newScope.slice(0, -1).concat((Number(last) - 1).toString());
+  }
+
   if (last === '0') {
     const { type } = grandParent(scope, ast);
     switch (type) {
       case 'function':
-        const current = get(scope, ast);
-        if (current.type === 'case') {
-          return scope.slice(0, -4).concat('signature');
-        }
-
         return scope.slice(0, -2).concat('signature');
       case 'branch':
-        return scope.slice(0, -2);
-      case 'case':
         return scope.slice(0, -2);
       default:
         return scope.slice(0, -2);
@@ -678,7 +691,7 @@ export const left = movement(
     const parentScope = parent.path.split('.');
     const current = get(scope, ast);
 
-    if (current.type === 'case') {
+    if (current.type === 'case' && scopeIndex(scope) !== 0) {
       return decrementCase(scope);
     }
 
@@ -686,15 +699,14 @@ export const left = movement(
       case 'loop':
         return scope.slice(0, -2);
       case 'branch': {
-        if (isOnIfBranch(scope)) {
-          const hitTheWall =
-            left(parentScope, ast, originalScope) === originalScope;
+        if (isOnIfBranch(scope, ast)) {
+          const leftScope = left(parentScope, ast, originalScope);
+          const hitTheWall = leftScope === originalScope;
 
           if (hitTheWall) {
             return originalScope;
           }
 
-          const leftScope = left(parentScope, ast, originalScope);
           const leftNode = get(leftScope, ast);
           const newScope = down(leftScope, ast);
 
@@ -706,6 +718,10 @@ export const left = movement(
 
       case 'case': {
         const nextCaseScope = decrementCase(parentScope);
+        const isLastCase =
+          nextCaseScope.join('.') === originalScope.slice(0, -2).join('.');
+        if (isLastCase) return left(parentScope, ast, originalScope);
+
         const nextCase = get(nextCaseScope, ast);
         const currentIndex = scopeIndex(current.path.split('.'));
         const maxIndex = nextCase.body.length - 1;
@@ -729,14 +745,19 @@ export const right = movement(
     const current = get(scope, ast);
 
     if (current.type === 'case') {
-      return incrementCase(scope, ast);
+      const isLastCase =
+        scopeIndex(scope) === get(scope.slice(0, -2), ast)!.cases.length - 1;
+      if (!isLastCase) {
+        return incrementCase(scope, ast);
+      }
+      return originalScope;
     }
 
     switch (parent.type) {
       case 'function':
         return originalScope;
       case 'branch': {
-        if (!isOnIfBranch(scope)) {
+        if (!isOnIfBranch(scope, ast)) {
           const hitTheWall =
             right(parentScope, ast, originalScope) === originalScope;
 
@@ -751,6 +772,11 @@ export const right = movement(
       }
       case 'case': {
         const nextCaseScope = incrementCase(parentScope, ast);
+        const isLastCase =
+          scopeIndex(parentScope) ===
+          getClosestSwitch(scope, ast)!.cases.length - 1;
+        if (isLastCase) return right(parentScope, ast, originalScope);
+
         const nextCase = get(nextCaseScope, ast);
         const currentIndex = scopeIndex(current.path.split('.'));
         const maxIndex = nextCase.body.length - 1;
@@ -770,10 +796,12 @@ export const right = movement(
 export const remove = (scope: Scope, ast: Ast, strict = false): CST => {
   if (isOnSignature(scope)) return { scope, ast };
 
+  const node = get(scope, ast);
   if (strict) {
-    const node = get(scope, ast);
     const parent = grandParent(scope, ast);
     const { length } = getBody(scope, parent);
+
+    if (parent.type === 'switch' && length === 2) return { scope, ast };
 
     const isFirstNodeInBody = length === 1 && node.path.at(-1)! === '0';
     if (isFirstNodeInBody) {
@@ -798,10 +826,13 @@ export const remove = (scope: Scope, ast: Ast, strict = false): CST => {
       });
     }
   }
+  const isThirdOrLaterCase = node.type === 'case' && scopeIndex(scope) > 1;
+
   const newBody = removeFromBody(scope, ast);
   const newAst = setBody(scope, ast, newBody);
+  const newScope = isThirdOrLaterCase ? left(scope, ast) : up(scope, ast);
 
-  return { scope: scope, ast: newAst };
+  return { scope: newScope, ast: newAst };
 };
 
 export const add = (scope: Scope, ast: Ast, node: Ast): CST => {
