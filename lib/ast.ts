@@ -551,6 +551,16 @@ const getChildScopes = (scope: Scope, ast: Ast): Scope[] => {
           getChildScopes(child.path.split('.'), ast),
         ) || []),
       ];
+
+    case 'case': {
+      const caseAst = node as CaseAst;
+      return [
+        scope,
+        ...(caseAst.body.flatMap((child) =>
+          getChildScopes(child.path.split('.'), ast),
+        ) || []),
+      ];
+    }
     default:
       return [scope];
   }
