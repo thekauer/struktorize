@@ -113,6 +113,7 @@ export type Ast =
   | StatementAst;
 
 export type AstNode = Exclude<Ast, FunctionAst>;
+export type TraversableAstNode = Exclude<AstNode, SwitchAst>;
 
 type Scope = string[];
 

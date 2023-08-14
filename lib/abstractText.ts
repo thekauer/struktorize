@@ -2,7 +2,7 @@ import {
   AbstractChar,
   AbstractText,
   Ast,
-  AstNode,
+  TraversableAstNode,
   InsertInsideAvailable,
   Operator,
   Subscript,
@@ -197,7 +197,7 @@ export const deleteLastVariable = (text: AbstractText): AbstractText => {
   return text;
 };
 
-const getAllVariablesInNode = (node: AstNode) => {
+const getAllVariablesInNode = (node: TraversableAstNode) => {
   return node.text.reduce((acc, curr) => {
     switch (curr.type) {
       case 'subscript':
@@ -215,15 +215,20 @@ const getAllVariablesInNode = (node: AstNode) => {
 };
 
 const getAllVariableNames = (body: Ast) => {
-  const variables = traverse(body, (node) => getAllVariablesInNode(node));
+  const variables = traverse(body, (node) =>
+    getAllVariablesInNode(node as TraversableAstNode),
+  );
   return Array.from(new Set(variables.map((variable) => variable.name)));
 };
 
-export const getLastText = (current: AstNode) => {
+export const getLastText = (current: TraversableAstNode) => {
   return getAllVariablesInNode(current).at(-1)?.name;
 };
 
-export const getAllVariablesExceptCurrent = (body: Ast, current: AstNode) => {
+export const getAllVariablesExceptCurrent = (
+  body: Ast,
+  current: TraversableAstNode,
+) => {
   return getAllVariableNames(body).filter(
     (variable) => variable !== getLastText(current),
   );
