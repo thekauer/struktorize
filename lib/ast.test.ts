@@ -2839,6 +2839,54 @@ describe('ast', () => {
       expect(actualAst.body).toEqual([]);
     });
 
+    it('should not remove first statement in a case', () => {
+      const ast = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'switch',
+            cases: [
+              {
+                type: 'case',
+                path: 'body.0.cases.0',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.0.cases.0.body.0',
+                  },
+                ],
+              },
+              {
+                type: 'case',
+                path: 'body.0.cases.1',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.0.cases.1.body.0',
+                  },
+                ],
+              },
+            ],
+            path: 'body.0',
+          },
+        ],
+        type: 'function',
+        path: '',
+      } as Ast;
+      const scope = ['body', '0', 'cases', '0', 'body', '0'];
+      const actual = remove(scope, ast, true);
+      expect(actual.scope.join('.')).toBe('body.0.cases.0.body.0');
+      expect(actual.ast).toEqual(ast);
+    });
+
     it('should remove switch when its the second ast in function body', () => {
       const ast = {
         signature: {

@@ -820,6 +820,7 @@ export const right = movement(
 export const remove = (scope: Scope, ast: Ast, strict = false): CST => {
   if (isOnSignature(scope)) return { scope, ast };
 
+  debugger;
   const node = get(scope, ast);
   if (strict) {
     const parent = grandParent(scope, ast);
@@ -829,11 +830,13 @@ export const remove = (scope: Scope, ast: Ast, strict = false): CST => {
 
     const isFirstNodeInBody = length === 1 && node.path.at(-1)! === '0';
     if (isFirstNodeInBody) {
-      const firstStatementInLoopOrBranch =
+      const firstStatementInLoopOrBranchOrCase =
         node.type === 'statement' &&
-        (parent.type === 'loop' || parent.type === 'branch');
+        (parent.type === 'loop' ||
+          parent.type === 'branch' ||
+          parent.type === 'case');
 
-      if (firstStatementInLoopOrBranch) {
+      if (firstStatementInLoopOrBranchOrCase) {
         // then do not remove it
         return { scope, ast };
       }
