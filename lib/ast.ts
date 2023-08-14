@@ -144,7 +144,10 @@ const isOnIfBranch = (scope: Scope, ast: Ast) => {
 const swapBranch = (scope: Scope, ast: Ast) => {
   const parent = grandParent(scope, ast);
   const otherBranch = isOnIfBranch(scope, ast) ? 'elseBranch' : 'ifBranch';
-  const index = scopeIndex(scope);
+  const index =
+    scope.at(-2) === 'cases'
+      ? scopeIndex(scope.slice(0, -2))
+      : scopeIndex(scope);
   const { length } = parent[otherBranch];
 
   const branchScope = parent.path.split('.');
@@ -157,7 +160,9 @@ const getBodyName = (scope: Scope, ast: any | Ast) => {
     case 'loop':
       return 'body';
     case 'branch':
-      return scope.at(-2)!;
+      const name = scope.at(-2)!;
+      if (name !== 'ifBranch' && name !== 'elseBranch') return scope.at(-4)!;
+      return name;
     case 'case':
       return 'body';
     case 'switch':
@@ -363,7 +368,9 @@ const createBody = (scope: Scope, ast: Ast, node: Ast) => {
 
   const parent = grandParent(scope, ast);
   const parentBody = getBody(scope, parent);
-  const index = scopeIndex(scope);
+  const index = isOnSwitch(scope, ast)
+    ? scopeIndex(scope.slice(0, -2))
+    : scopeIndex(scope);
   return insert(scope, parentBody, index, node);
 };
 
@@ -760,7 +767,6 @@ export const right = movement(
       if (!isLastCase) {
         return incrementCase(scope, ast);
       }
-      return originalScope;
     }
 
     switch (parent.type) {

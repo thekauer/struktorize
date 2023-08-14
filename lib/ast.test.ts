@@ -3603,6 +3603,78 @@ describe('ast', () => {
       expect(actual.join('.')).toBe(expected);
     });
 
+    it('should go right from the last case on a true branch to the statement on the false branch', () => {
+      const ast = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'statement',
+            path: 'body.0',
+            text: [{ type: 'variable', name: 'a' }],
+          },
+          {
+            type: 'branch',
+            path: 'body.1',
+            ifBranch: [
+              {
+                type: 'switch',
+                path: 'body.1.ifBranch.0',
+                cases: [
+                  {
+                    type: 'case',
+                    path: 'body.1.ifBranch.0.cases.0',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.1.ifBranch.0.cases.0.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                  {
+                    type: 'case',
+                    path: 'body.1.ifBranch.0.cases.1',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.1.ifBranch.0.cases.1.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+            elseBranch: [
+              {
+                type: 'statement',
+                path: 'body.1.elseBranch.0',
+                text: [{ type: 'variable', name: 'a' }],
+              },
+            ],
+          },
+          {
+            type: 'statement',
+            path: 'body.2',
+            text: [{ type: 'variable', name: 'a' }],
+          },
+        ],
+        type: 'function',
+        path: '',
+      } as Ast;
+      const scope = ['body', '1', 'ifBranch', '0', 'cases', '1'];
+
+      const actual = right(scope, ast);
+      const expected = 'body.1.elseBranch.0';
+      expect(actual.join('.')).toBe(expected);
+    });
+
     it('should go to rightmost case in switch on the true branch from a switch that is on the false branch of an if when moving left', () => {
       const ast = {
         signature: {
@@ -3698,6 +3770,83 @@ describe('ast', () => {
       const actual = left(scope, ast);
       const expected = 'body.1.ifBranch.0.cases.0';
       expect(actual.join('.')).toBe(expected);
+    });
+
+    it('should add a statement under switch that is on a false branch', () => {
+      const ast = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'statement',
+            path: 'body.0',
+            text: [{ type: 'variable', name: 'a' }],
+          },
+          {
+            type: 'branch',
+            path: 'body.1',
+            ifBranch: [
+              {
+                type: 'statement',
+                path: 'body.1.ifBranch.0',
+                text: [{ type: 'variable', name: 'a' }],
+              },
+            ],
+            elseBranch: [
+              {
+                type: 'switch',
+                path: 'body.1.elseBranch.0',
+                cases: [
+                  {
+                    type: 'case',
+                    path: 'body.1.elseBranch.0.cases.0',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.1.elseBranch.0.cases.0.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                  {
+                    type: 'case',
+                    path: 'body.1.elseBranch.0.cases.1',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.1.elseBranch.0.cases.1.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            type: 'statement',
+            path: 'body.2',
+            text: [{ type: 'variable', name: 'a' }],
+          },
+        ],
+        type: 'function',
+        path: '',
+      } as Ast;
+      const scope = ['body', '1', 'elseBranch', '0', 'cases', '0'];
+
+      const actual = add(scope, ast, {
+        type: 'statement',
+        path: '',
+        text: [],
+      });
+      const expected = 'body.1.elseBranch.1';
+      expect(actual.scope.join('.')).toBe(expected);
+      expect((actual.ast as any).body[1].elseBranch[1].type).toBe('statement');
     });
   });
 });
