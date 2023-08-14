@@ -2789,6 +2789,200 @@ describe('ast', () => {
 
       expect(actual).toEqual(expected);
     });
+
+    it('should remove switch when its the first ast in function body', () => {
+      const ast = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'switch',
+            cases: [
+              {
+                type: 'case',
+                path: 'body.0.cases.0',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.0.cases.0.body.0',
+                  },
+                ],
+              },
+              {
+                type: 'case',
+                path: 'body.0.cases.1',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.0.cases.1.body.0',
+                  },
+                ],
+              },
+            ],
+            path: 'body.0',
+          },
+        ],
+        type: 'function',
+        path: '',
+      } as Ast;
+      const scope = ['body', '0', 'cases', '0'];
+      const actual = remove(scope, ast);
+      expect(actual.scope.join('.')).toBe('signature');
+      const actualAst = actual.ast as any;
+      expect(actualAst.body).toEqual([]);
+    });
+
+    it('should remove switch when its the second ast in function body', () => {
+      const ast = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'statement',
+            path: 'body.0',
+            text: [{ type: 'variable', name: 'a' }],
+          },
+          {
+            type: 'switch',
+            cases: [
+              {
+                type: 'case',
+                path: 'body.1.cases.0',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.1.cases.0.body.0',
+                  },
+                ],
+              },
+              {
+                type: 'case',
+                path: 'body.1.cases.1',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.1.cases.1.body.0',
+                  },
+                ],
+              },
+            ],
+            path: 'body.1',
+          },
+        ],
+        type: 'function',
+        path: '',
+      } as Ast;
+      const scope = ['body', '1', 'cases', '0'];
+      const actual = remove(scope, ast);
+      expect(actual.scope.join('.')).toBe('body.0');
+      const actualAst = actual.ast as any;
+      expect(actualAst.body).toEqual([
+        {
+          type: 'statement',
+          path: 'body.0',
+          text: [{ type: 'variable', name: 'a' }],
+        },
+      ]);
+    });
+
+    it('should remove switch inside switch', () => {
+      const ast = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'switch',
+            cases: [
+              {
+                type: 'case',
+                path: 'body.0.cases.0',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.0.cases.0.body.0',
+                  },
+                  {
+                    type: 'switch',
+                    path: 'body.0.cases.0.body.1',
+                    cases: [
+                      {
+                        type: 'case',
+                        path: 'body.0.cases.0.body.1.cases.0',
+                        text: [],
+                        body: [
+                          {
+                            type: 'statement',
+                            text: [],
+                            path: 'body.0.cases.0.body.1.cases.0.body.0',
+                          },
+                        ],
+                      },
+                      {
+                        type: 'case',
+                        path: 'body.0.cases.0.body.1.cases.1',
+                        text: [],
+                        body: [
+                          {
+                            type: 'statement',
+                            text: [],
+                            path: 'body.0.cases.0.body.1.cases.1.body.0',
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                type: 'case',
+                path: 'body.0.cases.1',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.0.cases.1.body.0',
+                  },
+                ],
+              },
+            ],
+            path: 'body.0',
+          },
+        ],
+        type: 'function',
+        path: '',
+      } as Ast;
+      const scope = ['body', '0', 'cases', '0', 'body', '1', 'cases', '0'];
+      const actual = remove(scope, ast);
+      expect(actual.scope.join('.')).toBe('body.0.cases.0.body.0');
+      const actualAst = actual.ast as any;
+      expect(actualAst.body[0].cases[0].body).toEqual([
+        {
+          type: 'statement',
+          text: [],
+          path: 'body.0.cases.0.body.0',
+        },
+      ]);
+    });
   });
 
   describe('add', () => {

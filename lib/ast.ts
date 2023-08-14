@@ -463,7 +463,10 @@ const correctPathsHelper = (scope: Scope, ast: AstNode): AstNode => {
 const removeFromBody = (scope: Scope, ast: Ast) => {
   const parent = grandParent(scope, ast);
   const parentBody = getBody(scope, parent);
-  const index = scopeIndex(scope);
+  const index =
+    scope.at(-2) === 'cases'
+      ? scopeIndex(scope.slice(0, -2))
+      : scopeIndex(scope);
 
   const newBody = parentBody
     .slice(0, index)
