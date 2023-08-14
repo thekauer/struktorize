@@ -527,7 +527,11 @@ const getScopeAfterAdd = (scope: Scope, ast: Ast, node: Ast) => {
 
     return switchAst.path.split('.').concat(['cases', (length - 1).toString()]);
   }
-  if (isOnCondition(scope, ast)) return incrementScope(scope);
+  if (isOnCondition(scope, ast)) {
+    const newScope = incrementScope(scope);
+    if (node.type === 'switch') return newScope.concat('cases', '0');
+    return newScope;
+  }
   if (isOnSwitch(scope, ast)) {
     const newScope = incrementScope(scope.slice(0, -2));
     if (node.type === 'switch') return newScope.concat('cases', '0');

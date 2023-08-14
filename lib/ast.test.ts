@@ -3848,5 +3848,113 @@ describe('ast', () => {
       expect(actual.scope.join('.')).toBe(expected);
       expect((actual.ast as any).body[1].elseBranch[1].type).toBe('statement');
     });
+
+    it('should add switch under if', () => {
+      const ast = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'branch',
+            path: 'body.0',
+            ifBranch: [
+              {
+                type: 'statement',
+                path: 'body.0.ifBranch.0',
+                text: [{ type: 'variable', name: 'a' }],
+              },
+              {
+                type: 'statement',
+                path: 'body.0.ifBranch.1',
+                text: [{ type: 'variable', name: 'a' }],
+              },
+              {
+                type: 'statement',
+                path: 'body.0.ifBranch.2',
+                text: [{ type: 'variable', name: 'a' }],
+              },
+            ],
+            elseBranch: [
+              {
+                type: 'statement',
+                path: 'body.0.elseBranch.0',
+                text: [{ type: 'variable', name: 'a' }],
+              },
+              {
+                type: 'statement',
+                path: 'body.0.elseBranch.1',
+                text: [{ type: 'variable', name: 'a' }],
+              },
+              {
+                type: 'statement',
+                path: 'body.0.elseBranch.2',
+                text: [{ type: 'variable', name: 'a' }],
+              },
+            ],
+          },
+        ],
+        type: 'function',
+        path: '',
+      } as Ast;
+      const scope = ['body', '0'];
+
+      const actual = add(scope, ast, {
+        type: 'switch',
+        path: '',
+        cases: [],
+      });
+      expect(actual.scope.join('.')).toBe('body.1.cases.0');
+
+      const actualAst = actual.ast as FunctionAst;
+      expect(actualAst.body[1].type).toEqual('switch');
+    });
+
+    it('should add switch under loop', () => {
+      const ast = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'loop',
+            path: 'body.0',
+            body: [
+              {
+                type: 'statement',
+                path: 'body.0.body.0',
+                text: [{ type: 'variable', name: 'a' }],
+              },
+              {
+                type: 'statement',
+                path: 'body.0.body.1',
+                text: [{ type: 'variable', name: 'a' }],
+              },
+              {
+                type: 'statement',
+                path: 'body.0.body.2',
+                text: [{ type: 'variable', name: 'a' }],
+              },
+            ],
+          },
+        ],
+        type: 'function',
+        path: '',
+      } as Ast;
+      const scope = ['body', '0'];
+
+      const actual = add(scope, ast, {
+        type: 'switch',
+        path: '',
+        cases: [],
+      });
+      expect(actual.scope.join('.')).toBe('body.1.cases.0');
+      const actualAst = actual.ast as FunctionAst;
+      expect(actualAst.body[1].type).toEqual('switch');
+    });
   });
 });
