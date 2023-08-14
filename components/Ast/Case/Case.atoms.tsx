@@ -4,12 +4,14 @@ import { StyleProps } from '../../../style/styleProps';
 export const Condition = styled.div<StyleProps>`
   position: relative;
   padding: 0.5em;
+  padding-left: 1.25rem;
   color: var(--s-text);
   background-color: var(--s-bg);
   outline: solid 2px var(--s-border);
   outline-offset: -1px;
   display: grid;
   place-content: center;
+  flex: 1;
   min-width: 6em;
   min-height: 0.5em;
 
