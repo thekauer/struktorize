@@ -4014,6 +4014,116 @@ describe('ast', () => {
       expect(actual.join('.')).toBe(expected);
     });
 
+    it('should go left from case condition to loop condition', () => {
+      const ast = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'loop',
+            path: 'body.0',
+            text: [],
+            body: [
+              {
+                type: 'switch',
+                path: 'body.0.body.0',
+                cases: [
+                  {
+                    type: 'case',
+                    path: 'body.0.body.0.cases.0',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.0.body.0.cases.0.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                  {
+                    type: 'case',
+                    path: 'body.0.body.0.cases.1',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.0.body.0.cases.1.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        type: 'function',
+        path: '',
+      } as Ast;
+      const scope = ['body', '0', 'body', '0', 'cases', '0'];
+
+      const actual = left(scope, ast);
+      expect(actual.join('.')).toBe('body.0');
+    });
+
+    it('should go left from case body to loop condition', () => {
+      const ast = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'loop',
+            path: 'body.0',
+            text: [],
+            body: [
+              {
+                type: 'switch',
+                path: 'body.0.body.0',
+                cases: [
+                  {
+                    type: 'case',
+                    path: 'body.0.body.0.cases.0',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.0.body.0.cases.0.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                  {
+                    type: 'case',
+                    path: 'body.0.body.0.cases.1',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.0.body.0.cases.1.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        type: 'function',
+        path: '',
+      } as Ast;
+      const scope = ['body', '0', 'body', '0', 'cases', '0', 'body', '0'];
+
+      const actual = left(scope, ast);
+      expect(actual.join('.')).toBe('body.0');
+    });
+
     it('should add a statement under switch that is on a false branch', () => {
       const ast = {
         signature: {

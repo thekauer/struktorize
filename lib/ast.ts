@@ -722,6 +722,7 @@ export const left = movement(
 
     switch (parent.type) {
       case 'loop':
+        if (current.type === 'case') return scope.slice(0, -4);
         return scope.slice(0, -2);
       case 'branch': {
         if (isOnIfBranch(scope, ast)) {
