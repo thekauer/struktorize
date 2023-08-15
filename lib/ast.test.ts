@@ -3917,6 +3917,138 @@ describe('ast', () => {
       expect(actual.join('.')).toBe(expected);
     });
 
+    it('should remove third case of the switch', () => {
+      const ast = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'statement',
+            text: [],
+            path: 'body.0',
+          },
+          {
+            type: 'switch',
+            cases: [
+              {
+                type: 'case',
+                path: 'body.1.cases.0',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.1.cases.0.body.0',
+                  },
+                ],
+              },
+              {
+                type: 'case',
+                path: 'body.1.cases.1',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.1.cases.1.body.0',
+                  },
+                ],
+              },
+              {
+                type: 'case',
+                path: 'body.1.cases.2',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.1.cases.2.body.0',
+                  },
+                ],
+              },
+            ],
+            path: 'body.1',
+          },
+        ],
+        type: 'function',
+        path: '',
+      } as Ast;
+      const scope = ['body', '1', 'cases', '2'];
+      const actual = remove(scope, ast, true);
+      expect(actual.scope.join('.')).toBe('body.1.cases.1');
+      const actualAst = actual.ast as any;
+      expect(actualAst.body[1].cases.length).toBe(2);
+    });
+
+    it('should remove second case of a switch of three cases', () => {
+      const ast = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'statement',
+            text: [],
+            path: 'body.0',
+          },
+          {
+            type: 'switch',
+            cases: [
+              {
+                type: 'case',
+                path: 'body.1.cases.0',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.1.cases.0.body.0',
+                  },
+                ],
+              },
+              {
+                type: 'case',
+                path: 'body.1.cases.1',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.1.cases.1.body.0',
+                  },
+                ],
+              },
+              {
+                type: 'case',
+                path: 'body.1.cases.2',
+                text: [],
+                body: [
+                  {
+                    type: 'statement',
+                    text: [],
+                    path: 'body.1.cases.2.body.0',
+                  },
+                ],
+              },
+            ],
+            path: 'body.1',
+          },
+        ],
+        type: 'function',
+        path: '',
+      } as Ast;
+      const scope = ['body', '1', 'cases', '1'];
+      const actual = remove(scope, ast, true);
+      expect(actual.scope.join('.')).toBe('body.1.cases.0');
+      const actualAst = actual.ast as any;
+      expect(actualAst.body[1].cases.length).toBe(2);
+    });
+
     it('should go to rightmost case in switch on the true branch from a switch that is on the false branch of an if when moving left', () => {
       const ast = {
         signature: {

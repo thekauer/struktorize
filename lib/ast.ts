@@ -821,7 +821,6 @@ export const right = movement(
 export const remove = (scope: Scope, ast: Ast, strict = false): CST => {
   if (isOnSignature(scope)) return { scope, ast };
 
-  debugger;
   const node = get(scope, ast);
   if (strict) {
     const parent = grandParent(scope, ast);
@@ -854,11 +853,23 @@ export const remove = (scope: Scope, ast: Ast, strict = false): CST => {
       });
     }
   }
-  const isThirdOrLaterCase = node.type === 'case' && scopeIndex(scope) > 1;
+  const closestSwitch = getClosestSwitch(scope, ast);
+  const isSwitchWithMoreThaneThreeCases =
+    node.type === 'case' && closestSwitch!.cases.length > 2;
+
+  if (isSwitchWithMoreThaneThreeCases) {
+    const closestSwitch = structuredClone(getClosestSwitch(scope, ast)!);
+    const body = closestSwitch.cases.filter((c) => c.path !== node.path);
+    const bodyScope = closestSwitch.path.split('.').concat('cases');
+
+    const newAst = correctPaths(set(bodyScope, ast, body));
+    const newScope = left(scope, ast);
+    return { scope: newScope, ast: newAst };
+  }
 
   const newBody = removeFromBody(scope, ast);
   const newAst = setBody(scope, ast, newBody);
-  const newScope = isThirdOrLaterCase ? left(scope, ast) : up(scope, ast);
+  const newScope = up(scope, ast);
 
   return { scope: newScope, ast: newAst };
 };
