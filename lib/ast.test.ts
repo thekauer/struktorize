@@ -3917,6 +3917,297 @@ describe('ast', () => {
       expect(actual.join('.')).toBe(expected);
     });
 
+    it.skip('should go right from the first statement of the last case on a true branch to the first statement of the first case of the false branch', () => {
+      const ast = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'statement',
+            path: 'body.0',
+            text: [{ type: 'variable', name: 'a' }],
+          },
+          {
+            type: 'branch',
+            path: 'body.1',
+            ifBranch: [
+              {
+                type: 'switch',
+                path: 'body.1.ifBranch.0',
+                cases: [
+                  {
+                    type: 'case',
+                    path: 'body.1.ifBranch.0.cases.0',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.1.ifBranch.0.cases.0.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                  {
+                    type: 'case',
+                    path: 'body.1.ifBranch.0.cases.1',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.1.ifBranch.0.cases.1.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+            elseBranch: [
+              {
+                type: 'switch',
+                path: 'body.1.elseBranch.0',
+                cases: [
+                  {
+                    type: 'case',
+                    path: 'body.1.elseBranch.0.cases.0',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.1.elseBranch.0.cases.0.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                  {
+                    type: 'case',
+                    path: 'body.1.elseBranch.0.cases.1',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.1.elseBranch.0.cases.1.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            type: 'statement',
+            path: 'body.2',
+            text: [{ type: 'variable', name: 'a' }],
+          },
+        ],
+        type: 'function',
+        path: '',
+      } as Ast;
+      const scope = ['body', '1', 'ifBranch', '0', 'cases', '1', 'body', '0'];
+
+      const actual = right(scope, ast);
+      const expected = 'body.1.elseBranch.0.cases.0.body.0';
+      expect(actual.join('.')).toBe(expected);
+    });
+
+    it.skip("should go left from the first case's condition on a false branch to the last case's condition on the true branch", () => {
+      const ast = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'statement',
+            path: 'body.0',
+            text: [{ type: 'variable', name: 'a' }],
+          },
+          {
+            type: 'branch',
+            path: 'body.1',
+            ifBranch: [
+              {
+                type: 'switch',
+                path: 'body.1.ifBranch.0',
+                cases: [
+                  {
+                    type: 'case',
+                    path: 'body.1.ifBranch.0.cases.0',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.1.ifBranch.0.cases.0.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                  {
+                    type: 'case',
+                    path: 'body.1.ifBranch.0.cases.1',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.1.ifBranch.0.cases.1.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+            elseBranch: [
+              {
+                type: 'switch',
+                path: 'body.1.elseBranch.0',
+                cases: [
+                  {
+                    type: 'case',
+                    path: 'body.1.elseBranch.0.cases.0',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.1.elseBranch.0.cases.0.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                  {
+                    type: 'case',
+                    path: 'body.1.elseBranch.0.cases.1',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.1.elseBranch.0.cases.1.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            type: 'statement',
+            path: 'body.2',
+            text: [{ type: 'variable', name: 'a' }],
+          },
+        ],
+        type: 'function',
+        path: '',
+      } as Ast;
+      const scope = ['body', '1', 'ifBranch', '0', 'cases', '0'];
+
+      const actual = left(scope, ast);
+      const expected = 'body.1.ifBranch.0.cases.1';
+      expect(actual.join('.')).toBe(expected);
+    });
+
+    it.skip("should go left from the first case's first statement on a false branch to the last case's first statement on the true branch", () => {
+      const ast = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'statement',
+            path: 'body.0',
+            text: [{ type: 'variable', name: 'a' }],
+          },
+          {
+            type: 'branch',
+            path: 'body.1',
+            ifBranch: [
+              {
+                type: 'switch',
+                path: 'body.1.ifBranch.0',
+                cases: [
+                  {
+                    type: 'case',
+                    path: 'body.1.ifBranch.0.cases.0',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.1.ifBranch.0.cases.0.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                  {
+                    type: 'case',
+                    path: 'body.1.ifBranch.0.cases.1',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.1.ifBranch.0.cases.1.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+            elseBranch: [
+              {
+                type: 'switch',
+                path: 'body.1.elseBranch.0',
+                cases: [
+                  {
+                    type: 'case',
+                    path: 'body.1.elseBranch.0.cases.0',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.1.elseBranch.0.cases.0.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                  {
+                    type: 'case',
+                    path: 'body.1.elseBranch.0.cases.1',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        path: 'body.1.elseBranch.0.cases.1.body.0',
+                        text: [{ type: 'variable', name: 'a' }],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            type: 'statement',
+            path: 'body.2',
+            text: [{ type: 'variable', name: 'a' }],
+          },
+        ],
+        type: 'function',
+        path: '',
+      } as Ast;
+      const scope = ['body', '1', 'ifBranch', '0', 'cases', '0', 'body', '0'];
+
+      const actual = left(scope, ast);
+      const expected = 'body.1.ifBranch.0.cases.1.body.0';
+      expect(actual.join('.')).toBe(expected);
+    });
+
     it('should remove third case of the switch', () => {
       const ast = {
         signature: {
