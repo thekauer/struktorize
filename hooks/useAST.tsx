@@ -196,10 +196,11 @@ function reducer(state: State, action: Action): State {
 
     case 'backspace':
       if (isEmpty(scope, ast) || action.payload.force) {
-        const removed = remove(scope, ast, true);
-        const newScope = up(removed.scope, removed.ast);
-
-        return { ...state, scope: newScope, ast: removed.ast, changed: true };
+        return {
+          ...state,
+          ...remove(scope, ast, true),
+          changed: true,
+        };
       }
       return { ...state, ...edit(scope, ast, deleteLast) };
     case 'popLastText':
@@ -345,6 +346,21 @@ export const useAst = () => {
     });
     callChangeListeners();
   };
+  const addSwitch = () => {
+    dispatch({
+      type: 'add',
+      payload: { type: 'switch', cases: [], path: '' },
+    });
+    callChangeListeners();
+  };
+
+  const addCase = () => {
+    dispatch({
+      type: 'add',
+      payload: { type: 'case', body: [], path: '', text: [] },
+    });
+    callChangeListeners();
+  };
   const backspace = (n = 1) => {
     for (let i = 0; i < n; i++)
       dispatch({ type: 'backspace', payload: { force: false } });
@@ -398,6 +414,8 @@ export const useAst = () => {
     addStatement,
     addIf,
     addLoop,
+    addSwitch,
+    addCase,
     backspace,
     deleteBlock,
     popLastText,

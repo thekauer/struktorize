@@ -29,7 +29,16 @@ export const useCodeCompletion = () => {
   const pathRef = useRef('');
   const mountedref = useRef(false);
   const node = useNodeInScope();
-  const { addIf, addLoop, edit, insert, popLastText, setInsertMode } = useAst();
+  const {
+    addIf,
+    addLoop,
+    addSwitch,
+    addCase,
+    edit,
+    insert,
+    popLastText,
+    setInsertMode,
+  } = useAst();
   const { ast } = useAstState();
 
   const functionAst = ast as FunctionAst;
@@ -46,7 +55,7 @@ export const useCodeCompletion = () => {
     sort: true,
   });
 
-  const items: CodeCompletionItem[] = doesEndWithSpace(node.text)
+  const items: CodeCompletionItem[] = doesEndWithSpace(node?.text || [])
     ? allItems
     : searcher.search(getLastText(node));
 
@@ -67,6 +76,12 @@ export const useCodeCompletion = () => {
         break;
       case 'loop':
         addLoop();
+        break;
+      case 'switch':
+        addSwitch();
+        break;
+      case 'case':
+        addCase();
         break;
 
       default:
