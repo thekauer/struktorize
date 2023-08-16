@@ -9,6 +9,7 @@ export const Container = styled.div`
   outline: solid 2px var(--s-border);
   outline-offset: -1px;
 `;
+
 export const Loop = styled.div<StyleProps>`
   grid-row: 1;
   grid-column: 1 / 3;
@@ -45,6 +46,7 @@ export const Loop = styled.div<StyleProps>`
         background-color: var(--s-selected);
       }
     `}
+
   ${({ $selected, $hovered }) =>
     $selected &&
     $hovered &&
@@ -54,13 +56,31 @@ export const Loop = styled.div<StyleProps>`
         background-color: var(--s-selected-hovered);
       }
     `}
+
+  ${({ $editing }) =>
+    $editing &&
+    css`
+      border: 2px solid var(--s-active);
+      border-bottom: none;
+
+      & + div {
+        border: 2px solid var(--s-active);
+        border-top: none;
+      }
+
+      & + div + ${Right} {
+        border-top: 2px solid var(--s-active);
+      }
+    `}
 `;
+
 export const Left = styled.div`
   grid-row: 2;
   grid-column: 1;
   width: 2em;
   outline-offset: -1px;
 `;
+
 export const Right = styled.div`
   grid-row: 2;
   grid-column: 2;

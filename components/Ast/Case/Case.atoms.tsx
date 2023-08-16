@@ -30,22 +30,30 @@ export const Condition = styled.div<StyleProps>`
       background-color: var(--s-hovered);
       cursor: pointer;
     `}
+
   ${({ $active }) =>
     $active &&
     css`
       background-color: var(--s-active);
     `}
-    ${({ $selected }) =>
+
+  ${({ $selected }) =>
     $selected &&
     css`
       background-color: var(--s-selected);
     `}
 
-    ${({ $selected, $hovered }) =>
+  ${({ $selected, $hovered }) =>
     $selected &&
     $hovered &&
     css`
       background-color: var(--s-selected-hovered);
+    `}
+
+  ${({ $editing }) =>
+    $editing &&
+    css`
+      border: 2px solid var(--s-active);
     `}
 `;
 

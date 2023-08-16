@@ -461,7 +461,7 @@ export const useNode = (path: string | null) => {
   return {
     $hovered: hovered,
     $selected: isSelected,
-    $active: hovered,
+    $editing: hovered,
     onClick,
     className: hovered ? 'hovered' : undefined,
   };
