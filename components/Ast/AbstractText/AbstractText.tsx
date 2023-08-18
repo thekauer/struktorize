@@ -15,6 +15,7 @@ import { useState } from 'react';
 import * as S from './AbstractText.atoms';
 
 interface AbstractTextProps {
+  hovered: boolean;
   children: AbstractTextType;
 }
 
@@ -140,15 +141,29 @@ const transform = (text: AbstractTextType, insertmode: InsertMode) => {
     .join('');
 };
 
-export const AbstractText = ({ children }: AbstractTextProps) => {
-  const { insertMode } = useAstState();
-  const text = transform(children, insertMode);
-  const [cursor, setCursor] = useState(text.length);
+const preprocess = (text: AbstractTextType) => {
+  return text.flatMap((char) => {
+    if (char.type === 'variable') {
+      return (char as Variable).name.split('').map((char) => {
+        return { type: 'variable', name: char } as AbstractChar;
+      });
+    }
+    return char as AbstractChar;
+  });
+};
 
-  if (insertMode !== 'edit') return <Latex>{text}</Latex>;
+export const AbstractText = ({ children, hovered }: AbstractTextProps) => {
+  const { insertMode, editing, cursor } = useAstState();
+  const isEditing = editing && hovered;
 
-  const left = text.slice(0, cursor);
-  const right = text.slice(cursor);
+  if (!isEditing) {
+    const text = transform(children, insertMode);
+    return <Latex>{text}</Latex>;
+  }
+
+  const text = preprocess(children);
+  const left = transform(text.slice(0, cursor), insertMode);
+  const right = transform(text.slice(cursor), insertMode);
 
   return (
     <>

@@ -33,6 +33,7 @@ import {
   deleteLastVariable,
   getFunctionName,
   InsertMode,
+  strlen,
 } from '@/lib/abstractText';
 import { useTheme } from './useTheme';
 
@@ -45,6 +46,8 @@ type StateContext = {
   changed: boolean;
   selected: Set<string>;
   insertMode: InsertMode;
+  editing: boolean;
+  cursor: number;
 };
 
 export const AstContext = createContext<Dispatch<Action>>(null as any);
@@ -56,10 +59,12 @@ type State = {
   path: string;
   changeListeners: Record<string, ChangeListener>;
   changed: boolean;
+  editing: boolean;
   selected: Set<string>;
   history: CST[];
   history_index: number;
   insertMode: InsertMode;
+  cursor: number;
 };
 
 type Action =
@@ -80,6 +85,8 @@ type Action =
   | { type: 'backspace'; payload: { force: boolean } }
   | { type: 'popLastText' }
   | { type: 'setScope'; payload: string[] }
+  | { type: 'setEditing'; payload: boolean }
+  | { type: 'toggleEditing' }
   | { type: 'load'; payload: { ast: Ast; path: string } }
   | {
       type: 'addChangeListener';
@@ -93,12 +100,36 @@ type Action =
   | { type: 'undo' }
   | { type: 'redo' };
 
+function navigateText(type: 'up' | 'down' | 'left' | 'right', state: State) {
+  switch (type) {
+    case 'left':
+      return { ...state, cursor: Math.max(0, state.cursor - 1) };
+
+    case 'right':
+      const current = get(state.scope, state.ast);
+      return {
+        ...state,
+        cursor: Math.min(strlen(current), state.cursor + 1),
+      };
+  }
+}
+
 function navigate(
   moveScope: (scope: string[], ast: Ast) => string[],
   state: State,
   action: Action & { payload: { select?: boolean; move?: boolean } },
 ) {
-  const { scope, ast } = state;
+  const { scope, ast, editing } = state;
+
+  if (editing) {
+    if (
+      action.type === 'up' ||
+      action.type === 'down' ||
+      action.type === 'left' ||
+      action.type === 'right'
+    )
+      return navigateText(action.type, state);
+  }
 
   const newScope = moveScope(scope, ast);
   if (action.payload.select) {
@@ -166,10 +197,14 @@ function reducer(state: State, action: Action): State {
           action.payload.insertMode ?? state.insertMode,
         ),
       );
+      const current = get(scope, ast);
+      console.log(current);
+      const cursor = strlen(current.text);
 
       return updateHistory({
         ...state,
         ...cst,
+        cursor,
         changed: true,
       });
     }
@@ -208,6 +243,10 @@ function reducer(state: State, action: Action): State {
       return { ...state, ...edit(scope, ast, deleteLastVariable) };
     case 'setScope':
       return { ...state, ast, scope: action.payload };
+    case 'setEditing':
+      return { ...state, editing: action.payload };
+    case 'toggleEditing':
+      return { ...state, editing: !state.editing };
     case 'load':
       return {
         ...state,
@@ -269,6 +308,8 @@ const defaultState: State = {
   path: '/main',
   changeListeners: {},
   changed: false,
+  editing: false,
+  cursor: 0,
   selected: new Set<string>(),
   history: [defaultCST],
   history_index: 0,
@@ -283,7 +324,7 @@ export const AstProvider = ({ children }: AstProviderProps) => {
   const [state, dispatch] = useReducer(reducer, defaultState);
   const { showScope } = useTheme();
 
-  const { ast, scope, changed, selected, insertMode } = state;
+  const { ast, scope, changed, selected, insertMode, editing, cursor } = state;
 
   const functionName = getFunctionName((ast as FunctionAst).signature.text);
   const stateContext = {
@@ -293,6 +334,8 @@ export const AstProvider = ({ children }: AstProviderProps) => {
     changed,
     selected,
     insertMode,
+    editing,
+    cursor,
   };
 
   return (
@@ -388,6 +431,9 @@ export const useAst = () => {
   };
   const setScope = (scope: string[]) =>
     dispatch({ type: 'setScope', payload: scope });
+  const setEditing = (editing: boolean) =>
+    dispatch({ type: 'setEditing', payload: editing });
+  const toggleEditing = () => dispatch({ type: 'toggleEditing' });
   const load = (ast: Ast, path: string) => {
     dispatch({ type: 'load', payload: { ast, path } });
   };
@@ -424,6 +470,8 @@ export const useAst = () => {
     insert,
     setInsertMode,
     setScope,
+    setEditing,
+    toggleEditing,
     load,
     addChangeListener,
     save,
@@ -436,11 +484,11 @@ export const useAst = () => {
 };
 
 export const useNode = (path: string | null) => {
-  const { scope, selected } = useContext(AstStateContext);
+  const { scope, selected, editing } = useContext(AstStateContext);
 
   const hovered = scope.join('.') === path;
   const isSelected = selected.has(path || '');
-  const { setScope, select, deselect, deselectAll } = useAst();
+  const { setScope, select, deselect, deselectAll, setEditing } = useAst();
   const onClick = (e: MouseEvent<HTMLDivElement>) => {
     const scopeToSet = path?.split('.') || [];
     setScope(scopeToSet);
@@ -458,11 +506,16 @@ export const useNode = (path: string | null) => {
     }
   };
 
+  const onDoubleClick = () => {
+    setEditing(true);
+  };
+
   return {
     $hovered: hovered,
     $selected: isSelected,
-    $editing: hovered,
+    $editing: editing && hovered,
     onClick,
+    onDoubleClick,
     className: hovered ? 'hovered' : undefined,
   };
 };

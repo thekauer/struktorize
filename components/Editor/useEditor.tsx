@@ -22,6 +22,8 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     undo,
     redo,
     setInsertMode,
+    setEditing,
+    toggleEditing,
   } = useAst();
   const { astTheme } = useTheme();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -53,6 +55,14 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     if (!readonly) {
       handleUndoRedo(e);
       handleDeleteBlock(e);
+
+      if (e.key === 'Enter') {
+        setEditing(false);
+      }
+
+      if (e.ctrlKey && e.key === 'e') {
+        toggleEditing();
+      }
     }
     if (e.ctrlKey) return;
 

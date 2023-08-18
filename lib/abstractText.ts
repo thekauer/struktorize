@@ -241,3 +241,19 @@ export const getFunctionName = (text: AbstractText): string => {
 export const doesEndWithSpace = (text: AbstractText) => {
   return text.at(-1)?.type === 'space';
 };
+
+export const strlen = (text?: AbstractText) => {
+  if (!text) return 0;
+
+  return text.reduce((acc, curr) => {
+    switch (curr.type) {
+      case 'variable':
+        return acc + curr.name.length;
+      case 'superscript':
+      case 'subscript':
+        return 0;
+      default:
+        return acc;
+    }
+  }, 0);
+};
