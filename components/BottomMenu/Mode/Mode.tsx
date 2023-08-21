@@ -3,10 +3,15 @@ import { InsertMode } from '@/lib/abstractText';
 
 const colorMap: Record<InsertMode, { fg: string; bg: string }> = {
   normal: { bg: 'var(--blue)', fg: 'var(--text)' },
-  inside: { bg: 'var(--purple)', fg: 'var(--text)' },
+  superscript: { bg: 'var(--text)', fg: 'var(--blue)' },
+  subscript: { bg: 'var(--text)', fg: 'var(--blue)' },
 };
 
-const textMap = { normal: 'NORMAL', inside: 'INDEX', edit: 'EDIT' };
+const textMap: Record<InsertMode, string> = {
+  normal: 'NORMAL',
+  superscript: 'INDEX',
+  subscript: 'INDEX',
+};
 
 export const Mode = () => {
   const { insertMode } = useAstState();
@@ -19,6 +24,7 @@ export const Mode = () => {
         background: color.bg,
         width: '6ch',
         textAlign: 'center',
+        padding: '0.125rem',
       }}
     >
       {textMap[insertMode]}

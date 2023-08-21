@@ -10,10 +10,10 @@ export const ViewMode = () => {
   return (
     <S.Container>
       <S.ImageContainer>
-        <S.Image $src={billSrc} onClick={() => setShowScope(false)} />
+        <S.Image $src={articleSrc} onClick={() => setShowScope(true)} />
       </S.ImageContainer>
       <S.ImageContainer>
-        <S.Image $src={articleSrc} onClick={() => setShowScope(true)} />
+        <S.Image $src={billSrc} onClick={() => setShowScope(false)} />
       </S.ImageContainer>
     </S.Container>
   );
