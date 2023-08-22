@@ -29,11 +29,14 @@ import {
 import {
   addAbstractChar,
   addText,
+  Cursor,
   deleteLast,
   deleteLastVariable,
   getFunctionName,
   InsertMode,
+  preprocess,
   strlen,
+  type Jump,
 } from '@/lib/abstractText';
 import { useTheme } from './useTheme';
 
@@ -67,15 +70,17 @@ type State = {
   cursor: number;
 };
 
+type NavigationPayload = { select?: boolean; move?: boolean; jump?: Jump };
+
 type Action =
-  | { type: 'up'; payload: { select?: boolean; move?: boolean } }
-  | { type: 'down'; payload: { select?: boolean; move?: boolean } }
-  | { type: 'left'; payload: { select?: boolean; move?: boolean } }
-  | { type: 'right'; payload: { select?: boolean; move?: boolean } }
+  | { type: 'up'; payload: NavigationPayload }
+  | { type: 'down'; payload: NavigationPayload }
+  | { type: 'left'; payload: NavigationPayload }
+  | { type: 'right'; payload: NavigationPayload }
   | { type: 'add'; payload: Ast }
   | {
       type: 'text';
-      payload: { text: string; insertMode?: InsertMode };
+      payload: { text: string; insertMode?: InsertMode; jump?: Jump };
     }
   | {
       type: 'insertSymbol';
@@ -100,16 +105,32 @@ type Action =
   | { type: 'undo' }
   | { type: 'redo' };
 
-function navigateText(type: 'up' | 'down' | 'left' | 'right', state: State) {
+function navigateText(
+  type: 'up' | 'down' | 'left' | 'right',
+  state: State,
+  jump: Jump = 'none',
+): State {
+  const current = get(state.scope, state.ast);
+  const text = preprocess(current.text);
+  const cursor = state.cursor;
   switch (type) {
     case 'left':
-      return { ...state, cursor: Math.max(0, state.cursor - 1) };
+      return { ...state, ...Cursor.left(text, cursor, state.insertMode, jump) };
 
     case 'right':
-      const current = get(state.scope, state.ast);
       return {
         ...state,
-        cursor: Math.min(strlen(current), state.cursor + 1),
+        ...Cursor.right(text, cursor, state.insertMode, jump),
+      };
+    case 'down':
+      return {
+        ...state,
+        ...Cursor.down(text, cursor, state.insertMode),
+      };
+    case 'up':
+      return {
+        ...state,
+        ...Cursor.up(text, cursor, state.insertMode),
       };
   }
 }
@@ -117,7 +138,7 @@ function navigateText(type: 'up' | 'down' | 'left' | 'right', state: State) {
 function navigate(
   moveScope: (scope: string[], ast: Ast) => string[],
   state: State,
-  action: Action & { payload: { select?: boolean; move?: boolean } },
+  action: Action & { payload: NavigationPayload },
 ) {
   const { scope, ast, editing } = state;
 
@@ -128,7 +149,7 @@ function navigate(
       action.type === 'left' ||
       action.type === 'right'
     )
-      return navigateText(action.type, state);
+      return navigateText(action.type, state, action.payload.jump);
   }
 
   const newScope = moveScope(scope, ast);
@@ -197,8 +218,8 @@ function reducer(state: State, action: Action): State {
           action.payload.insertMode ?? state.insertMode,
         ),
       );
-      const current = get(scope, ast);
-      console.log(current);
+
+      const current = get(cst.scope, cst.ast);
       const cursor = strlen(current.text);
 
       return updateHistory({
@@ -355,15 +376,16 @@ export const useAst = () => {
   const defaultNavigationPayload = {
     select: false,
     move: false,
+    jump: 'none' as const,
   };
 
-  const up = (payload = defaultNavigationPayload) =>
+  const up = (payload: NavigationPayload = defaultNavigationPayload) =>
     dispatch({ type: 'up', payload });
-  const down = (payload = defaultNavigationPayload) =>
+  const down = (payload: NavigationPayload = defaultNavigationPayload) =>
     dispatch({ type: 'down', payload });
-  const left = (payload = defaultNavigationPayload) =>
+  const left = (payload: NavigationPayload = defaultNavigationPayload) =>
     dispatch({ type: 'left', payload });
-  const right = (payload = defaultNavigationPayload) =>
+  const right = (payload: NavigationPayload = defaultNavigationPayload) =>
     dispatch({ type: 'right', payload });
   const addStatement = () => {
     dispatch({
@@ -418,8 +440,8 @@ export const useAst = () => {
     dispatch({ type: 'popLastText' });
     callChangeListeners();
   };
-  const edit = (text: string, insertMode?: InsertMode) => {
-    dispatch({ type: 'text', payload: { text, insertMode } });
+  const edit = (text: string, insertMode?: InsertMode, jump: Jump = 'none') => {
+    dispatch({ type: 'text', payload: { text, insertMode, jump } });
     callChangeListeners();
   };
   const setInsertMode = (insertMode: InsertMode) => {

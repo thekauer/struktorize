@@ -1,6 +1,7 @@
 import { useTheme } from '../../hooks/useTheme';
 import { KeyboardEvent, useRef } from 'react';
 import { useAst } from '../../hooks/useAST';
+import { Jump } from '@/lib/abstractText';
 
 interface UseEditorProps {
   readonly?: boolean;
@@ -66,7 +67,12 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     }
     if (e.ctrlKey) return;
 
-    const navigationPayload = { select: e.shiftKey, move: e.altKey };
+    const jump = e.ctrlKey ? 'line' : e.altKey ? 'word' : 'none';
+    const navigationPayload = {
+      select: e.shiftKey,
+      move: e.altKey,
+      jump: jump as Jump,
+    };
     const canDeselect = !(e.shiftKey || e.altKey);
     if (!disableNavigation) {
       switch (key) {
@@ -102,11 +108,11 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
         return;
       case '^':
         insert({ type: 'superscript', text: [] }, 'normal');
-        setInsertMode('inside');
+        setInsertMode('superscript');
         return;
       case '_':
         insert({ type: 'subscript', text: [] }, 'normal');
-        setInsertMode('inside');
+        setInsertMode('subscript');
         return;
     }
 

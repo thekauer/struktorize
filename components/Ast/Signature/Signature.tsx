@@ -11,7 +11,7 @@ export const Signature = ({ text, path }: SignatureAst) => {
   return (
     <>
       <S.Container {...containerProps}>
-        <AbstractText>{text}</AbstractText>
+        <AbstractText hovered={containerProps.$hovered}>{text}</AbstractText>
       </S.Container>
       <S.Line />
     </>

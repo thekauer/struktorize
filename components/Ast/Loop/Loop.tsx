@@ -12,7 +12,7 @@ export const Loop = ({ text, body, path }: LoopAst) => {
   return (
     <S.Container>
       <S.Loop {...containerProps}>
-        <AbstractText>{text}</AbstractText>
+        <AbstractText hovered={containerProps.$hovered}>{text}</AbstractText>
       </S.Loop>
       <S.Left />
       <S.Right>

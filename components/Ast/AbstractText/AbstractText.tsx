@@ -1,7 +1,7 @@
 'use client';
 
 import { useAstState } from '@/hooks/useAST';
-import { InsertMode } from '@/lib/abstractText';
+import { InsertMode, preprocess } from '@/lib/abstractText';
 import {
   AbstractChar,
   AbstractText as AbstractTextType,
@@ -11,7 +11,7 @@ import {
   Variable,
 } from '@/lib/ast';
 import { Latex } from '../Latex/Latex';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as S from './AbstractText.atoms';
 
 interface AbstractTextProps {
@@ -114,7 +114,6 @@ const transform = (text: AbstractTextType, insertmode: InsertMode) => {
   return text
     .map((char, index, { length }): string => {
       const isLast = index === length - 1;
-      const isHighlighted = isLast && insertmode === 'inside';
       switch (char.type) {
         case 'variable': {
           const text = (char as Variable).name;
@@ -123,12 +122,16 @@ const transform = (text: AbstractTextType, insertmode: InsertMode) => {
         case 'superscript': {
           const text = (char as SuperScript).text;
           const transformedText = transform(text, 'normal');
-          return `^{${isHighlighted ? SCRIPT_STYLE : ''}{${transformedText}}}`;
+          return `^{${
+            isLast && insertmode === 'superscript' ? SCRIPT_STYLE : ''
+          }{${transformedText}}}`;
         }
         case 'subscript': {
           const text = (char as Subscript).text;
           const transformedText = transform(text, 'normal');
-          return `_{${isHighlighted ? SCRIPT_STYLE : ''}{${transformedText}}}`;
+          return `_{${
+            isLast && insertmode === 'subscript' ? SCRIPT_STYLE : ''
+          }{${transformedText}}}`;
         }
         case 'mathbb': {
           return `\\mathbb{${(char as MathBB).value}}`;
@@ -141,19 +144,17 @@ const transform = (text: AbstractTextType, insertmode: InsertMode) => {
     .join('');
 };
 
-const preprocess = (text: AbstractTextType) => {
-  return text.flatMap((char) => {
-    if (char.type === 'variable') {
-      return (char as Variable).name.split('').map((char) => {
-        return { type: 'variable', name: char } as AbstractChar;
-      });
-    }
-    return char as AbstractChar;
-  });
-};
-
 export const AbstractText = ({ children, hovered }: AbstractTextProps) => {
   const { insertMode, editing, cursor } = useAstState();
+  const cursorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    cursorRef.current?.getAnimations().forEach((animation) => {
+      animation.cancel();
+      animation.play();
+    });
+  }, [cursor]);
+
   const isEditing = editing && hovered;
 
   if (!isEditing) {
@@ -167,9 +168,9 @@ export const AbstractText = ({ children, hovered }: AbstractTextProps) => {
 
   return (
     <>
-      <Latex>{left}</Latex>
-      <S.Cursor />
-      <Latex>{right}</Latex>
+      {left.length > 0 && <Latex>{left}</Latex>}
+      <S.Cursor $insertMode={insertMode} ref={cursorRef} />
+      {right.length > 0 && <Latex>{right}</Latex>}
     </>
   );
 };

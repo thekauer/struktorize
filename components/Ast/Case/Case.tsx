@@ -13,7 +13,7 @@ export const Case = ({ body, text, path }: CaseAst) => {
     <S.Container>
       <S.Condition {...containerProps}>
         <S.True> </S.True>
-        <AbstractText>{text}</AbstractText>
+        <AbstractText hovered={containerProps.$hovered}>{text}</AbstractText>
       </S.Condition>
       <S.Body>
         <Render head={body} />
