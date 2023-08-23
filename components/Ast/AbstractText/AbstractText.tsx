@@ -1,7 +1,7 @@
 'use client';
 
 import { useAstState } from '@/hooks/useAST';
-import { InsertMode, preprocess } from '@/lib/abstractText';
+import { InsertMode, isScript, preprocess } from '@/lib/abstractText';
 import {
   AbstractChar,
   AbstractText as AbstractTextType,
@@ -145,7 +145,7 @@ const transform = (text: AbstractTextType, insertmode: InsertMode) => {
 };
 
 export const AbstractText = ({ children, hovered }: AbstractTextProps) => {
-  const { insertMode, editing, cursor } = useAstState();
+  const { insertMode, editing, cursor, indexCursor } = useAstState();
   const cursorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -163,13 +163,26 @@ export const AbstractText = ({ children, hovered }: AbstractTextProps) => {
   }
 
   const text = preprocess(children);
-  const left = transform(text.slice(0, cursor), insertMode);
-  const right = transform(text.slice(cursor), insertMode);
+  const middle =
+    insertMode === 'normal'
+      ? cursor
+      : text[cursor - 2] && isScript(text[cursor - 2])
+      ? cursor - 2
+      : text[cursor - 1] && isScript(text[cursor - 1])
+      ? cursor - 1
+      : cursor;
+
+  const left = transform(text.slice(0, middle), insertMode);
+  const right = transform(text.slice(middle), insertMode);
 
   return (
     <>
       {left.length > 0 && <Latex>{left}</Latex>}
-      <S.Cursor $insertMode={insertMode} ref={cursorRef} />
+      <S.Cursor
+        $insertMode={insertMode}
+        $offset={indexCursor}
+        ref={cursorRef}
+      />
       {right.length > 0 && <Latex>{right}</Latex>}
     </>
   );

@@ -51,6 +51,7 @@ type StateContext = {
   insertMode: InsertMode;
   editing: boolean;
   cursor: number;
+  indexCursor: number;
 };
 
 export const AstContext = createContext<Dispatch<Action>>(null as any);
@@ -68,6 +69,7 @@ type State = {
   history_index: number;
   insertMode: InsertMode;
   cursor: number;
+  indexCursor: number;
 };
 
 type NavigationPayload = { select?: boolean; move?: boolean; jump?: Jump };
@@ -115,22 +117,31 @@ function navigateText(
   const cursor = state.cursor;
   switch (type) {
     case 'left':
-      return { ...state, ...Cursor.left(text, cursor, state.insertMode, jump) };
+      return {
+        ...state,
+        ...Cursor.left(text, cursor, state.indexCursor, state.insertMode, jump),
+      };
 
     case 'right':
       return {
         ...state,
-        ...Cursor.right(text, cursor, state.insertMode, jump),
+        ...Cursor.right(
+          text,
+          cursor,
+          state.indexCursor,
+          state.insertMode,
+          jump,
+        ),
       };
     case 'down':
       return {
         ...state,
-        ...Cursor.down(text, cursor, state.insertMode),
+        ...Cursor.down(text, cursor, state.indexCursor, state.insertMode),
       };
     case 'up':
       return {
         ...state,
-        ...Cursor.up(text, cursor, state.insertMode),
+        ...Cursor.up(text, cursor, state.indexCursor, state.insertMode),
       };
   }
 }
@@ -210,17 +221,19 @@ function reducer(state: State, action: Action): State {
     }
 
     case 'text': {
+      const current = get(scope, ast);
+      const cursor = strlen(current.text);
+
       const cst = edit(
         scope,
         ast,
         addText(
           action.payload.text,
           action.payload.insertMode ?? state.insertMode,
+          state.cursor,
+          state.indexCursor,
         ),
       );
-
-      const current = get(cst.scope, cst.ast);
-      const cursor = strlen(current.text);
 
       return updateHistory({
         ...state,
@@ -331,6 +344,7 @@ const defaultState: State = {
   changed: false,
   editing: false,
   cursor: 0,
+  indexCursor: 0,
   selected: new Set<string>(),
   history: [defaultCST],
   history_index: 0,
@@ -345,7 +359,16 @@ export const AstProvider = ({ children }: AstProviderProps) => {
   const [state, dispatch] = useReducer(reducer, defaultState);
   const { showScope } = useTheme();
 
-  const { ast, scope, changed, selected, insertMode, editing, cursor } = state;
+  const {
+    ast,
+    scope,
+    changed,
+    selected,
+    insertMode,
+    editing,
+    cursor,
+    indexCursor,
+  } = state;
 
   const functionName = getFunctionName((ast as FunctionAst).signature.text);
   const stateContext = {
@@ -357,6 +380,7 @@ export const AstProvider = ({ children }: AstProviderProps) => {
     insertMode,
     editing,
     cursor,
+    indexCursor,
   };
 
   return (

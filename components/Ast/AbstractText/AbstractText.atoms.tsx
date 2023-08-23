@@ -19,10 +19,11 @@ const blink = keyframes`
   }
 `;
 
-export const Cursor = styled.div<{ $insertMode: InsertMode }>`
+export const Cursor = styled.div<{ $insertMode: InsertMode; $offset: number }>`
   position: relative;
   width: 0;
   &::before {
+    position: relative;
     z-index: 10;
     content: ' ';
     display: block;
@@ -31,6 +32,14 @@ export const Cursor = styled.div<{ $insertMode: InsertMode }>`
 
     height: ${({ $insertMode }) =>
       $insertMode === 'normal' ? '1.25rem' : '0.8rem'};
+
+    ${({ $insertMode, $offset }) =>
+      $insertMode !== 'normal' &&
+      css`
+        font-size: 0.7em;
+        font-family: KaTeX_Main;
+        right: -${$offset}ch;
+      `}
 
     ${({ $insertMode }) =>
       $insertMode === 'superscript' &&

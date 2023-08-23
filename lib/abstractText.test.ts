@@ -59,37 +59,37 @@ describe('AbstractText', () => {
       expect(result).toBe(0);
     });
 
-    it('should be 2 for text with 1 variable', () => {
+    it('should be 1 for text with 1 variable', () => {
       const text: AbstractText = [{ type: 'variable', name: 'a' }];
       const result = strlen(text);
-      expect(result).toBe(2);
+      expect(result).toBe(1);
     });
 
-    it('should be 3 for text with 2 variables', () => {
+    it('should be 2 for text with 2 variables', () => {
       const text: AbstractText = [
         { type: 'variable', name: 'a' },
         { type: 'variable', name: 'b' },
       ];
       const result = strlen(text);
-      expect(result).toBe(3);
+      expect(result).toBe(2);
     });
 
-    it('should be 3 for text with 1 variable and 1 space', () => {
+    it('should be 2 for text with 1 variable and 1 space', () => {
       const text: AbstractText = [
         { type: 'variable', name: 'a' },
         { type: 'space' },
       ];
       const result = strlen(text);
-      expect(result).toBe(3);
+      expect(result).toBe(2);
     });
 
-    it('should be 3 for text with 1 variable and 1 subscript', () => {
+    it('should be 2 for text with 1 variable and 1 subscript', () => {
       const text: AbstractText = [
         { type: 'variable', name: 'a' },
         { type: 'subscript', text: [] },
       ];
       const result = strlen(text);
-      expect(result).toBe(3);
+      expect(result).toBe(2);
     });
   });
 
@@ -99,7 +99,7 @@ describe('AbstractText', () => {
         const text = [] as AbstractText;
         const cursor = 0;
 
-        const result = Cursor.right(text, cursor);
+        const result = Cursor.right(text, cursor, 0);
 
         expect(result.cursor).toBe(0);
       });
@@ -108,7 +108,7 @@ describe('AbstractText', () => {
         const text = [{ type: 'variable', name: 'a' }] as AbstractText;
         const cursor = 0;
 
-        const result = Cursor.right(text, cursor);
+        const result = Cursor.right(text, cursor, 0);
 
         expect(result.cursor).toBe(1);
       });
@@ -120,7 +120,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 2;
 
-        const result = Cursor.right(text, cursor);
+        const result = Cursor.right(text, cursor, 0);
 
         expect(result.cursor).toBe(2);
       });
@@ -133,7 +133,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 1;
 
-        const result = Cursor.right(text, cursor);
+        const result = Cursor.right(text, cursor, 0);
 
         expect(result.cursor).toBe(2);
       });
@@ -146,7 +146,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 1;
 
-        const result = Cursor.right(text, cursor);
+        const result = Cursor.right(text, cursor, 0);
 
         expect(result.cursor).toBe(2);
       });
@@ -159,7 +159,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 0;
 
-        const result = Cursor.right(text, cursor);
+        const result = Cursor.right(text, cursor, 0);
 
         expect(result.cursor).toBe(1);
       });
@@ -173,7 +173,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 0;
 
-        const result = Cursor.right(text, cursor);
+        const result = Cursor.right(text, cursor, 0);
 
         expect(result.cursor).toBe(1);
       });
@@ -187,7 +187,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 1;
 
-        const result = Cursor.right(text, cursor);
+        const result = Cursor.right(text, cursor, 0);
 
         expect(result.cursor).toBe(3);
       });
@@ -199,7 +199,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 2;
 
-        const result = Cursor.right(text, cursor);
+        const result = Cursor.right(text, cursor, 0);
 
         expect(result.cursor).toBe(2);
       });
@@ -211,7 +211,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 1;
 
-        const result = Cursor.right(text, cursor);
+        const result = Cursor.right(text, cursor, 0);
 
         expect(result.cursor).toBe(2);
       });
@@ -223,7 +223,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 1;
 
-        const result = Cursor.right(text, cursor);
+        const result = Cursor.right(text, cursor, 0);
 
         expect(result.cursor).toBe(2);
       });
@@ -236,9 +236,43 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 1;
 
-        const result = Cursor.right(text, cursor);
+        const result = Cursor.right(text, cursor, 0);
 
         expect(result.cursor).toBe(3);
+      });
+
+      describe('index', () => {
+        it('should move right once in superscript', () => {
+          const text = [
+            { type: 'variable', name: 'a' },
+            { type: 'superscript', text: [{ type: 'variable', name: 'ab' }] },
+            { type: 'variable', name: 'b' },
+          ] as AbstractText;
+          const cursor = 1;
+          const index = 0;
+
+          const result = Cursor.right(text, cursor, index, 'superscript');
+
+          expect(result.cursor).toBe(1);
+          expect(result.indexCursor).toBe(1);
+          expect(result.insertMode).toBe('superscript');
+        });
+
+        it('should not move right from the end of the superscript', () => {
+          const text = [
+            { type: 'variable', name: 'a' },
+            { type: 'superscript', text: [{ type: 'variable', name: 'ab' }] },
+            { type: 'variable', name: 'b' },
+          ] as AbstractText;
+          const cursor = 1;
+          const index = 2;
+
+          const result = Cursor.right(text, cursor, index, 'superscript');
+
+          expect(result.cursor).toBe(1);
+          expect(result.indexCursor).toBe(2);
+          expect(result.insertMode).toBe('superscript');
+        });
       });
 
       describe('word jump', () => {
@@ -246,7 +280,7 @@ describe('AbstractText', () => {
           const text = [] as AbstractText;
           const cursor = 0;
 
-          const result = Cursor.right(text, cursor, 'normal', 'word');
+          const result = Cursor.right(text, cursor, 0, 'normal', 'word');
 
           expect(result.cursor).toBe(0);
         });
@@ -258,7 +292,7 @@ describe('AbstractText', () => {
           ] as AbstractText;
           const cursor = 0;
 
-          const result = Cursor.right(text, cursor, 'normal', 'word');
+          const result = Cursor.right(text, cursor, 0, 'normal', 'word');
 
           expect(result.cursor).toBe(2);
         });
@@ -271,7 +305,7 @@ describe('AbstractText', () => {
           ] as AbstractText;
           const cursor = 1;
 
-          const result = Cursor.right(text, cursor, 'normal', 'word');
+          const result = Cursor.right(text, cursor, 0, 'normal', 'word');
 
           expect(result.cursor).toBe(3);
         });
@@ -286,7 +320,7 @@ describe('AbstractText', () => {
           ] as AbstractText;
           const cursor = 2;
 
-          const result = Cursor.right(text, cursor, 'normal', 'word');
+          const result = Cursor.right(text, cursor, 0, 'normal', 'word');
 
           expect(result.cursor).toBe(5);
         });
@@ -301,7 +335,7 @@ describe('AbstractText', () => {
           ] as AbstractText;
           const cursor = 5;
 
-          const result = Cursor.right(text, cursor, 'normal', 'word');
+          const result = Cursor.right(text, cursor, 0, 'normal', 'word');
 
           expect(result.cursor).toBe(5);
         });
@@ -318,9 +352,9 @@ describe('AbstractText', () => {
           ] as AbstractText;
           const cursor = 0;
 
-          const result = Cursor.right(text, cursor, 'normal', 'line');
+          const result = Cursor.right(text, cursor, 0, 'normal', 'line');
 
-          expect(result.cursor).toBe(6);
+          expect(result.cursor).toBe(5);
         });
 
         it('should jump to end of line from the middle', () => {
@@ -333,9 +367,9 @@ describe('AbstractText', () => {
           ] as AbstractText;
           const cursor = 2;
 
-          const result = Cursor.right(text, cursor, 'normal', 'line');
+          const result = Cursor.right(text, cursor, 0, 'normal', 'line');
 
-          expect(result.cursor).toBe(6);
+          expect(result.cursor).toBe(5);
         });
 
         it('should jump to end of line from the end', () => {
@@ -348,9 +382,9 @@ describe('AbstractText', () => {
           ] as AbstractText;
           const cursor = 4;
 
-          const result = Cursor.right(text, cursor, 'normal', 'line');
+          const result = Cursor.right(text, cursor, 0, 'normal', 'line');
 
-          expect(result.cursor).toBe(6);
+          expect(result.cursor).toBe(5);
         });
       });
     });
@@ -360,7 +394,7 @@ describe('AbstractText', () => {
         const text = [] as AbstractText;
         const cursor = 0;
 
-        const result = Cursor.left(text, cursor);
+        const result = Cursor.left(text, cursor, 0);
 
         expect(result.cursor).toBe(0);
       });
@@ -369,7 +403,7 @@ describe('AbstractText', () => {
         const text = [{ type: 'variable', name: 'a' }] as AbstractText;
         const cursor = 1;
 
-        const result = Cursor.left(text, cursor);
+        const result = Cursor.left(text, cursor, 0);
 
         expect(result.cursor).toBe(0);
       });
@@ -381,7 +415,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 0;
 
-        const result = Cursor.left(text, cursor);
+        const result = Cursor.left(text, cursor, 0);
 
         expect(result.cursor).toBe(0);
       });
@@ -394,7 +428,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 2;
 
-        const result = Cursor.left(text, cursor);
+        const result = Cursor.left(text, cursor, 0);
 
         expect(result.cursor).toBe(1);
       });
@@ -407,7 +441,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 2;
 
-        const result = Cursor.left(text, cursor);
+        const result = Cursor.left(text, cursor, 0);
 
         expect(result.cursor).toBe(1);
       });
@@ -420,7 +454,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 2;
 
-        const result = Cursor.left(text, cursor);
+        const result = Cursor.left(text, cursor, 0);
 
         expect(result.cursor).toBe(1);
       });
@@ -434,7 +468,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 3;
 
-        const result = Cursor.left(text, cursor);
+        const result = Cursor.left(text, cursor, 0);
 
         expect(result.cursor).toBe(1);
       });
@@ -448,7 +482,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 3;
 
-        const result = Cursor.left(text, cursor);
+        const result = Cursor.left(text, cursor, 0);
         expect(result.cursor).toBe(1);
       });
       describe('word jump', () => {
@@ -456,7 +490,7 @@ describe('AbstractText', () => {
           const text = [] as AbstractText;
           const cursor = 0;
 
-          const result = Cursor.left(text, cursor, 'normal', 'word');
+          const result = Cursor.left(text, cursor, 0, 'normal', 'word');
 
           expect(result.cursor).toBe(0);
         });
@@ -468,7 +502,7 @@ describe('AbstractText', () => {
           ] as AbstractText;
           const cursor = 2;
 
-          const result = Cursor.left(text, cursor, 'normal', 'word');
+          const result = Cursor.left(text, cursor, 0, 'normal', 'word');
 
           expect(result.cursor).toBe(0);
         });
@@ -481,7 +515,7 @@ describe('AbstractText', () => {
           ] as AbstractText;
           const cursor = 2;
 
-          const result = Cursor.left(text, cursor, 'normal', 'word');
+          const result = Cursor.left(text, cursor, 0, 'normal', 'word');
 
           expect(result.cursor).toBe(0);
         });
@@ -496,7 +530,7 @@ describe('AbstractText', () => {
           ] as AbstractText;
           const cursor = 3;
 
-          const result = Cursor.left(text, cursor, 'normal', 'word');
+          const result = Cursor.left(text, cursor, 0, 'normal', 'word');
 
           expect(result.cursor).toBe(2);
         });
@@ -511,7 +545,7 @@ describe('AbstractText', () => {
           ] as AbstractText;
           const cursor = 0;
 
-          const result = Cursor.left(text, cursor, 'normal', 'word');
+          const result = Cursor.left(text, cursor, 0, 'normal', 'word');
 
           expect(result.cursor).toBe(0);
         });
@@ -528,7 +562,7 @@ describe('AbstractText', () => {
           ] as AbstractText;
           const cursor = 5;
 
-          const result = Cursor.left(text, cursor, 'normal', 'line');
+          const result = Cursor.left(text, cursor, 0, 'normal', 'line');
 
           expect(result.cursor).toBe(0);
         });
@@ -543,7 +577,7 @@ describe('AbstractText', () => {
           ] as AbstractText;
           const cursor = 2;
 
-          const result = Cursor.left(text, cursor, 'normal', 'line');
+          const result = Cursor.left(text, cursor, 0, 'normal', 'line');
 
           expect(result.cursor).toBe(0);
         });
@@ -558,7 +592,7 @@ describe('AbstractText', () => {
           ] as AbstractText;
           const cursor = 0;
 
-          const result = Cursor.left(text, cursor, 'normal', 'line');
+          const result = Cursor.left(text, cursor, 0, 'normal', 'line');
 
           expect(result.cursor).toBe(0);
         });
@@ -569,7 +603,7 @@ describe('AbstractText', () => {
       it('should not go up in empty text', () => {
         const text = [] as AbstractText;
         const cursor = 0;
-        const result = Cursor.up(text, cursor);
+        const result = Cursor.up(text, cursor, 0);
         expect(result.cursor).toBe(0);
       });
 
@@ -580,7 +614,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 1;
 
-        const result = Cursor.up(text, cursor);
+        const result = Cursor.up(text, cursor, 0);
 
         expect(result.cursor).toBe(1);
         expect(result.insertMode).toBe('superscript');
@@ -593,7 +627,7 @@ describe('AbstractText', () => {
           { type: 'variable', name: 'b' },
         ] as AbstractText;
         const cursor = 2;
-        const result = Cursor.up(text, cursor);
+        const result = Cursor.up(text, cursor, 0);
         expect(result.cursor).toBe(2);
         expect(result.insertMode).toBe('superscript');
       });
@@ -605,7 +639,7 @@ describe('AbstractText', () => {
           { type: 'variable', name: 'b' },
         ] as AbstractText;
         const cursor = 2;
-        const result = Cursor.up(text, cursor);
+        const result = Cursor.up(text, cursor, 0);
         expect(result.cursor).toBe(2);
         expect(result.insertMode).toBe('superscript');
       });
@@ -618,7 +652,7 @@ describe('AbstractText', () => {
           { type: 'variable', name: 'b' },
         ] as AbstractText;
         const cursor = 2;
-        const result = Cursor.up(text, cursor);
+        const result = Cursor.up(text, cursor, 0);
         expect(result.cursor).toBe(2);
         expect(result.insertMode).toBe('superscript');
       });
@@ -631,7 +665,7 @@ describe('AbstractText', () => {
           { type: 'variable', name: 'b' },
         ] as AbstractText;
         const cursor = 2;
-        const result = Cursor.up(text, cursor);
+        const result = Cursor.up(text, cursor, 0);
         expect(result.cursor).toBe(2);
         expect(result.insertMode).toBe('superscript');
       });
@@ -642,7 +676,7 @@ describe('AbstractText', () => {
           { type: 'variable', name: 'b' },
         ] as AbstractText;
         const cursor = 1;
-        const result = Cursor.up(text, cursor);
+        const result = Cursor.up(text, cursor, 0);
         expect(result.cursor).toBe(1);
       });
 
@@ -653,7 +687,7 @@ describe('AbstractText', () => {
           { type: 'superscript', text: [{ type: 'variable', name: 'b' }] },
         ] as AbstractText;
         const cursor = 1;
-        const result = Cursor.up(text, cursor);
+        const result = Cursor.up(text, cursor, 0);
         expect(result.cursor).toBe(1);
         expect(result.insertMode).toBe('normal');
       });
@@ -665,7 +699,7 @@ describe('AbstractText', () => {
           { type: 'variable', name: 'b' },
         ] as AbstractText;
         const cursor = 3;
-        const result = Cursor.up(text, cursor);
+        const result = Cursor.up(text, cursor, 0);
         expect(result.cursor).toBe(3);
         expect(result.insertMode).toBe('normal');
       });
@@ -677,7 +711,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 1;
 
-        const result = Cursor.up(text, cursor);
+        const result = Cursor.up(text, cursor, 0);
 
         expect(result.cursor).toBe(1);
       });
@@ -689,7 +723,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 1;
 
-        const result = Cursor.up(text, cursor, 'subscript');
+        const result = Cursor.up(text, cursor, 0, 'subscript');
 
         expect(result.cursor).toBe(1);
         expect(result.insertMode).toBe('normal');
@@ -700,7 +734,7 @@ describe('AbstractText', () => {
       it('should not go down in empty text', () => {
         const text = [] as AbstractText;
         const cursor = 0;
-        const result = Cursor.down(text, cursor);
+        const result = Cursor.down(text, cursor, 0);
         expect(result.cursor).toBe(0);
       });
 
@@ -711,7 +745,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 2;
 
-        const result = Cursor.down(text, cursor);
+        const result = Cursor.down(text, cursor, 0);
 
         expect(result.cursor).toBe(2);
         expect(result.insertMode).toBe('subscript');
@@ -724,7 +758,7 @@ describe('AbstractText', () => {
           { type: 'variable', name: 'b' },
         ] as AbstractText;
         const cursor = 2;
-        const result = Cursor.down(text, cursor);
+        const result = Cursor.down(text, cursor, 0);
         expect(result.cursor).toBe(2);
         expect(result.insertMode).toBe('subscript');
       });
@@ -736,7 +770,7 @@ describe('AbstractText', () => {
           { type: 'variable', name: 'b' },
         ] as AbstractText;
         const cursor = 2;
-        const result = Cursor.down(text, cursor);
+        const result = Cursor.down(text, cursor, 0);
         expect(result.cursor).toBe(2);
         expect(result.insertMode).toBe('subscript');
       });
@@ -747,7 +781,7 @@ describe('AbstractText', () => {
           { type: 'variable', name: 'b' },
         ] as AbstractText;
         const cursor = 1;
-        const result = Cursor.down(text, cursor);
+        const result = Cursor.down(text, cursor, 0);
         expect(result.cursor).toBe(1);
         expect(result.insertMode).toBe('normal');
       });
@@ -759,7 +793,7 @@ describe('AbstractText', () => {
           { type: 'subscript', text: [{ type: 'variable', name: 'b' }] },
         ] as AbstractText;
         const cursor = 1;
-        const result = Cursor.down(text, cursor);
+        const result = Cursor.down(text, cursor, 0);
         expect(result.cursor).toBe(1);
         expect(result.insertMode).toBe('normal');
       });
@@ -771,7 +805,7 @@ describe('AbstractText', () => {
           { type: 'variable', name: 'b' },
         ] as AbstractText;
         const cursor = 4;
-        const result = Cursor.down(text, cursor);
+        const result = Cursor.down(text, cursor, 0);
         expect(result.cursor).toBe(4);
         expect(result.insertMode).toBe('normal');
       });
@@ -784,7 +818,7 @@ describe('AbstractText', () => {
           { type: 'variable', name: 'b' },
         ] as AbstractText;
         const cursor = 2;
-        const result = Cursor.down(text, cursor);
+        const result = Cursor.down(text, cursor, 0);
         expect(result.cursor).toBe(2);
         expect(result.insertMode).toBe('subscript');
       });
@@ -797,7 +831,7 @@ describe('AbstractText', () => {
           { type: 'variable', name: 'b' },
         ] as AbstractText;
         const cursor = 2;
-        const result = Cursor.down(text, cursor);
+        const result = Cursor.down(text, cursor, 0);
         expect(result.cursor).toBe(2);
         expect(result.insertMode).toBe('subscript');
       });
@@ -809,7 +843,7 @@ describe('AbstractText', () => {
         ] as AbstractText;
         const cursor = 1;
 
-        const result = Cursor.down(text, cursor);
+        const result = Cursor.down(text, cursor, 0);
 
         expect(result.cursor).toBe(1);
         expect(result.insertMode).toBe('normal');

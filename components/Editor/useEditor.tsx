@@ -1,6 +1,6 @@
 import { useTheme } from '../../hooks/useTheme';
 import { KeyboardEvent, useRef } from 'react';
-import { useAst } from '../../hooks/useAST';
+import { useAst, useAstState } from '../../hooks/useAST';
 import { Jump } from '@/lib/abstractText';
 
 interface UseEditorProps {
@@ -26,6 +26,7 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     setEditing,
     toggleEditing,
   } = useAst();
+  const { editing } = useAstState();
   const { astTheme } = useTheme();
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -89,7 +90,7 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
           if (canDeselect) deselectAll();
           return;
         case 'ArrowRight':
-          setInsertMode('normal');
+          if (!editing) setInsertMode('normal');
 
           right(navigationPayload);
           if (canDeselect) deselectAll();
