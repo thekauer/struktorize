@@ -136,6 +136,20 @@ const isSameScriptTwice = (first: AbstractChar, second: AbstractChar) => {
   return script.includes(first.type) && first.type === second.type;
 };
 
+const isTripleScript = (
+  first: AbstractChar | undefined,
+  second: AbstractChar,
+  third: AbstractChar,
+) => {
+  const script = ['superscript', 'subscript'];
+  return (
+    first &&
+    script.includes(first.type) &&
+    script.includes(second.type) &&
+    script.includes(third.type)
+  );
+};
+
 const getClosestSubscript = (text: AbstractText, cursor: number) => {
   if (text[cursor]?.type === 'subscript') {
     return text[cursor] as Subscript;
@@ -178,25 +192,30 @@ const getClosestSuperscript = (text: AbstractText, cursor: number) => {
   }
 };
 
-const variableAt = (text: AbstractText,insertMode: InsertMode, cursor: number, indexCursor: number): {variable: Variable; index:number;offset:number} |null => {
+const variableAt = (
+  text: AbstractText,
+  insertMode: InsertMode,
+  cursor: number,
+  indexCursor: number,
+): { variable: Variable; index: number; offset: number } | null => {
   const index = text
     .map((char) => (char.type === 'variable' ? char.name.length : 1))
     .findLastIndex((length) => length < cursor);
 
   if (index === -1) return null;
 
-  if(insertMode !== 'normal') {
-    if(insertMode === 'superscript') {
+  if (insertMode !== 'normal') {
+    if (insertMode === 'superscript') {
       const subscript = getClosestSubscript(text, index);
       if (subscript) {
-        return  variableAt(subscript.text,'normal',indexCursor,0)
+        return variableAt(subscript.text, 'normal', indexCursor, 0);
       }
     }
 
-    if(insertMode === 'subscript') {
+    if (insertMode === 'subscript') {
       const superscript = getClosestSuperscript(text, index);
       if (superscript) {
-        return  variableAt(superscript.text,'normal',indexCursor,0)
+        return variableAt(superscript.text, 'normal', indexCursor, 0);
       }
     }
 
@@ -209,29 +228,29 @@ const variableAt = (text: AbstractText,insertMode: InsertMode, cursor: number, i
     offset: cursor - index - 1,
   };
 };
-
-export const addText2 =
-  (
-    newText: string,
-    insertMode: InsertMode = 'normal',
-    cursor: number,
-    cursorIndex: number,
-  ) =>
-  (currentText: AbstractText): AbstractText => {
-    const variable = variableAt(currentText,insertMode ,cursor,cursorIndex);
-    if (!variable) return [{ type: 'variable', name: newText }];
-
-    const head = currentText.slice(0, variable.index);
-    const tail = currentText.slice(variable.index + 1);
-
-    const name =
-      variable.variable.name.slice(0, variable.offset) +
-      newText +
-      variable.variable.name.slice(variable.offset);
-
-    return head.concat([{ type: 'variable', name }], tail);
-  };
-}
+//
+// export const addText2 =
+//   (
+//     newText: string,
+//     insertMode: InsertMode = 'normal',
+//     cursor: number,
+//     cursorIndex: number,
+//   ) =>
+//   (currentText: AbstractText): AbstractText => {
+//     const variable = variableAt(currentText,insertMode ,cursor,cursorIndex);
+//     if (!variable) return [{ type: 'variable', name: newText }];
+//
+//     const head = currentText.slice(0, variable.index);
+//     const tail = currentText.slice(variable.index + 1);
+//
+//     const name =
+//       variable.variable.name.slice(0, variable.offset) +
+//       newText +
+//       variable.variable.name.slice(variable.offset);
+//
+//     return head.concat([{ type: 'variable', name }], tail);
+//   };
+// }
 
 export const addText =
   (
@@ -278,6 +297,7 @@ export const addAbstractChar =
     if (!last) return isBannedFirstChar(char) ? [] : [char];
 
     if (isSameScriptTwice(last, char)) return currentText;
+    if (isTripleScript(currentText.at(-2), last, char)) return currentText;
     if (isSpaceScript(last, char)) return currentText;
     const isDoubleOperator = isOperatorType(char) && isOperatorType(last);
     if (isDoubleOperator) {
@@ -450,7 +470,6 @@ const indexCursorOnEnter = (
 
   return 0;
 };
-
 
 const right = (
   text: AbstractText,
