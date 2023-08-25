@@ -136,6 +136,103 @@ const isSameScriptTwice = (first: AbstractChar, second: AbstractChar) => {
   return script.includes(first.type) && first.type === second.type;
 };
 
+const getClosestSubscript = (text: AbstractText, cursor: number) => {
+  if (text[cursor]?.type === 'subscript') {
+    return text[cursor] as Subscript;
+  }
+  if (
+    text[cursor]?.type === 'superscript' &&
+    text[cursor + 1]?.type === 'subscript'
+  ) {
+    return text[cursor + 1] as Subscript;
+  }
+  if (
+    text[cursor - 1]?.type === 'superscript' &&
+    text[cursor - 2]?.type === 'subscript'
+  ) {
+    return text[cursor - 2] as Subscript;
+  }
+  if (text[cursor - 1]?.type === 'subscript') {
+    return text[cursor - 1] as Subscript;
+  }
+};
+
+const getClosestSuperscript = (text: AbstractText, cursor: number) => {
+  if (text[cursor]?.type === 'superscript') {
+    return text[cursor] as SuperScript;
+  }
+  if (
+    text[cursor]?.type === 'subscript' &&
+    text[cursor + 1]?.type === 'superscript'
+  ) {
+    return text[cursor + 1] as SuperScript;
+  }
+  if (
+    text[cursor - 1]?.type === 'subscript' &&
+    text[cursor - 2]?.type === 'superscript'
+  ) {
+    return text[cursor - 2] as SuperScript;
+  }
+  if (text[cursor - 1]?.type === 'superscript') {
+    return text[cursor - 1] as SuperScript;
+  }
+};
+
+const variableAt = (text: AbstractText,insertMode: InsertMode, cursor: number, indexCursor: number): {variable: Variable; index:number;offset:number} |null => {
+  const index = text
+    .map((char) => (char.type === 'variable' ? char.name.length : 1))
+    .findLastIndex((length) => length < cursor);
+
+  if (index === -1) return null;
+
+  if(insertMode !== 'normal') {
+    if(insertMode === 'superscript') {
+      const subscript = getClosestSubscript(text, index);
+      if (subscript) {
+        return  variableAt(subscript.text,'normal',indexCursor,0)
+      }
+    }
+
+    if(insertMode === 'subscript') {
+      const superscript = getClosestSuperscript(text, index);
+      if (superscript) {
+        return  variableAt(superscript.text,'normal',indexCursor,0)
+      }
+    }
+
+    return null;
+  }
+
+  return {
+    variable: text[index] as Variable,
+    index,
+    offset: cursor - index - 1,
+  };
+};
+
+export const addText2 =
+  (
+    newText: string,
+    insertMode: InsertMode = 'normal',
+    cursor: number,
+    cursorIndex: number,
+  ) =>
+  (currentText: AbstractText): AbstractText => {
+    const variable = variableAt(currentText,insertMode ,cursor,cursorIndex);
+    if (!variable) return [{ type: 'variable', name: newText }];
+
+    const head = currentText.slice(0, variable.index);
+    const tail = currentText.slice(variable.index + 1);
+
+    const name =
+      variable.variable.name.slice(0, variable.offset) +
+      newText +
+      variable.variable.name.slice(variable.offset);
+
+    return head.concat([{ type: 'variable', name }], tail);
+  };
+}
+
 export const addText =
   (
     newText: string,
@@ -354,47 +451,6 @@ const indexCursorOnEnter = (
   return 0;
 };
 
-const getClosestSubscript = (text: AbstractText, cursor: number) => {
-  if (text[cursor]?.type === 'subscript') {
-    return text[cursor] as Subscript;
-  }
-  if (
-    text[cursor]?.type === 'superscript' &&
-    text[cursor + 1]?.type === 'subscript'
-  ) {
-    return text[cursor + 1] as Subscript;
-  }
-  if (
-    text[cursor - 1]?.type === 'superscript' &&
-    text[cursor - 2]?.type === 'subscript'
-  ) {
-    return text[cursor - 2] as Subscript;
-  }
-  if (text[cursor - 1]?.type === 'subscript') {
-    return text[cursor - 1] as Subscript;
-  }
-};
-
-const getClosestSuperscript = (text: AbstractText, cursor: number) => {
-  if (text[cursor]?.type === 'superscript') {
-    return text[cursor] as SuperScript;
-  }
-  if (
-    text[cursor]?.type === 'subscript' &&
-    text[cursor + 1]?.type === 'superscript'
-  ) {
-    return text[cursor + 1] as SuperScript;
-  }
-  if (
-    text[cursor - 1]?.type === 'subscript' &&
-    text[cursor - 2]?.type === 'superscript'
-  ) {
-    return text[cursor - 2] as SuperScript;
-  }
-  if (text[cursor - 1]?.type === 'superscript') {
-    return text[cursor - 1] as SuperScript;
-  }
-};
 
 const right = (
   text: AbstractText,
