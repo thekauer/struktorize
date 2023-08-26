@@ -108,11 +108,9 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
         addStatement();
         return;
       case '^':
-        insert({ type: 'superscript', text: [] }, 'normal');
         setInsertMode('superscript');
         return;
       case '_':
-        insert({ type: 'subscript', text: [] }, 'normal');
         setInsertMode('subscript');
         return;
     }

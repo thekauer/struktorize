@@ -1,70 +1,47 @@
 import {
   AbstractChar,
   AbstractText,
-  Ast,
-  TraversableAstNode,
-  InsertInsideAvailable,
   Operator,
-  Subscript,
-  SuperScript,
   Symbol,
-  traverse,
-  Variable,
+  Script,
+  Char,
 } from './ast';
 
-const getLast = <T extends AbstractChar>(text: AbstractText) => {
-  return text.at(-1) as T | undefined;
+const toSpliced = (
+  text: AbstractText,
+  index: number,
+  deleteCount: number,
+  ...char: AbstractChar[]
+) => {
+  return [...text.slice(0, index), ...char, ...text.slice(index + deleteCount)];
 };
 
-const doesEndWithScript = (text: AbstractText) => {
-  const last = getLast(text);
-  if (!last) return false;
-
-  return last.type === 'subscript' || last.type === 'superscript';
+export const isScript = (char?: AbstractChar) => {
+  return char?.type === 'script';
 };
 
-export const isScript = (char: AbstractChar) => {
-  return char.type === 'subscript' || char.type === 'superscript';
+export const getScriptIndex = (text: AbstractText, cursor: number) => {
+  if (isScript(text.at(cursor))) return cursor;
+  if (isScript(text.at(cursor - 1))) return cursor - 1;
+  return null;
 };
 
-const isNextToSuperscript = (text: AbstractText, cursor: number) => {
-  return (
-    text[cursor]?.type === 'superscript' ||
-    (text[cursor]?.type === 'subscript' &&
-      text[cursor + 1]?.type === 'superscript') ||
-    (text[cursor - 1]?.type === 'subscript' &&
-      text[cursor - 2]?.type === 'superscript') ||
-    text[cursor - 1]?.type === 'superscript' ||
-    text[cursor]?.type === 'superscript'
-  );
+const getScript = (text: AbstractText, cursor: number) => {
+  const index = getScriptIndex(text, cursor);
+  return index ? (text.at(index) as Script) : null;
 };
 
-const isNextToSubscript = (text: AbstractText, cursor: number) => {
-  return (
-    text[cursor]?.type === 'subscript' ||
-    (text[cursor]?.type === 'superscript' &&
-      text[cursor + 1]?.type === 'subscript') ||
-    (text[cursor - 1]?.type === 'superscript' &&
-      text[cursor - 2]?.type === 'subscript') ||
-    text[cursor - 1]?.type === 'subscript' ||
-    text[cursor]?.type === 'subscript'
-  );
-};
+const getCurrentScript = (
+  text: AbstractText,
+  cursor: number,
+  insertMode: InsertMode,
+) => {
+  const script = getScript(text, cursor);
 
-const doesEndWithVariable = (text: AbstractText) => {
-  return getLast(text)?.type === 'variable';
+  return insertMode === 'superscript' ? script?.superscript : script?.subscript;
 };
 
 export type InsertMode = 'normal' | 'superscript' | 'subscript';
-
-const isInsertInsideAvaiable = (char: AbstractChar) => {
-  switch (char.type) {
-    case 'subscript':
-    case 'superscript':
-      return true;
-  }
-  return false;
-};
 
 const OPERATOR_MAP: Record<string, Operator> = {
   '&': { type: 'and' },
@@ -128,129 +105,32 @@ const isBannedFirstChar = (char: AbstractChar) => {
 
 const isSpaceScript = (first: AbstractChar, second: AbstractChar) => {
   if (first.type !== 'space') return false;
-  return second.type === 'superscript' || second.type === 'subscript';
+  return isScript(second);
 };
 
-const isSameScriptTwice = (first: AbstractChar, second: AbstractChar) => {
-  const script = ['superscript', 'subscript'];
-  return script.includes(first.type) && first.type === second.type;
-};
-
-const isTripleScript = (
-  first: AbstractChar | undefined,
-  second: AbstractChar,
-  third: AbstractChar,
-) => {
-  const script = ['superscript', 'subscript'];
-  return (
-    first &&
-    script.includes(first.type) &&
-    script.includes(second.type) &&
-    script.includes(third.type)
-  );
-};
-
-const getClosestSubscript = (text: AbstractText, cursor: number) => {
-  if (text[cursor]?.type === 'subscript') {
-    return text[cursor] as Subscript;
-  }
-  if (
-    text[cursor]?.type === 'superscript' &&
-    text[cursor + 1]?.type === 'subscript'
-  ) {
-    return text[cursor + 1] as Subscript;
-  }
-  if (
-    text[cursor - 1]?.type === 'superscript' &&
-    text[cursor - 2]?.type === 'subscript'
-  ) {
-    return text[cursor - 2] as Subscript;
-  }
-  if (text[cursor - 1]?.type === 'subscript') {
-    return text[cursor - 1] as Subscript;
-  }
-};
-
-const getClosestSuperscript = (text: AbstractText, cursor: number) => {
-  if (text[cursor]?.type === 'superscript') {
-    return text[cursor] as SuperScript;
-  }
-  if (
-    text[cursor]?.type === 'subscript' &&
-    text[cursor + 1]?.type === 'superscript'
-  ) {
-    return text[cursor + 1] as SuperScript;
-  }
-  if (
-    text[cursor - 1]?.type === 'subscript' &&
-    text[cursor - 2]?.type === 'superscript'
-  ) {
-    return text[cursor - 2] as SuperScript;
-  }
-  if (text[cursor - 1]?.type === 'superscript') {
-    return text[cursor - 1] as SuperScript;
-  }
-};
-
-const variableAt = (
-  text: AbstractText,
+const editScriptInText = (
+  currentText: AbstractText,
   insertMode: InsertMode,
   cursor: number,
-  indexCursor: number,
-): { variable: Variable; index: number; offset: number } | null => {
-  const index = text
-    .map((char) => (char.type === 'variable' ? char.name.length : 1))
-    .findLastIndex((length) => length < cursor);
+  callback: (text: AbstractText) => AbstractText,
+) => {
+  if (insertMode === 'normal') return currentText;
+  const scriptIndex = getScriptIndex(currentText, cursor);
+  if (!scriptIndex) return currentText;
+  const script = currentText[scriptIndex] as Script;
+  const currentScript = script[insertMode];
+  const text = currentScript?.text;
+  if (!text) return currentText;
 
-  if (index === -1) return null;
+  const newScriptText = callback(text);
 
-  if (insertMode !== 'normal') {
-    if (insertMode === 'superscript') {
-      const subscript = getClosestSubscript(text, index);
-      if (subscript) {
-        return variableAt(subscript.text, 'normal', indexCursor, 0);
-      }
-    }
-
-    if (insertMode === 'subscript') {
-      const superscript = getClosestSuperscript(text, index);
-      if (superscript) {
-        return variableAt(superscript.text, 'normal', indexCursor, 0);
-      }
-    }
-
-    return null;
-  }
-
-  return {
-    variable: text[index] as Variable,
-    index,
-    offset: cursor - index - 1,
+  const newScript = {
+    ...script,
+    [insertMode]: { type: insertMode, text: newScriptText },
   };
+
+  return toSpliced(currentText, scriptIndex, 1, newScript);
 };
-//
-// export const addText2 =
-//   (
-//     newText: string,
-//     insertMode: InsertMode = 'normal',
-//     cursor: number,
-//     cursorIndex: number,
-//   ) =>
-//   (currentText: AbstractText): AbstractText => {
-//     const variable = variableAt(currentText,insertMode ,cursor,cursorIndex);
-//     if (!variable) return [{ type: 'variable', name: newText }];
-//
-//     const head = currentText.slice(0, variable.index);
-//     const tail = currentText.slice(variable.index + 1);
-//
-//     const name =
-//       variable.variable.name.slice(0, variable.offset) +
-//       newText +
-//       variable.variable.name.slice(variable.offset);
-//
-//     return head.concat([{ type: 'variable', name }], tail);
-//   };
-// }
 
 export const addText =
   (
@@ -260,177 +140,114 @@ export const addText =
     cursorIndex: number,
   ) =>
   (currentText: AbstractText): AbstractText => {
-    const last = getLast(currentText);
+    if (insertMode !== 'normal') {
+      if (!getScriptIndex(currentText, cursor)) {
+        const withScript = toSpliced(currentText, cursorIndex, 0, {
+          type: 'script',
+          subscript: { type: 'subscript', text: [] },
+          superscript: { type: 'superscript', text: [] },
+        });
+
+        return editScriptInText(
+          withScript,
+          insertMode,
+          cursor,
+          addText(newText, 'normal', cursor, cursorIndex),
+        );
+      }
+      return editScriptInText(
+        currentText,
+        insertMode,
+        cursor,
+        addText(newText, 'normal', cursor, cursorIndex),
+      );
+    }
 
     if (isOperator(newText)) {
-      return addAbstractChar(OPERATOR_MAP[newText], insertMode)(currentText);
+      return addAbstractChar(
+        OPERATOR_MAP[newText],
+        insertMode,
+        cursor,
+        cursorIndex,
+      )(currentText);
     }
 
-    if (!last) return [{ type: 'variable', name: newText }];
-    if (insertMode !== 'normal' && isInsertInsideAvaiable(last)) {
-      const lastInsertable = last as InsertInsideAvailable;
-      return currentText.slice(0, -1).concat({
-        ...lastInsertable,
-        text: addText(
-          newText,
-          'normal',
-          cursor,
-          cursorIndex,
-        )(lastInsertable.text),
-      });
-    }
+    if (currentText.length === 0) return [{ type: 'char', value: newText }];
 
-    if (last.type === 'variable') {
-      return currentText.slice(0, -1).concat({
-        ...last,
-        name: last.name + newText,
-      });
-    }
-
-    return currentText.concat({ type: 'variable', name: newText });
+    return toSpliced(currentText, cursor, 0, {
+      type: 'char',
+      value: newText,
+    });
   };
 
 export const addAbstractChar =
-  (char: AbstractChar, insertMode: InsertMode) =>
+  (
+    char: AbstractChar,
+    insertMode: InsertMode,
+    cursor: number,
+    cursorIndex: number,
+  ) =>
   (currentText: AbstractText): AbstractText => {
-    const last = getLast(currentText);
-    if (!last) return isBannedFirstChar(char) ? [] : [char];
+    if (insertMode !== 'normal') {
+      if (!getScriptIndex(currentText, cursor)) {
+        const withScript = toSpliced(currentText, cursorIndex, 0, {
+          type: 'script',
+          subscript: { type: 'subscript', text: [] },
+          superscript: { type: 'superscript', text: [] },
+        });
 
-    if (isSameScriptTwice(last, char)) return currentText;
-    if (isTripleScript(currentText.at(-2), last, char)) return currentText;
-    if (isSpaceScript(last, char)) return currentText;
-    const isDoubleOperator = isOperatorType(char) && isOperatorType(last);
-    if (isDoubleOperator) {
-      return currentText
-        .slice(0, -1)
-        .concat(transformDoubleOperator(last, char));
+        return editScriptInText(
+          withScript,
+          insertMode,
+          cursor,
+          addAbstractChar(char, 'normal', cursor, cursorIndex),
+        );
+      }
+      return editScriptInText(
+        currentText,
+        insertMode,
+        cursor,
+        addAbstractChar(char, 'normal', cursor, cursorIndex),
+      );
     }
 
-    if (insertMode !== 'normal' && isInsertInsideAvaiable(last)) {
-      const lastInsertable = last as InsertInsideAvailable;
+    const current = currentText[cursor];
+    if (!current) return isBannedFirstChar(char) ? [] : [char];
 
-      return currentText.slice(0, -1).concat({
-        ...lastInsertable,
-        text: addAbstractChar(char, 'normal')(lastInsertable.text),
-      });
+    if (isSpaceScript(current, char)) return currentText;
+    const isDoubleOperator = isOperatorType(char) && isOperatorType(current);
+    if (isDoubleOperator) {
+      return toSpliced(
+        currentText,
+        cursor,
+        1,
+        ...transformDoubleOperator(current, char),
+      );
     }
 
     return currentText.concat(char);
   };
 
-export const deleteLast = (text: AbstractText): AbstractText => {
-  if (doesEndWithScript(text)) {
-    return text.slice(0, -1);
-  }
-
-  if (doesEndWithVariable(text)) {
-    const lastText = getLast<Variable>(text)!.name;
-    if (lastText.length > 1) {
-      const newLastVariable: Variable = {
-        type: 'variable',
-        name: lastText.substring(0, lastText.length - 1),
-      };
-      return text.slice(0, -1).concat([newLastVariable]);
+export const deleteAbstractChar =
+  (insertMode: InsertMode, cursor: number, cursorIndex: number) =>
+  (currentText: AbstractText): AbstractText => {
+    if (insertMode !== 'normal') {
+      return editScriptInText(
+        currentText,
+        insertMode,
+        cursor,
+        deleteAbstractChar('normal', cursor, cursorIndex),
+      );
     }
-
-    return text.slice(0, -1);
-  }
-
-  return text.slice(0, -1);
-};
-
-export const deleteLastVariable = (text: AbstractText): AbstractText => {
-  if (doesEndWithVariable(text)) {
-    return text.slice(0, -1);
-  }
-  if (doesEndWithScript(text)) {
-    const last = getLast<Subscript | SuperScript>(text)!;
-    const newText = last.text.slice(0, -1);
-    const newLast = { type: last.type, text: newText };
-    return text.slice(0, -1).concat(newLast);
-  }
-  return text;
-};
-
-const getAllVariablesInNode = (node: TraversableAstNode) => {
-  return node.text.reduce((acc, curr) => {
-    switch (curr.type) {
-      case 'subscript':
-      case 'superscript':
-        return acc.concat(
-          curr.text.filter((char) => char.type === 'variable') as Variable[],
-        );
-      case 'variable':
-        acc.push(curr);
-        return acc;
-      default:
-        return acc;
-    }
-  }, [] as Variable[]);
-};
-
-const getAllVariableNames = (body: Ast) => {
-  const variables = traverse(body, (node) =>
-    getAllVariablesInNode(node as TraversableAstNode),
-  );
-  return Array.from(new Set(variables.map((variable) => variable.name)));
-};
-
-export const getLastText = (current: TraversableAstNode) => {
-  return getAllVariablesInNode(current).at(-1)?.name;
-};
-
-export const getAllVariablesExceptCurrent = (
-  body: Ast,
-  current: TraversableAstNode,
-) => {
-  return getAllVariableNames(body).filter(
-    (variable) => variable !== getLastText(current),
-  );
-};
-
-export const getFunctionName = (text: AbstractText): string => {
-  return text[0]?.type === 'variable' ? text[0]?.name : '';
-};
-
-export const doesEndWithSpace = (text: AbstractText) => {
-  return text.at(-1)?.type === 'space';
-};
-
-export const preprocess = (text: AbstractText): AbstractText => {
-  return text.flatMap((char) => {
-    if (char.type === 'variable') {
-      return (char as Variable).name.split('').map((char) => {
-        return { type: 'variable', name: char } as AbstractChar;
-      });
-    }
-    if (isScript(char)) {
-      const text = preprocess((char as Subscript | SuperScript).text);
-      return { ...char, text };
-    }
-    return char as AbstractChar;
-  });
-};
-
-export const strlen = (text?: AbstractText) => {
-  if (!text) return 0;
-  if (text.length === 0) return 0;
-
-  return text.reduce((acc, curr) => {
-    switch (curr.type) {
-      case 'variable':
-        return acc + curr.name.length;
-      default:
-        return acc + 1;
-    }
-  }, 0);
-};
+    return toSpliced(currentText, cursorIndex, 1);
+  };
 
 type CursorMovement = {
   cursor: number;
   insertMode: InsertMode;
   indexCursor: number;
 };
+
 export type Jump = 'none' | 'word' | 'line';
 
 const isOnRightSideOfScript = (text: AbstractText, cursor: number) => {
@@ -442,33 +259,70 @@ const indexCursorOnEnter = (
   cursor: number,
   nextInsertMode: InsertMode,
 ) => {
-  if (!isOnRightSideOfScript(text, cursor)) {
+  const script = getScript(text, cursor);
+  if (!script || !isOnRightSideOfScript(text, cursor)) {
     return 0;
   }
 
-  if (nextInsertMode === 'subscript') {
-    if (text[cursor - 1] && text[cursor - 1].type === 'subscript') {
-      const prev = text[cursor - 1] as Subscript;
-      return strlen(prev.text);
-    }
-    if (text[cursor - 2] && text[cursor - 2].type === 'subscript') {
-      const prevPrev = text[cursor - 2] as Subscript;
-      return strlen(prevPrev.text);
-    }
-  }
-
-  // superscript
-
-  if (text[cursor - 1] && text[cursor - 1].type === 'superscript') {
-    const prev = text[cursor - 1] as SuperScript;
-    return strlen(prev.text);
-  }
-  if (text[cursor - 2] && text[cursor - 2].type === 'superscript') {
-    const prevPrev = text[cursor - 2] as SuperScript;
-    return strlen(prevPrev.text);
-  }
+  if (nextInsertMode === 'subscript') return script.subscript?.text.length || 0;
+  if (nextInsertMode === 'superscript')
+    return script.superscript?.text.length || 0;
 
   return 0;
+};
+
+const isAlphaNumeric = (char?: AbstractChar) => {
+  if (!char) return false;
+  return char.type === 'char' && char.value.match(/[a-zA-Z0-9]/i);
+};
+
+const currentCharIndex = (
+  text: AbstractText,
+  cursor: number,
+  indexCursor: number,
+  insertMode: InsertMode = 'normal',
+): number => {
+  if (insertMode !== 'normal') {
+    const scriptText = getCurrentScript(text, cursor, insertMode)?.text;
+    if (scriptText) {
+      return currentCharIndex(scriptText, indexCursor, 0, 'normal');
+    }
+  }
+
+  if (text.length === 0) return -1;
+
+  if (isAlphaNumeric(text[cursor - 1])) return cursor - 1;
+  if (isAlphaNumeric(text[cursor])) return cursor;
+  return -1;
+};
+
+export const currentWord = (
+  text: AbstractText,
+  cursor: number,
+  indexCursor: number,
+  insertMode: InsertMode = 'normal',
+): string | null => {
+  if (insertMode !== 'normal') {
+    const scriptText = getCurrentScript(text, cursor, insertMode)?.text;
+    if (scriptText) {
+      return currentWord(scriptText, indexCursor, 0, 'normal');
+    }
+  }
+  if (text.length === 0) return null;
+
+  const index = currentCharIndex(text, cursor, indexCursor, insertMode);
+  if (index === -1) return null;
+
+  let left = index;
+  let right = index;
+
+  while (left > 0 && isAlphaNumeric(text[left - 1])) left--;
+  while (right < text.length - 1 && isAlphaNumeric(text[right + 1])) right++;
+
+  return text
+    .slice(left, right + 1)
+    .map((char) => (char as Char).value)
+    .join('');
 };
 
 const right = (
@@ -478,41 +332,24 @@ const right = (
   insertMode: InsertMode = 'normal',
   jump: Jump = 'none',
 ): CursorMovement => {
-  if (insertMode === 'subscript') {
-    const subscript = getClosestSubscript(text, cursor);
-    if (subscript) {
-      const text = preprocess(subscript.text);
-      const movement = right(text, indexCursor, 0, 'normal', jump);
-      return { cursor, insertMode, indexCursor: movement.cursor };
-    }
-  }
-  if (insertMode === 'superscript') {
-    const superscript = getClosestSuperscript(text, cursor);
-    if (superscript) {
-      const text = preprocess(superscript.text);
-      const movement = right(text, indexCursor, 0, 'normal', jump);
+  if (insertMode !== 'normal') {
+    const scriptText = getCurrentScript(text, cursor, insertMode)?.text;
+
+    if (scriptText) {
+      const movement = right(scriptText, indexCursor, 0, 'normal', jump);
       return { cursor, insertMode, indexCursor: movement.cursor };
     }
   }
 
   if (cursor === text.length) return { cursor, insertMode, indexCursor };
   if (jump === 'line')
-    return { cursor: strlen(text), insertMode: 'normal', indexCursor };
+    return { cursor: text.length, insertMode: 'normal', indexCursor };
   if (
     jump === 'word' &&
     cursor < text.length - 1 &&
-    text[cursor + 1].type === 'variable'
+    text[cursor + 1].type === 'char'
   )
     return right(text, cursor + 1, indexCursor, insertMode, jump);
-
-  if (
-    cursor < text.length - 1 &&
-    text[cursor] &&
-    isScript(text[cursor]) &&
-    text[cursor + 1] &&
-    isScript(text[cursor + 1])
-  )
-    return { cursor: cursor + 2, insertMode, indexCursor };
 
   return { cursor: cursor + 1, insertMode, indexCursor };
 };
@@ -524,19 +361,11 @@ const left = (
   insertMode: InsertMode = 'normal',
   jump: Jump = 'none',
 ): CursorMovement => {
-  if (insertMode === 'subscript') {
-    const subscript = getClosestSubscript(text, cursor);
-    if (subscript) {
-      const text = preprocess(subscript.text);
-      const movement = left(text, indexCursor, 0, 'normal', jump);
-      return { cursor, insertMode, indexCursor: movement.cursor };
-    }
-  }
-  if (insertMode === 'superscript') {
-    const superscript = getClosestSuperscript(text, cursor);
-    if (superscript) {
-      const text = preprocess(superscript.text);
-      const movement = left(text, indexCursor, 0, 'normal', jump);
+  if (insertMode !== 'normal') {
+    const scriptText = getCurrentScript(text, cursor, insertMode)?.text;
+
+    if (scriptText) {
+      const movement = left(scriptText, indexCursor, 0, 'normal', jump);
       return { cursor, insertMode, indexCursor: movement.cursor };
     }
   }
@@ -545,15 +374,7 @@ const left = (
   if (jump === 'line') return { cursor: 0, insertMode: 'normal', indexCursor };
 
   const prev = text[cursor - 1];
-  if (jump === 'word' && cursor > 0 && prev?.type === 'variable')
-    return left(text, cursor - 1, indexCursor, insertMode, jump);
-  if (
-    cursor > 0 &&
-    prev &&
-    isScript(prev) &&
-    text[cursor - 2] &&
-    isScript(text[cursor - 2])
-  )
+  if (jump === 'word' && cursor > 0 && prev?.type === 'char')
     return left(text, cursor - 1, indexCursor, insertMode, jump);
 
   return { cursor: cursor - 1, insertMode, indexCursor };
@@ -568,8 +389,9 @@ const up = (
   if (insertMode === 'superscript') return { cursor, insertMode, indexCursor };
   if (insertMode === 'subscript')
     return { cursor, insertMode: 'normal', indexCursor };
-  if (!isNextToSuperscript(text, cursor))
-    return { cursor, insertMode, indexCursor };
+
+  const script = getScript(text, cursor);
+  if (!script?.superscript) return { cursor, insertMode, indexCursor };
 
   const newIndexCursor = indexCursorOnEnter(text, cursor, 'subscript');
   return { cursor, insertMode: 'superscript', indexCursor: newIndexCursor };
@@ -584,8 +406,9 @@ const down = (
   if (insertMode === 'subscript') return { cursor, insertMode, indexCursor };
   if (insertMode === 'superscript')
     return { cursor, insertMode: 'normal', indexCursor };
-  if (!isNextToSubscript(text, cursor))
-    return { cursor, insertMode, indexCursor };
+
+  const script = getScript(text, cursor);
+  if (!script?.subscript) return { cursor, insertMode, indexCursor };
 
   const newIndexCursor = indexCursorOnEnter(text, cursor, 'subscript');
 
@@ -597,4 +420,5 @@ export const Cursor = {
   down,
   left,
   right,
+  currentWord,
 };

@@ -2,20 +2,68 @@ import { useAst, useAstState, useNodeInScope } from '@/hooks/useAST';
 import { defaultCodeCompletions } from 'constants/defaultCodeCompletions';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import FuzzySearch from 'fuzzy-search';
-import { FunctionAst, AbstractChar } from '@/lib/ast';
-import {
-  doesEndWithSpace,
-  getAllVariablesExceptCurrent,
-  getLastText,
-} from '@/lib/abstractText';
+import { FunctionAst, AbstractChar, AstNode, SwitchAst } from '@/lib/ast';
+import { Cursor, InsertMode } from '@/lib/abstractText';
 import { atom, useAtom } from 'jotai';
+import { parseAll } from '@/lib/parser';
 
 export const codeCompletionVisibleAtom = atom(false);
+
+const getAllVariables = (ast: FunctionAst) => {
+  return parseAll(ast).flatMap((node) => {
+    if (node.type === 'signature') {
+      return [
+        {
+          value: node.name,
+          typeId: node.returnTypeId,
+          type: 'function' as const,
+        },
+        ...node.args.map((arg) => ({
+          value: arg.name,
+          typeId: arg.typeId,
+          type: 'variable' as const,
+        })),
+      ];
+    }
+
+    return { value: node.name, type: 'variable' as const };
+  });
+};
+
+const getAllVariablesExceptCurrent = (
+  ast: FunctionAst,
+  node: AstNode,
+  cursor: number,
+  indexCursor: number,
+  insertMode: InsertMode,
+) => {
+  const variables = getAllVariables(ast);
+  if (node.type === 'switch') return variables;
+
+  const current = Cursor.currentWord(
+    (node as Exclude<AstNode, SwitchAst>).text,
+    cursor,
+    indexCursor,
+    insertMode,
+  );
+
+  return variables.filter((variable) => variable.value !== current);
+};
 
 export type CodeCompletionItem =
   | {
       value: string;
-      type: 'variable' | 'keyword';
+      typeId?: string;
+      type: 'variable';
+    }
+  | {
+      value: string;
+      typeId?: string;
+      type: 'variable';
+    }
+  | {
+      value: string;
+      type: 'keyword';
     }
   | {
       type: 'symbol';
@@ -39,25 +87,34 @@ export const useCodeCompletion = () => {
     popLastText,
     setInsertMode,
   } = useAst();
-  const { ast } = useAstState();
+  const { ast, cursor, indexCursor, insertMode } = useAstState();
 
   const functionAst = ast as FunctionAst;
 
   const allItems: CodeCompletionItem[] = [
     ...defaultCodeCompletions,
-    ...getAllVariablesExceptCurrent(functionAst, node).map((value) => ({
-      type: 'variable' as const,
-      value,
-    })),
+    ...getAllVariablesExceptCurrent(
+      functionAst,
+      node,
+      cursor,
+      indexCursor,
+      insertMode,
+    ),
   ];
 
   const searcher = new FuzzySearch(allItems, ['value'], {
     sort: true,
   });
 
-  const items: CodeCompletionItem[] = doesEndWithSpace(node?.text || [])
+  const currentWord = Cursor.currentWord(
+    node?.text || [],
+    cursor,
+    indexCursor,
+    insertMode,
+  );
+  const items: CodeCompletionItem[] = currentWord
     ? allItems
-    : searcher.search(getLastText(node));
+    : searcher.search(currentWord);
 
   const shown = visible && items.length > 0;
 

@@ -1,17 +1,15 @@
 'use client';
 
 import { useAstState } from '@/hooks/useAST';
-import { InsertMode, isScript, preprocess } from '@/lib/abstractText';
+import { InsertMode, getScriptIndex, isScript } from '@/lib/abstractText';
 import {
   AbstractChar,
   AbstractText as AbstractTextType,
+  Char,
   MathBB,
-  Subscript,
-  SuperScript,
-  Variable,
 } from '@/lib/ast';
 import { Latex } from '../Latex/Latex';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import * as S from './AbstractText.atoms';
 
 interface AbstractTextProps {
@@ -21,9 +19,10 @@ interface AbstractTextProps {
 
 type BasicAbstractChar = Exclude<
   AbstractChar,
-  | { type: 'variable' }
+  | { type: 'char' }
   | { type: 'subscript' }
   | { type: 'superscript' }
+  | { type: 'script' }
   | { type: 'mathbb' }
 >;
 
@@ -115,23 +114,29 @@ const transform = (text: AbstractTextType, insertmode: InsertMode) => {
     .map((char, index, { length }): string => {
       const isLast = index === length - 1;
       switch (char.type) {
-        case 'variable': {
-          const text = (char as Variable).name;
+        case 'char': {
+          const text = (char as Char).value;
           return `\\text{${text}}`;
         }
-        case 'superscript': {
-          const text = (char as SuperScript).text;
-          const transformedText = transform(text, 'normal');
-          return `^{${
-            isLast && insertmode === 'superscript' ? SCRIPT_STYLE : ''
-          }{${transformedText}}}`;
-        }
-        case 'subscript': {
-          const text = (char as Subscript).text;
-          const transformedText = transform(text, 'normal');
-          return `_{${
-            isLast && insertmode === 'subscript' ? SCRIPT_STYLE : ''
-          }{${transformedText}}}`;
+        case 'script': {
+          switch (insertmode) {
+            case 'superscript': {
+              const text = char.superscript?.text;
+              if (!text) return '';
+              const transformedText = transform(text, 'normal');
+              return `^{${
+                isLast && insertmode === 'superscript' ? SCRIPT_STYLE : ''
+              }{${transformedText}}}`;
+            }
+            case 'subscript': {
+              const text = char.subscript?.text;
+              if (!text) return '';
+              const transformedText = transform(text, 'normal');
+              return `_{${
+                isLast && insertmode === 'subscript' ? SCRIPT_STYLE : ''
+              }{${transformedText}}}`;
+            }
+          }
         }
         case 'mathbb': {
           return `\\mathbb{${(char as MathBB).value}}`;
@@ -162,15 +167,9 @@ export const AbstractText = ({ children, hovered }: AbstractTextProps) => {
     return <Latex>{text}</Latex>;
   }
 
-  const text = preprocess(children);
+  const text = children;
   const middle =
-    insertMode === 'normal'
-      ? cursor
-      : text[cursor - 2] && isScript(text[cursor - 2])
-      ? cursor - 2
-      : text[cursor - 1] && isScript(text[cursor - 1])
-      ? cursor - 1
-      : cursor;
+    insertMode === 'normal' ? getScriptIndex(text, cursor) ?? cursor : cursor;
 
   const left = transform(text.slice(0, middle), insertMode);
   const right = transform(text.slice(middle), insertMode);

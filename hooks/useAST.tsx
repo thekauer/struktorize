@@ -30,15 +30,12 @@ import {
   addAbstractChar,
   addText,
   Cursor,
-  deleteLast,
-  deleteLastVariable,
-  getFunctionName,
   InsertMode,
-  preprocess,
-  strlen,
   type Jump,
+  deleteAbstractChar,
 } from '@/lib/abstractText';
 import { useTheme } from './useTheme';
+import { parseIdsText, parseSignatureText } from '@/lib/parser';
 
 type ChangeListener = (state: State) => void;
 
@@ -113,7 +110,7 @@ function navigateText(
   jump: Jump = 'none',
 ): State {
   const current = get(state.scope, state.ast);
-  const text = preprocess(current.text);
+  const text = current.text;
   const cursor = state.cursor;
   switch (type) {
     case 'left':
@@ -222,7 +219,7 @@ function reducer(state: State, action: Action): State {
 
     case 'text': {
       const current = get(scope, ast);
-      const cursor = strlen(current.text);
+      const cursor = current.text.length;
 
       const cst = edit(
         scope,
@@ -254,6 +251,8 @@ function reducer(state: State, action: Action): State {
         addAbstractChar(
           action.payload.symbol,
           action.payload.insertMode ?? state.insertMode,
+          state.cursor,
+          state.indexCursor,
         ),
       );
 
@@ -272,9 +271,24 @@ function reducer(state: State, action: Action): State {
           changed: true,
         };
       }
-      return { ...state, ...edit(scope, ast, deleteLast) };
+      return {
+        ...state,
+        ...edit(
+          scope,
+          ast,
+          deleteAbstractChar(state.insertMode, state.cursor, state.indexCursor),
+        ),
+      };
     case 'popLastText':
-      return { ...state, ...edit(scope, ast, deleteLastVariable) };
+      return {
+        ...state,
+        ...edit(
+          scope,
+          ast,
+
+          deleteAbstractChar(state.insertMode, state.cursor, state.indexCursor), // TODO: edit me
+        ),
+      };
     case 'setScope':
       return { ...state, ast, scope: action.payload };
     case 'setEditing':
@@ -370,7 +384,11 @@ export const AstProvider = ({ children }: AstProviderProps) => {
     indexCursor,
   } = state;
 
-  const functionName = getFunctionName((ast as FunctionAst).signature.text);
+  const signatureText = (ast as FunctionAst).signature.text;
+  const signature = parseSignatureText(signatureText);
+  const functionName =
+    signature?.name || parseIdsText(signatureText)[0].name || 'main';
+
   const stateContext = {
     ast,
     scope: showScope ? scope : [],

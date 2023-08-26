@@ -12,12 +12,15 @@ export interface AstBase {
   type: AstType;
 }
 
-export type Variable = { type: 'variable'; name: string };
+export type Char = { type: 'char'; value: string };
 export type Subscript = { type: 'subscript'; text: AbstractText };
 export type SuperScript = { type: 'superscript'; text: AbstractText };
+export type Script = {
+  type: 'script';
+  subscript?: Subscript;
+  superscript?: SuperScript;
+};
 export type MathBB = { type: 'mathbb'; value: 'S' | 'R' | 'N' | 'Z' | 'B' };
-
-export type InsertInsideAvailable = SuperScript | Subscript;
 
 export type Operator = {
   type:
@@ -60,13 +63,7 @@ export type Symbol = {
     | 'empty';
 };
 
-export type AbstractChar =
-  | Operator
-  | Symbol
-  | Variable
-  | Subscript
-  | SuperScript
-  | MathBB;
+export type AbstractChar = Operator | Symbol | Char | Script | MathBB;
 
 export type AbstractText = AbstractChar[];
 
@@ -282,21 +279,6 @@ const incrementAt = (scope: Scope, ast: Ast, depth: number): Scope => {
     return incrementScope(parentScope);
   }
   return incrementAt(parentScope, ast, depth - 1);
-};
-
-const clearIndexes = (scope: Scope, ast: Ast) => {
-  const node = get(scope, ast);
-  const text = traverse(node, (node) =>
-    (node as TraversableAstNode).text.filter(
-      (text) =>
-        !(
-          (text.type === 'subscript' || text.type === 'superscript') &&
-          text.text.length === 0
-        ),
-    ),
-  );
-
-  return set(scope, ast, { ...node, text });
 };
 
 const prepare = (scope: Scope, node: Ast): Ast => {
@@ -892,7 +874,6 @@ export const remove = (scope: Scope, ast: Ast, strict = false): CST => {
 export const add = (scope: Scope, ast: Ast, node: Ast): CST => {
   if (isCaseOutsideSwitch(scope, node)) return { scope, ast };
 
-  ast = clearIndexes(scope, ast);
   const newNode = prepare(scope, node);
   const newBody = createBody(scope, ast, newNode);
   const newAst = isCaseInsideSwitch(scope, node)

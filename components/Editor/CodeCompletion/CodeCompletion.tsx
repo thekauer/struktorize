@@ -39,6 +39,9 @@ export const CodeCompletion = ({
           >
             <img src={`/cc/${item.type}.svg`} alt="variable" />
             <span>{item.value}</span>
+            <S.Type $selected={selected === index}>
+              {item.type === 'variable' ? item.typeId : ''}
+            </S.Type>
             <S.Tab $selected={selected === index}>[Tab]</S.Tab>
           </S.Row>
         ))}
