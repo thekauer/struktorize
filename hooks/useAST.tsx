@@ -357,7 +357,7 @@ const defaultState: State = {
   changeListeners: {},
   changed: false,
   editing: false,
-  cursor: 0,
+  cursor: defaultCST.ast.signature.text.length,
   indexCursor: 0,
   selected: new Set<string>(),
   history: [defaultCST],
@@ -387,7 +387,7 @@ export const AstProvider = ({ children }: AstProviderProps) => {
   const signatureText = (ast as FunctionAst).signature.text;
   const signature = parseSignatureText(signatureText);
   const functionName =
-    signature?.name || parseIdsText(signatureText)[0].name || 'main';
+    signature?.name || parseIdsText(signatureText)[0]?.name || 'main';
 
   const stateContext = {
     ast,
