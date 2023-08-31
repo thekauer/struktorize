@@ -1,14 +1,30 @@
 import { AbstractChar, AbstractText, Ast, MathBB, traverse } from './ast';
 
-type TypeId = string | null;
-type Identifier = { type: 'variable'; name: string };
-type Arg = { type: 'arg'; name: string; typeId: TypeId };
+type Type = string | null;
+type Identifier = { _type: 'variable'; name: string };
+type Arg = { _type: 'arg'; name: string; typeId: Type };
 type Signature = {
-  type: 'signature';
+  _type: 'signature';
   name: string;
   args: Arg[];
-  returnTypeId: TypeId;
+  returnType: Type;
 };
+
+function Type(type: string): Type {
+  return type;
+}
+
+function Identifier(name: string): Identifier {
+  return { _type: 'variable', name };
+}
+
+function Arg(name: string, typeId: Type): Arg {
+  return { _type: 'arg', name, typeId };
+}
+
+function Signature(name: string, args: Arg[], returnType: Type): Signature {
+  return { _type: 'signature', name, args, returnType };
+}
 
 interface Peekable<T, TNext, TReturn> extends Generator<T, TNext, TReturn> {
   peek: () => IteratorResult<TNext>;
@@ -91,31 +107,31 @@ function parseId(input: AbstractIter): Identifier | null {
   }
 
   if (variable === '') return null;
-  return { type: 'variable', name: variable };
+  return Identifier(variable);
 }
 
-function parseTypeId(input: AbstractIter): TypeId {
+function parseType(input: AbstractIter): Type {
   const isTyped = consumeOneOf(input, 'colon', 'in');
   if (!isTyped) return null;
 
   const mathbb = consume<MathBB>(input, 'mathbb');
   if (mathbb) {
     const typeId = mathbb.value;
-    if (consumeMany(input, 'lb', 'rb')) return typeId.value + '[]';
-    return typeId.value;
+    if (consumeMany(input, 'lb', 'rb')) return Type(typeId.value + '[]');
+    return Type(typeId.value);
   }
   const type = parseId(input);
   if (!type) return null;
-  if (consumeMany(input, 'lb', 'rb')) return type.name + '[]';
-  return type.name;
+  if (consumeMany(input, 'lb', 'rb')) return Type(type.name + '[]');
+  return Type(type.name);
 }
 
 function parseArg(input: AbstractIter): Arg | null {
   whiteSpace(input);
   const name = parseId(input)?.name;
   if (!name) return null;
-  const typeId = parseTypeId(input);
-  return { type: 'arg', name, typeId };
+  const typeId = parseType(input);
+  return Arg(name, typeId);
 }
 
 function parseArgs(input: AbstractIter): Arg[] {
@@ -144,8 +160,8 @@ function parseSignature(input: AbstractIter): Signature | null {
 
   if (!consume(input, 'rp')) return null;
 
-  const returnTypeId = parseTypeId(input);
-  return { type: 'signature', name, args, returnTypeId };
+  const returnType = parseType(input);
+  return Signature(name, args, returnType);
 }
 
 export function parseSignatureText(input: AbstractText) {
