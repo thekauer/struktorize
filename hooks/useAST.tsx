@@ -34,6 +34,7 @@ import {
   type Jump,
   deleteAbstractChar,
   editAdapter,
+  deleteAbstractText,
 } from '@/lib/abstractText';
 import { useTheme } from './useTheme';
 import { parseIdsText, parseSignatureText } from '@/lib/parser';
@@ -303,12 +304,21 @@ function reducer(state: State, action: Action): State {
 
     case 'popLastText': {
       const current = get(scope, ast);
+      const word = Cursor.currentWord(
+        current.text,
+        state.cursor,
+        state.indexCursor,
+        state.insertMode,
+      );
+      if (!word) return state;
+
       const editor = editAdapter(
         current.text,
-        deleteAbstractChar(
+        deleteAbstractText(
           state.insertMode,
           state.editing ? state.cursor : -1,
           state.editing ? state.indexCursor : -1,
+          word.length,
         ),
       );
 

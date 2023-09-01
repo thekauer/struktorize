@@ -152,7 +152,7 @@ const editScriptInText = (
   };
 };
 
-export const addText =
+export const addChar =
   (
     newText: string,
     insertMode: InsertMode = 'normal',
@@ -218,6 +218,22 @@ export const addText =
     };
   };
 
+export const addText =
+  (
+    newText: string,
+    insertMode: InsertMode = 'normal',
+    cursor: number,
+    cursorIndex: number,
+  ) =>
+  (currentText: AbstractText): EditResult => {
+    return newText.split('').reduce(
+      (acc, char) => {
+        return addChar(char, insertMode, acc.cursor, acc.indexCursor)(acc.text);
+      },
+      { text: currentText, cursor, indexCursor: cursorIndex },
+    );
+  };
+
 export const addAbstractChar =
   (
     char: AbstractChar,
@@ -281,7 +297,7 @@ export const addAbstractChar =
     }
 
     return {
-      text: currentText.concat(char),
+      text: toSpliced(currentText, at, 0, char),
       cursor: at + 1,
       indexCursor: cursorIndex,
     };
@@ -290,7 +306,6 @@ export const addAbstractChar =
 export const deleteAbstractChar =
   (insertMode: InsertMode, cursor: number, cursorIndex: number) =>
   (currentText: AbstractText): EditResult => {
-    debugger;
     if (insertMode !== 'normal') {
       return editScriptInText(
         currentText,
@@ -304,6 +319,31 @@ export const deleteAbstractChar =
     return {
       text: toSpliced(currentText, at - 1, 1),
       cursor: at - 1,
+      indexCursor: cursorIndex,
+    };
+  };
+
+export const deleteAbstractText =
+  (
+    insertMode: InsertMode,
+    cursor: number,
+    cursorIndex: number,
+    length: number,
+  ) =>
+  (currentText: AbstractText): EditResult => {
+    if (insertMode !== 'normal') {
+      return editScriptInText(
+        currentText,
+        insertMode,
+        cursor,
+        deleteAbstractText('normal', cursor, cursorIndex, length),
+      );
+    }
+
+    const at = cursor < 0 ? currentText.length + 1 + cursor : cursor;
+    return {
+      text: toSpliced(currentText, at - length, length),
+      cursor: at - 1 - length,
       indexCursor: cursorIndex,
     };
   };

@@ -45,6 +45,8 @@ export const Tab = styled.span<{ $selected?: boolean }>`
 `;
 
 export const Type = styled.span<{ $selected?: boolean }>`
+  display: inline-block;
+  white-space: nowrap;
   flex: 1;
   ${({ $selected }) =>
     !$selected ? 'color: var(--blue);' : 'color: var(--s-text);'}

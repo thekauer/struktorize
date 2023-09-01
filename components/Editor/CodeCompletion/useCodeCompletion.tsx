@@ -10,24 +10,26 @@ import { parseAll } from '@/lib/parser';
 export const codeCompletionVisibleAtom = atom(false);
 
 const getAllVariables = (ast: FunctionAst) => {
-  return parseAll(ast).flatMap((node) => {
-    if (node.type === 'signature') {
-      return [
-        {
-          value: node.name,
-          typeId: node.returnTypeId,
-          type: 'function' as const,
-        },
-        ...node.args.map((arg) => ({
-          value: arg.name,
-          typeId: arg.typeId,
-          type: 'variable' as const,
-        })),
-      ];
-    }
+  return parseAll(ast)
+    .map((node) => {
+      if (node._type === 'signature') {
+        return [
+          {
+            value: node.name,
+            typeId: node.type as string,
+            type: 'function' as const,
+          },
+          ...node.args.map((arg) => ({
+            value: arg.name,
+            typeId: arg.typeId as string,
+            type: 'variable' as const,
+          })),
+        ];
+      }
 
-    return { value: node.name, type: 'variable' as const };
-  });
+      return { value: node.name, type: 'variable' as const };
+    })
+    .flat();
 };
 
 const getAllVariablesExceptCurrent = (
@@ -59,7 +61,7 @@ export type CodeCompletionItem =
   | {
       value: string;
       typeId?: string;
-      type: 'variable';
+      type: 'function';
     }
   | {
       value: string;
@@ -112,9 +114,9 @@ export const useCodeCompletion = () => {
     indexCursor,
     insertMode,
   );
-  const items: CodeCompletionItem[] = currentWord
-    ? allItems
-    : searcher.search(currentWord);
+
+  const items: CodeCompletionItem[] =
+    currentWord === null ? allItems : searcher.search(currentWord);
 
   const shown = visible && items.length > 0;
 

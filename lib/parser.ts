@@ -8,6 +8,7 @@ type Signature = {
   name: string;
   args: Arg[];
   returnType: Type;
+  type: Type;
 };
 
 function Type(type: string): Type {
@@ -23,7 +24,11 @@ function Arg(name: string, typeId: Type): Arg {
 }
 
 function Signature(name: string, args: Arg[], returnType: Type): Signature {
-  return { _type: 'signature', name, args, returnType };
+  const type =
+    args.map((arg) => arg.typeId ?? 'any').join('×') +
+    ' → ' +
+    (returnType ?? 'any');
+  return { _type: 'signature', name, args, returnType, type };
 }
 
 interface Peekable<T, TNext, TReturn> extends Generator<T, TNext, TReturn> {
