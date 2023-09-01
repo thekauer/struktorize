@@ -108,28 +108,48 @@ const isSpaceScript = (first: AbstractChar, second: AbstractChar) => {
   return isScript(second);
 };
 
+type EditResult = { text: AbstractText; cursor: number; indexCursor: number };
+
+export const editAdapter = (
+  text: AbstractText,
+  callback: (text: AbstractText) => EditResult,
+) => {
+  const { cursor, indexCursor } = callback(text);
+
+  return {
+    editCallback: (text: AbstractText) => callback(text).text,
+    cursor,
+    indexCursor,
+  };
+};
+
 const editScriptInText = (
   currentText: AbstractText,
   insertMode: InsertMode,
   cursor: number,
-  callback: (text: AbstractText) => AbstractText,
-) => {
-  if (insertMode === 'normal') return currentText;
+  callback: (text: AbstractText) => EditResult,
+): EditResult => {
+  if (insertMode === 'normal')
+    return { text: currentText, cursor, indexCursor: 0 };
   const scriptIndex = getScriptIndex(currentText, cursor);
-  if (!scriptIndex) return currentText;
+  if (!scriptIndex) return { text: currentText, cursor, indexCursor: 0 };
   const script = currentText[scriptIndex] as Script;
   const currentScript = script[insertMode];
   const text = currentScript?.text;
-  if (!text) return currentText;
+  if (!text) return { text: currentText, cursor, indexCursor: 0 };
 
-  const newScriptText = callback(text);
+  const { text: newScriptText, cursor: newIndexCursor } = callback(text);
 
   const newScript = {
     ...script,
     [insertMode]: { type: insertMode, text: newScriptText },
   };
 
-  return toSpliced(currentText, scriptIndex, 1, newScript);
+  return {
+    text: toSpliced(currentText, scriptIndex, 1, newScript),
+    cursor,
+    indexCursor: newIndexCursor,
+  };
 };
 
 export const addText =
@@ -139,10 +159,18 @@ export const addText =
     cursor: number,
     cursorIndex: number,
   ) =>
-  (currentText: AbstractText): AbstractText => {
+  (currentText: AbstractText): EditResult => {
     if (insertMode !== 'normal') {
       if (!getScriptIndex(currentText, cursor)) {
-        const withScript = toSpliced(currentText, cursorIndex, 0, {
+        if (
+          currentText.length === 0 ||
+          ['space'].includes(
+            currentText[cursor - 1]?.type || currentText[cursor]?.type,
+          )
+        )
+          return { text: currentText, cursor, indexCursor: cursorIndex };
+
+        const withScript = toSpliced(currentText, cursor, 0, {
           type: 'script',
           subscript: { type: 'subscript', text: [] },
           superscript: { type: 'superscript', text: [] },
@@ -152,32 +180,42 @@ export const addText =
           withScript,
           insertMode,
           cursor,
-          addText(newText, 'normal', cursor, cursorIndex),
+          addText(newText, 'normal', cursorIndex, 0),
         );
       }
       return editScriptInText(
         currentText,
         insertMode,
         cursor,
-        addText(newText, 'normal', cursor, cursorIndex),
+        addText(newText, 'normal', cursorIndex, 0),
       );
     }
 
+    const at = cursor < 0 ? currentText.length + 1 + cursor : cursor;
     if (isOperator(newText)) {
       return addAbstractChar(
         OPERATOR_MAP[newText],
         insertMode,
-        cursor,
+        at,
         cursorIndex,
       )(currentText);
     }
 
-    if (currentText.length === 0) return [{ type: 'char', value: newText }];
+    if (currentText.length === 0)
+      return {
+        text: [{ type: 'char', value: newText }],
+        cursor: 1,
+        indexCursor: 0,
+      };
 
-    return toSpliced(currentText, cursor, 0, {
-      type: 'char',
-      value: newText,
-    });
+    return {
+      text: toSpliced(currentText, at, 0, {
+        type: 'char',
+        value: newText,
+      }),
+      cursor: at + 1,
+      indexCursor: cursorIndex,
+    };
   };
 
 export const addAbstractChar =
@@ -187,10 +225,18 @@ export const addAbstractChar =
     cursor: number,
     cursorIndex: number,
   ) =>
-  (currentText: AbstractText): AbstractText => {
+  (currentText: AbstractText): EditResult => {
     if (insertMode !== 'normal') {
       if (!getScriptIndex(currentText, cursor)) {
-        const withScript = toSpliced(currentText, cursorIndex, 0, {
+        if (
+          currentText.length === 0 ||
+          ['space', 'script'].includes(
+            currentText[cursor - 1]?.type || currentText[cursor]?.type,
+          )
+        )
+          return { text: currentText, cursor, indexCursor: cursorIndex };
+
+        const withScript = toSpliced(currentText, cursor, 0, {
           type: 'script',
           subscript: { type: 'subscript', text: [] },
           superscript: { type: 'superscript', text: [] },
@@ -200,37 +246,51 @@ export const addAbstractChar =
           withScript,
           insertMode,
           cursor,
-          addAbstractChar(char, 'normal', cursor, cursorIndex),
+          addAbstractChar(char, 'normal', cursorIndex, 0),
         );
       }
       return editScriptInText(
         currentText,
         insertMode,
         cursor,
-        addAbstractChar(char, 'normal', cursor, cursorIndex),
+        addAbstractChar(char, 'normal', cursorIndex, 0),
       );
     }
 
-    const current = currentText[cursor];
-    if (!current) return isBannedFirstChar(char) ? [] : [char];
+    const at = cursor < 0 ? currentText.length + 1 + cursor : cursor;
+    const current = currentText[at - 1];
+    if (!current)
+      return isBannedFirstChar(char)
+        ? { text: [], cursor, indexCursor: cursorIndex }
+        : { text: [char], cursor: 1, indexCursor: 0 };
 
-    if (isSpaceScript(current, char)) return currentText;
+    if (isSpaceScript(current, char))
+      return { text: currentText, cursor, indexCursor: cursorIndex };
     const isDoubleOperator = isOperatorType(char) && isOperatorType(current);
     if (isDoubleOperator) {
-      return toSpliced(
-        currentText,
-        cursor,
-        1,
-        ...transformDoubleOperator(current, char),
-      );
+      return {
+        text: toSpliced(
+          currentText,
+          at - 1,
+          1,
+          ...transformDoubleOperator(current, char),
+        ),
+        cursor: at,
+        indexCursor: cursorIndex,
+      };
     }
 
-    return currentText.concat(char);
+    return {
+      text: currentText.concat(char),
+      cursor: at + 1,
+      indexCursor: cursorIndex,
+    };
   };
 
 export const deleteAbstractChar =
   (insertMode: InsertMode, cursor: number, cursorIndex: number) =>
-  (currentText: AbstractText): AbstractText => {
+  (currentText: AbstractText): EditResult => {
+    debugger;
     if (insertMode !== 'normal') {
       return editScriptInText(
         currentText,
@@ -239,7 +299,13 @@ export const deleteAbstractChar =
         deleteAbstractChar('normal', cursor, cursorIndex),
       );
     }
-    return toSpliced(currentText, cursorIndex, 1);
+
+    const at = cursor < 0 ? currentText.length + 1 + cursor : cursor;
+    return {
+      text: toSpliced(currentText, at - 1, 1),
+      cursor: at - 1,
+      indexCursor: cursorIndex,
+    };
   };
 
 type CursorMovement = {

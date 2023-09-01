@@ -1,4 +1,4 @@
-import { Cursor } from './abstractText';
+import { Cursor, addText, deleteAbstractChar } from './abstractText';
 import { AbstractText } from './ast';
 
 describe('AbstractText', () => {
@@ -44,6 +44,222 @@ describe('AbstractText', () => {
         const result = Cursor.currentWord(text, cursor, 0);
 
         expect(result).toBe(null);
+      });
+    });
+
+    describe('addText', () => {
+      it('should add char at the beginning', () => {
+        const text = [] as AbstractText;
+        const cursor = 0;
+        const char = 'a';
+
+        const result = addText(char, 'normal', cursor, 0)(text);
+
+        expect(result.text).toEqual([{ type: 'char', value: 'a' }]);
+      });
+
+      it('should add char after char', () => {
+        const text = [{ type: 'char', value: 'a' }] as AbstractText;
+        const cursor = 1;
+        const char = 'b';
+
+        const result = addText(char, 'normal', cursor, 0)(text);
+
+        expect(result.text).toEqual([
+          { type: 'char', value: 'a' },
+          { type: 'char', value: 'b' },
+        ]);
+      });
+
+      it('should add char before char', () => {
+        const text = [{ type: 'char', value: 'a' }] as AbstractText;
+        const cursor = 0;
+        const char = 'b';
+
+        const result = addText(char, 'normal', cursor, 0)(text);
+
+        expect(result.text).toEqual([
+          { type: 'char', value: 'b' },
+          { type: 'char', value: 'a' },
+        ]);
+      });
+
+      it('should not script char at the beginning', () => {
+        const text = [] as AbstractText;
+        const cursor = 0;
+        const char = 'a';
+
+        const result = addText(char, 'subscript', cursor, 0)(text);
+
+        expect(result.text).toEqual([]);
+      });
+
+      it('should add char in script after char', () => {
+        const text = [{ type: 'char', value: 'a' }] as AbstractText;
+        const cursor = 1;
+        const char = 'b';
+
+        const result = addText(char, 'subscript', cursor, 0)(text);
+
+        expect(result.text).toEqual([
+          { type: 'char', value: 'a' },
+          {
+            type: 'script',
+            superscript: { type: 'superscript', text: [] },
+            subscript: {
+              type: 'subscript',
+              text: [{ type: 'char', value: 'b' }],
+            },
+          },
+        ]);
+      });
+
+      it('should add char in other script after char', () => {
+        const text = [
+          { type: 'char', value: 'a' },
+          {
+            type: 'script',
+            superscript: { type: 'superscript', text: [] },
+            subscript: {
+              type: 'subscript',
+              text: [{ type: 'char', value: 'b' }],
+            },
+          },
+        ] as AbstractText;
+        const cursor = 1;
+        const char = 'c';
+
+        const result = addText(char, 'superscript', cursor, 0)(text);
+
+        expect(result.text).toEqual([
+          { type: 'char', value: 'a' },
+          {
+            type: 'script',
+            superscript: {
+              type: 'superscript',
+              text: [{ type: 'char', value: 'c' }],
+            },
+            subscript: {
+              type: 'subscript',
+              text: [{ type: 'char', value: 'b' }],
+            },
+          },
+        ]);
+      });
+
+      it('should add char in script before char', () => {
+        const text = [
+          { type: 'char', value: 'a' },
+          {
+            type: 'script',
+            superscript: { type: 'superscript', text: [] },
+            subscript: {
+              type: 'subscript',
+              text: [{ type: 'char', value: 'b' }],
+            },
+          },
+        ] as AbstractText;
+        const cursor = 1;
+        const cursorIndex = 0;
+        const char = 'c';
+
+        const result = addText(char, 'subscript', cursor, cursorIndex)(text);
+
+        expect(result.text).toEqual([
+          { type: 'char', value: 'a' },
+          {
+            type: 'script',
+            superscript: {
+              type: 'superscript',
+              text: [],
+            },
+            subscript: {
+              type: 'subscript',
+              text: [
+                { type: 'char', value: 'c' },
+                { type: 'char', value: 'b' },
+              ],
+            },
+          },
+        ]);
+      });
+
+      it('should add char in script after char', () => {
+        const text = [
+          { type: 'char', value: 'a' },
+          {
+            type: 'script',
+            superscript: { type: 'superscript', text: [] },
+            subscript: {
+              type: 'subscript',
+              text: [{ type: 'char', value: 'b' }],
+            },
+          },
+        ] as AbstractText;
+        const cursor = 1;
+        const cursorIndex = 1;
+        const char = 'c';
+
+        const result = addText(char, 'subscript', cursor, cursorIndex)(text);
+
+        expect(result.text).toEqual([
+          { type: 'char', value: 'a' },
+          {
+            type: 'script',
+            superscript: {
+              type: 'superscript',
+              text: [],
+            },
+            subscript: {
+              type: 'subscript',
+              text: [
+                { type: 'char', value: 'b' },
+                { type: 'char', value: 'c' },
+              ],
+            },
+          },
+        ]);
+      });
+    });
+
+    describe('deleteAbstractChar', () => {
+      it('should do nothing for empty input', () => {
+        const text = [] as AbstractText;
+        const cursor = 0;
+        const indexCursor = 0;
+
+        const result = deleteAbstractChar(
+          'normal',
+          cursor,
+          indexCursor,
+        )(text).text;
+        expect(result).toEqual([]);
+      });
+
+      it('should delete char on the left of the cursor', () => {
+        const text = [{ type: 'char', value: 'a' }] as AbstractText;
+        const cursor = 1;
+        const indexCursor = 0;
+
+        const result = deleteAbstractChar(
+          'normal',
+          cursor,
+          indexCursor,
+        )(text).text;
+        expect(result).toEqual([]);
+      });
+
+      it('should not delete char on the right of the cursor', () => {
+        const text = [{ type: 'char', value: 'a' }] as AbstractText;
+        const cursor = 0;
+        const indexCursor = 0;
+
+        const result = deleteAbstractChar(
+          'normal',
+          cursor,
+          indexCursor,
+        )(text).text;
+        expect(result).toEqual(text);
       });
     });
 

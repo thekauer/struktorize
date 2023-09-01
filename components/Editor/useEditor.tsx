@@ -15,7 +15,6 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     left,
     right,
     edit,
-    insert,
     backspace,
     deleteBlock,
     addStatement,
@@ -60,6 +59,9 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
 
       if (e.key === 'Enter') {
         setEditing(false);
+      }
+      if (editing && e.key === 'Escape') {
+        toggleEditing();
       }
 
       if (e.ctrlKey && e.key === 'e') {

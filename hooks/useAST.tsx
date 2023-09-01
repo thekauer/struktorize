@@ -33,6 +33,7 @@ import {
   InsertMode,
   type Jump,
   deleteAbstractChar,
+  editAdapter,
 } from '@/lib/abstractText';
 import { useTheme } from './useTheme';
 import { parseIdsText, parseSignatureText } from '@/lib/parser';
@@ -219,23 +220,25 @@ function reducer(state: State, action: Action): State {
 
     case 'text': {
       const current = get(scope, ast);
-      const cursor = current.text.length;
 
-      const cst = edit(
-        scope,
-        ast,
+      const adder = editAdapter(
+        current.text,
         addText(
           action.payload.text,
           action.payload.insertMode ?? state.insertMode,
-          state.cursor,
-          state.indexCursor,
+          state.editing ? state.cursor : -1,
+          state.editing ? state.indexCursor : -1,
         ),
       );
+
+      const { editCallback, cursor, indexCursor } = adder;
+      const cst = edit(scope, ast, editCallback);
 
       return updateHistory({
         ...state,
         ...cst,
         cursor,
+        indexCursor,
         changed: true,
       });
     }
@@ -245,25 +248,30 @@ function reducer(state: State, action: Action): State {
     }
 
     case 'insertSymbol': {
-      const cst = edit(
-        scope,
-        ast,
+      const current = get(scope, ast);
+      const adder = editAdapter(
+        current.text,
         addAbstractChar(
           action.payload.symbol,
           action.payload.insertMode ?? state.insertMode,
-          state.cursor,
-          state.indexCursor,
+          state.editing ? state.cursor : -1,
+          state.editing ? state.indexCursor : -1,
         ),
       );
+
+      const { editCallback, cursor, indexCursor } = adder;
+      const cst = edit(scope, ast, editCallback);
 
       return updateHistory({
         ...state,
         ...cst,
+        cursor,
+        indexCursor,
         changed: true,
       });
     }
 
-    case 'backspace':
+    case 'backspace': {
       if (isEmpty(scope, ast) || action.payload.force) {
         return {
           ...state,
@@ -271,24 +279,50 @@ function reducer(state: State, action: Action): State {
           changed: true,
         };
       }
-      return {
-        ...state,
-        ...edit(
-          scope,
-          ast,
-          deleteAbstractChar(state.insertMode, state.cursor, state.indexCursor),
-        ),
-      };
-    case 'popLastText':
-      return {
-        ...state,
-        ...edit(
-          scope,
-          ast,
 
-          deleteAbstractChar(state.insertMode, state.cursor, state.indexCursor), // TODO: edit me
+      const current = get(scope, ast);
+      const editor = editAdapter(
+        current.text,
+        deleteAbstractChar(
+          state.insertMode,
+          state.editing ? state.cursor : -1,
+          state.editing ? state.indexCursor : -1,
         ),
+      );
+
+      const cst = edit(scope, ast, editor.editCallback);
+
+      return {
+        ...state,
+        ...cst,
+        cursor: editor.cursor,
+        indexCursor: editor.indexCursor,
+        changed: true,
       };
+    }
+
+    case 'popLastText': {
+      const current = get(scope, ast);
+      const editor = editAdapter(
+        current.text,
+        deleteAbstractChar(
+          state.insertMode,
+          state.editing ? state.cursor : -1,
+          state.editing ? state.indexCursor : -1,
+        ),
+      );
+
+      const cst = edit(scope, ast, editor.editCallback);
+
+      return {
+        ...state,
+        ...cst,
+        cursor: editor.cursor,
+        indexCursor: editor.indexCursor,
+        changed: true,
+      };
+    }
+
     case 'setScope':
       return { ...state, ast, scope: action.payload };
     case 'setEditing':
