@@ -108,7 +108,7 @@ const isOperatorType = (char: AbstractChar) => {
 };
 
 const isBannedFirstChar = (char: AbstractChar) => {
-  return ['space', 'superscript', 'subscript'].includes(char.type);
+  return ['space', 'superscript', 'subscript', 'script'].includes(char.type);
 };
 
 const isSpaceScript = (first: AbstractChar, second: AbstractChar) => {

@@ -23,7 +23,8 @@ export const CodeCompletion = ({
     item.scrollIntoView({ block: 'nearest' });
   }, [selected]);
 
-  const targetContainer = document.querySelector('.hovered');
+  const targetContainer =
+    document.querySelector('#cursor') || document.querySelector('.hovered');
   if (!visible || items.length === 0 || !targetContainer) return null;
 
   return createPortal(

@@ -22,6 +22,7 @@ const blink = keyframes`
 export const Cursor = styled.div<{ $insertMode: InsertMode; $offset: number }>`
   position: relative;
   width: 0;
+  z-index: 10;
   &::before {
     position: relative;
     z-index: 10;

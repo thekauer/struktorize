@@ -107,7 +107,7 @@ const basicTransform = (char: BasicAbstractChar): string => {
 };
 
 const SCRIPT_STYLE =
-  '\\htmlStyle{background-color: var(--s-script); padding: 2px; border-radius: 3px;}';
+  '\\htmlStyle{background-color: var(--s-script); padding: 2px; border-radius: 3px;z-index: 2;}';
 
 const transform = (
   text: AbstractTextType,
@@ -158,21 +158,22 @@ export const AbstractText = ({ children, hovered }: AbstractTextProps) => {
     });
   }, [cursor]);
 
-  const isEditing = editing && hovered;
-
-  if (!isEditing) {
-    const text = transform(children, insertMode, cursor);
-    return <Latex>{text}</Latex>;
-  }
-
   const text = children;
+  console.log({ cursor, si: getScriptIndex(text, cursor) });
   const middle =
     insertMode !== 'normal'
       ? getScriptIndex(text, cursor) ?? cursor - 1
       : cursor;
 
-  const left = transform(text.slice(0, middle), insertMode, cursor);
-  const right = transform(text.slice(middle), insertMode, cursor);
+  const isEditing = editing && hovered;
+
+  if (!isEditing) {
+    const text = transform(children, insertMode, middle);
+    return <Latex>{text}</Latex>;
+  }
+
+  const left = transform(text.slice(0, middle), insertMode, middle);
+  const right = transform(text.slice(middle), insertMode, 0);
 
   return (
     <>
@@ -182,6 +183,7 @@ export const AbstractText = ({ children, hovered }: AbstractTextProps) => {
         $offset={indexCursor}
         ref={cursorRef}
       />
+      <div id="cursor" />
       {right.length > 0 && <Latex>{right}</Latex>}
     </>
   );

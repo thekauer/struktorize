@@ -8,6 +8,7 @@ import { atom, useAtom } from 'jotai';
 import { parseAll } from '@/lib/parser';
 
 export const codeCompletionVisibleAtom = atom(false);
+export const ccShownAtom = atom(false);
 
 const getAllVariables = (ast: FunctionAst) => {
   return parseAll(ast)
@@ -76,19 +77,12 @@ export type CodeCompletionItem =
 export const useCodeCompletion = () => {
   const [selected, setSelected] = useState(0);
   const [visible, setVisible] = useAtom(codeCompletionVisibleAtom);
+  const [shown, setShown] = useAtom(ccShownAtom);
   const pathRef = useRef('');
   const mountedref = useRef(false);
   const node = useNodeInScope();
-  const {
-    addIf,
-    addLoop,
-    addSwitch,
-    addCase,
-    edit,
-    insert,
-    popLastText,
-    setInsertMode,
-  } = useAst();
+  const { addIf, addLoop, addSwitch, addCase, edit, insert, popLastText } =
+    useAst();
   const { ast, cursor, indexCursor, insertMode } = useAstState();
 
   const functionAst = ast as FunctionAst;
@@ -118,7 +112,7 @@ export const useCodeCompletion = () => {
   const items: CodeCompletionItem[] =
     currentWord === null ? allItems : searcher.search(currentWord);
 
-  const shown = visible && items.length > 0;
+  setShown(visible && items.length > 0);
 
   useLayoutEffect(() => {
     if (!mountedref.current) return;

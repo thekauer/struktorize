@@ -2,8 +2,11 @@ import { useTheme } from '../../hooks/useTheme';
 import { KeyboardEvent, useRef } from 'react';
 import { useAst, useAstState } from '../../hooks/useAST';
 import { Jump } from '@/lib/abstractText';
-import { useAtom } from 'jotai';
-import { codeCompletionVisibleAtom } from './CodeCompletion/useCodeCompletion';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import {
+  ccShownAtom,
+  codeCompletionVisibleAtom,
+} from './CodeCompletion/useCodeCompletion';
 
 interface UseEditorProps {
   readonly?: boolean;
@@ -30,7 +33,8 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
   const { editing, insertMode } = useAstState();
   const { astTheme } = useTheme();
   const rootRef = useRef<HTMLDivElement>(null);
-  const [ccVisible, setCCVisible] = useAtom(codeCompletionVisibleAtom);
+  const setCCVisible = useSetAtom(codeCompletionVisibleAtom);
+  const ccShown = useAtomValue(ccShownAtom);
 
   const getKey = (e: KeyboardEvent) => {
     if (e.key === 'Dead' && e.code === 'Digit3') return '^';
@@ -64,14 +68,20 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
         setEditing(false);
       }
 
-      if (e.key === 'Escape' && ccVisible) {
-        setCCVisible(false);
-        return;
-      }
-
-      if (editing && insertMode === 'normal' && e.key === 'Escape') {
-        toggleEditing();
-        return;
+      if (e.key === 'Escape') {
+        if (ccShown) {
+          setCCVisible(false);
+          return;
+        }
+        if (editing && insertMode === 'normal') {
+          toggleEditing();
+          return;
+        }
+        if (insertMode !== 'normal') {
+          setCCVisible(false);
+          setInsertMode('normal');
+          return;
+        }
       }
 
       if (e.ctrlKey && e.key === 'e') {
