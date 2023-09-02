@@ -83,7 +83,12 @@ type Action =
   | { type: 'add'; payload: Ast }
   | {
       type: 'text';
-      payload: { text: string; insertMode?: InsertMode; jump?: Jump };
+      payload: {
+        text: string;
+        insertMode?: InsertMode;
+        jump?: Jump;
+        last?: boolean;
+      };
     }
   | {
       type: 'insertSymbol';
@@ -223,14 +228,15 @@ function reducer(state: State, action: Action): State {
 
     case 'text': {
       const current = get(scope, ast);
+      const isLast = action.payload.last ?? false;
 
       const adder = editAdapter(
         current.text,
         addText(
           action.payload.text,
           action.payload.insertMode ?? state.insertMode,
-          state.editing ? state.cursor : -1,
-          state.editing ? state.indexCursor : -1,
+          isLast ? -1 : state.editing ? state.cursor : -1,
+          isLast ? -1 : state.editing ? state.indexCursor : -1,
         ),
       );
 
@@ -554,8 +560,13 @@ export const useAst = () => {
     dispatch({ type: 'popLastText' });
     callChangeListeners();
   };
-  const edit = (text: string, insertMode?: InsertMode, jump: Jump = 'none') => {
-    dispatch({ type: 'text', payload: { text, insertMode, jump } });
+  const edit = (
+    text: string,
+    insertMode?: InsertMode,
+    jump: Jump = 'none',
+    last?: boolean,
+  ) => {
+    dispatch({ type: 'text', payload: { text, insertMode, jump, last } });
     callChangeListeners();
   };
   const setInsertMode = (insertMode: InsertMode) => {

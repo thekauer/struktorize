@@ -143,7 +143,7 @@ export const useCodeCompletion = () => {
 
           return;
         }
-        edit(item.value);
+        edit(item.value, undefined, 'none', true);
         break;
     }
   };
