@@ -61,14 +61,15 @@ describe('parser', () => {
         ] as AbstractText;
         const result = parseSignatureText(input);
         expect(result).toEqual({
-          type: 'signature',
+          _type: 'signature',
           name: 'b2',
           args: [],
-          returnTypeId: null,
+          returnType: null,
+          type: '() → any',
         });
       });
 
-      it('should return name and returnTypeId for a function with no args and a return type', () => {
+      it('should return name and returnType for a function with no args and a return type', () => {
         const input = [
           { type: 'char', value: 'b' },
           { type: 'char', value: '2' },
@@ -81,14 +82,15 @@ describe('parser', () => {
         ] as AbstractText;
         const result = parseSignatureText(input);
         expect(result).toEqual({
-          type: 'signature',
+          _type: 'signature',
           name: 'b2',
           args: [],
-          returnTypeId: 'RT',
+          returnType: 'RT',
+          type: '() → RT',
         });
       });
 
-      it('should return name and returnTypeId for a function with no args and a return type using in in return type', () => {
+      it('should return name and returnType for a function with no args and a return type using in in return type', () => {
         const input = [
           { type: 'char', value: 'b' },
           { type: 'char', value: '2' },
@@ -101,10 +103,11 @@ describe('parser', () => {
         ] as AbstractText;
         const result = parseSignatureText(input);
         expect(result).toEqual({
-          type: 'signature',
+          _type: 'signature',
           name: 'b2',
           args: [],
-          returnTypeId: 'RT',
+          returnType: 'RT',
+          type: '() → RT',
         });
       });
 
@@ -130,10 +133,11 @@ describe('parser', () => {
         ] as AbstractText;
         const result = parseSignatureText(input);
         expect(result).toEqual({
-          type: 'signature',
+          _type: 'signature',
           name: 'fun',
-          args: [{ type: 'arg', name: 'arg1', typeId: 'AT1' }],
-          returnTypeId: null,
+          args: [{ _type: 'arg', name: 'arg1', typeId: 'AT1' }],
+          returnType: null,
+          type: 'AT1 → any',
         });
       });
 
@@ -170,13 +174,14 @@ describe('parser', () => {
         ] as AbstractText;
         const result = parseSignatureText(input);
         expect(result).toEqual({
-          type: 'signature',
+          _type: 'signature',
           name: 'fun',
           args: [
-            { type: 'arg', name: 'arg1', typeId: 'AT1' },
-            { type: 'arg', name: 'arg2', typeId: 'AT2' },
+            { _type: 'arg', name: 'arg1', typeId: 'AT1' },
+            { _type: 'arg', name: 'arg2', typeId: 'AT2' },
           ],
-          returnTypeId: null,
+          returnType: null,
+          type: 'AT1×AT2 → any',
         });
       });
 
@@ -214,13 +219,14 @@ describe('parser', () => {
         ] as AbstractText;
         const result = parseSignatureText(input);
         expect(result).toEqual({
-          type: 'signature',
+          _type: 'signature',
           name: 'fun',
           args: [
-            { type: 'arg', name: 'arg1', typeId: 'AT1' },
-            { type: 'arg', name: 'arg2', typeId: 'AT2' },
+            { _type: 'arg', name: 'arg1', typeId: 'AT1' },
+            { _type: 'arg', name: 'arg2', typeId: 'AT2' },
           ],
-          returnTypeId: null,
+          returnType: null,
+          type: 'AT1×AT2 → any',
         });
       });
 
@@ -247,17 +253,18 @@ describe('parser', () => {
         ] as AbstractText;
         const result = parseSignatureText(input);
         expect(result).toEqual({
-          type: 'signature',
+          _type: 'signature',
           name: 'fun',
           args: [
-            { type: 'arg', name: 'arg1', typeId: null },
-            { type: 'arg', name: 'arg2', typeId: null },
+            { _type: 'arg', name: 'arg1', typeId: null },
+            { _type: 'arg', name: 'arg2', typeId: null },
           ],
-          returnTypeId: null,
+          returnType: null,
+          type: 'any×any → any',
         });
       });
 
-      it('should return name and two args and a returnTypeId for a function with two args and return type', () => {
+      it('should return name and two args and a returnType for a function with two args and return type', () => {
         const input = [
           { type: 'space' },
           { type: 'char', value: 'f' },
@@ -295,13 +302,14 @@ describe('parser', () => {
         ] as AbstractText;
         const result = parseSignatureText(input);
         expect(result).toEqual({
-          type: 'signature',
+          _type: 'signature',
           name: 'fun',
           args: [
-            { type: 'arg', name: 'arg1', typeId: 'AT1' },
-            { type: 'arg', name: 'arg2', typeId: 'AT2' },
+            { _type: 'arg', name: 'arg1', typeId: 'AT1' },
+            { _type: 'arg', name: 'arg2', typeId: 'AT2' },
           ],
-          returnTypeId: 'RT',
+          returnType: 'RT',
+          type: 'AT1×AT2 → RT',
         });
       });
     });

@@ -252,9 +252,22 @@ export const addAbstractChar =
     cursorIndex: number,
   ) =>
   (currentText: AbstractText): EditResult => {
+    const at = cursor < 0 ? currentText.length + 1 + cursor : cursor;
+    const current = currentText[at - 1];
+    if (isSpaceScript(current, char)) {
+      return { text: currentText, cursor, indexCursor: cursorIndex };
+    }
+
+    if (!current) {
+      return isBannedFirstChar(char)
+        ? { text: [], cursor, indexCursor: cursorIndex }
+        : { text: [char], cursor: 1, indexCursor: 0 };
+    }
+
     if (insertMode !== 'normal') {
       if (!getScriptIndex(currentText, cursor)) {
         if (
+          char.type === 'space' ||
           currentText.length === 0 ||
           ['space', 'script'].includes(
             currentText[cursor - 1]?.type || currentText[cursor]?.type,
@@ -283,15 +296,6 @@ export const addAbstractChar =
       );
     }
 
-    const at = cursor < 0 ? currentText.length + 1 + cursor : cursor;
-    const current = currentText[at - 1];
-    if (!current)
-      return isBannedFirstChar(char)
-        ? { text: [], cursor, indexCursor: cursorIndex }
-        : { text: [char], cursor: 1, indexCursor: 0 };
-
-    if (isSpaceScript(current, char))
-      return { text: currentText, cursor, indexCursor: cursorIndex };
     const isDoubleOperator = isOperatorType(char) && isOperatorType(current);
     if (isDoubleOperator) {
       return {

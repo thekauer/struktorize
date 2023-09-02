@@ -24,10 +24,9 @@ function Arg(name: string, typeId: Type): Arg {
 }
 
 function Signature(name: string, args: Arg[], returnType: Type): Signature {
-  const type =
-    args.map((arg) => arg.typeId ?? 'any').join('×') +
-    ' → ' +
-    (returnType ?? 'any');
+  const params = args.map((arg) => arg.typeId ?? 'any').join('×');
+  const left = args.length === 0 ? '()' : params;
+  const type = left + ' → ' + (returnType ?? 'any');
   return { _type: 'signature', name, args, returnType, type };
 }
 
@@ -80,22 +79,32 @@ function consume<T extends AbstractChar = AbstractChar>(
 }
 
 function consumeOneOf(input: AbstractIter, ...types: AbstractChar['type'][]) {
-  if (types.includes(input.peek().value?.type)) return input.next();
+  whiteSpace(input);
+  if (types.includes(input.peek().value?.type)) {
+    whiteSpace(input);
+    return input.next();
+  }
 }
 
 function consumeMany(input: AbstractIter, ...types: AbstractChar['type'][]) {
   for (const type of types) {
+    whiteSpace(input);
     if (!consume(input, type)) return false;
   }
   return true;
 }
 
 function consmeAll(input: AbstractIter, type: AbstractChar['type']) {
-  while (input.peek().value?.type === type) input.next();
+  while (input.peek().value?.type === type) {
+    whiteSpace(input);
+    input.next();
+  }
 }
 
 function whiteSpace(input: AbstractIter) {
-  consmeAll(input, 'space');
+  while (input.peek().value?.type === 'space') {
+    input.next();
+  }
 }
 
 function parseId(input: AbstractIter): Identifier | null {
