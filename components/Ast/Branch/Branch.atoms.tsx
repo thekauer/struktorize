@@ -113,3 +113,8 @@ export const TrueBranch = styled(Branch)`
 export const FalseBranch = styled(Branch)`
   justify-self: flex-end;
 `;
+
+export const Text = styled.div`
+  display: flex;
+  flex: 1;
+`;

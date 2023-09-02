@@ -87,3 +87,8 @@ export const Right = styled.div`
   display: flex;
   flex-direction: column;
 `;
+
+export const Text = styled.div`
+  display: flex;
+  flex: 1;
+`;
