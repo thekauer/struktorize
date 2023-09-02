@@ -175,25 +175,27 @@ export const useCodeCompletion = () => {
     const keydown = (e: KeyboardEvent) => {
       if (!shown) return;
       const length = items.length;
-      e.stopPropagation();
-      e.preventDefault();
       switch (e.key) {
         case 'ArrowDown':
+          e.stopPropagation();
+          e.preventDefault();
           setSelected((prev) => (prev < length - 1 ? prev + 1 : 0));
           break;
         case 'ArrowUp':
+          e.stopPropagation();
+          e.preventDefault();
           setSelected((prev) => (prev > 0 ? prev - 1 : length - 1));
           break;
-        case 'ArrowRight':
-          setInsertMode('normal');
-          break;
         case 'Tab':
+          e.stopPropagation();
+          e.preventDefault();
           complete(items[selected]);
           document.querySelector<HTMLDivElement>('#root-container')?.focus();
           setVisible(false);
           break;
         case ' ':
-        case 'Escape':
+          e.stopPropagation();
+          e.preventDefault();
           setVisible(false);
           break;
         default:

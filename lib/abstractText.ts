@@ -21,8 +21,16 @@ export const isScript = (char?: AbstractChar) => {
 };
 
 export const getScriptIndex = (text: AbstractText, cursor: number) => {
-  if (isScript(text.at(cursor))) return cursor;
-  if (isScript(text.at(cursor - 1))) return cursor - 1;
+  if (isScript(text.at(cursor))) {
+    const index = cursor;
+    if (index < 0) return text.length + index;
+    return index;
+  }
+  if (isScript(text.at(cursor - 1))) {
+    const index = cursor - 1;
+    if (index < 0) return text.length + index;
+    return index;
+  }
   return null;
 };
 
@@ -161,6 +169,8 @@ export const addChar =
   ) =>
   (currentText: AbstractText): EditResult => {
     if (insertMode !== 'normal') {
+      const at = cursor < 0 ? currentText.length + 1 + cursor : cursor;
+
       if (!getScriptIndex(currentText, cursor)) {
         if (
           currentText.length === 0 ||
@@ -170,7 +180,7 @@ export const addChar =
         )
           return { text: currentText, cursor, indexCursor: cursorIndex };
 
-        const withScript = toSpliced(currentText, cursor, 0, {
+        const withScript = toSpliced(currentText, at, 0, {
           type: 'script',
           subscript: { type: 'subscript', text: [] },
           superscript: { type: 'superscript', text: [] },
@@ -179,14 +189,14 @@ export const addChar =
         return editScriptInText(
           withScript,
           insertMode,
-          cursor,
+          at,
           addText(newText, 'normal', cursorIndex, 0),
         );
       }
       return editScriptInText(
         currentText,
         insertMode,
-        cursor,
+        at,
         addText(newText, 'normal', cursorIndex, 0),
       );
     }

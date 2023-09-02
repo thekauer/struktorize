@@ -2,6 +2,8 @@ import { useTheme } from '../../hooks/useTheme';
 import { KeyboardEvent, useRef } from 'react';
 import { useAst, useAstState } from '../../hooks/useAST';
 import { Jump } from '@/lib/abstractText';
+import { useAtom } from 'jotai';
+import { codeCompletionVisibleAtom } from './CodeCompletion/useCodeCompletion';
 
 interface UseEditorProps {
   readonly?: boolean;
@@ -25,9 +27,10 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     setEditing,
     toggleEditing,
   } = useAst();
-  const { editing } = useAstState();
+  const { editing, insertMode } = useAstState();
   const { astTheme } = useTheme();
   const rootRef = useRef<HTMLDivElement>(null);
+  const [ccVisible, setCCVisible] = useAtom(codeCompletionVisibleAtom);
 
   const getKey = (e: KeyboardEvent) => {
     if (e.key === 'Dead' && e.code === 'Digit3') return '^';
@@ -60,8 +63,15 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
       if (e.key === 'Enter') {
         setEditing(false);
       }
-      if (editing && e.key === 'Escape') {
+
+      if (e.key === 'Escape' && ccVisible) {
+        setCCVisible(false);
+        return;
+      }
+
+      if (editing && insertMode === 'normal' && e.key === 'Escape') {
         toggleEditing();
+        return;
       }
 
       if (e.ctrlKey && e.key === 'e') {
@@ -92,10 +102,11 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
           if (canDeselect) deselectAll();
           return;
         case 'ArrowRight':
-          if (!editing) setInsertMode('normal');
-
           right(navigationPayload);
           if (canDeselect) deselectAll();
+          return;
+        case 'Escape':
+          setInsertMode('normal');
           return;
       }
     }
@@ -103,7 +114,6 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
 
     switch (key) {
       case 'Backspace':
-        setInsertMode('normal');
         backspace();
         return;
       case 'Enter':

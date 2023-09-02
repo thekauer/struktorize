@@ -30,6 +30,10 @@
       "signOut": "Sign out"
     }
   },
+  "bottomMenu": {
+    "saving": "Saving...",
+    "saved": "Saved"
+  },
   "main": {
     "emptyBody": {
       "getStarted": ["Press", "or type", "or", "to get started"],

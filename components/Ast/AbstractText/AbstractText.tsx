@@ -1,7 +1,7 @@
 'use client';
 
 import { useAstState } from '@/hooks/useAST';
-import { InsertMode, getScriptIndex, isScript } from '@/lib/abstractText';
+import { InsertMode, getScriptIndex } from '@/lib/abstractText';
 import {
   AbstractChar,
   AbstractText as AbstractTextType,
@@ -109,34 +109,32 @@ const basicTransform = (char: BasicAbstractChar): string => {
 const SCRIPT_STYLE =
   '\\htmlStyle{background-color: var(--s-script); padding: 2px; border-radius: 3px;}';
 
-const transform = (text: AbstractTextType, insertmode: InsertMode) => {
+const transform = (
+  text: AbstractTextType,
+  insertmode: InsertMode,
+  cursor: number,
+) => {
   return text
-    .map((char, index, { length }): string => {
-      const isLast = index === length - 1;
+    .map((char, index): string => {
+      const isHighlighted = index === cursor;
+
       switch (char.type) {
         case 'char': {
           const text = (char as Char).value;
           return `\\text{${text}}`;
         }
         case 'script': {
-          switch (insertmode) {
-            case 'superscript': {
-              const text = char.superscript?.text;
-              if (!text) return '';
-              const transformedText = transform(text, 'normal');
-              return `^{${
-                isLast && insertmode === 'superscript' ? SCRIPT_STYLE : ''
-              }{${transformedText}}}`;
-            }
-            case 'subscript': {
-              const text = char.subscript?.text;
-              if (!text) return '';
-              const transformedText = transform(text, 'normal');
-              return `_{${
-                isLast && insertmode === 'subscript' ? SCRIPT_STYLE : ''
-              }{${transformedText}}}`;
-            }
-          }
+          const superscript = char.superscript
+            ? transform(char.superscript.text, 'normal', cursor)
+            : '';
+          const subscript = char.subscript
+            ? transform(char.subscript.text, 'normal', cursor)
+            : '';
+          return `^{${
+            isHighlighted && insertmode === 'superscript' ? SCRIPT_STYLE : ''
+          }{${superscript}}}_{${
+            isHighlighted && insertmode === 'subscript' ? SCRIPT_STYLE : ''
+          }{${subscript}}}`;
         }
         case 'mathbb': {
           return `\\mathbb{${(char as MathBB).value}}`;
@@ -163,16 +161,18 @@ export const AbstractText = ({ children, hovered }: AbstractTextProps) => {
   const isEditing = editing && hovered;
 
   if (!isEditing) {
-    const text = transform(children, insertMode);
+    const text = transform(children, insertMode, cursor);
     return <Latex>{text}</Latex>;
   }
 
   const text = children;
   const middle =
-    insertMode === 'normal' ? getScriptIndex(text, cursor) ?? cursor : cursor;
+    insertMode !== 'normal'
+      ? getScriptIndex(text, cursor) ?? cursor - 1
+      : cursor;
 
-  const left = transform(text.slice(0, middle), insertMode);
-  const right = transform(text.slice(middle), insertMode);
+  const left = transform(text.slice(0, middle), insertMode, cursor);
+  const right = transform(text.slice(middle), insertMode, cursor);
 
   return (
     <>

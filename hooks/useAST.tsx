@@ -25,6 +25,7 @@ import {
   get,
   AstNode,
   AbstractChar,
+  Script,
 } from '../lib/ast';
 import {
   addAbstractChar,
@@ -35,6 +36,7 @@ import {
   deleteAbstractChar,
   editAdapter,
   deleteAbstractText,
+  getScriptIndex,
 } from '@/lib/abstractText';
 import { useTheme } from './useTheme';
 import { parseIdsText, parseSignatureText } from '@/lib/parser';
@@ -245,7 +247,33 @@ function reducer(state: State, action: Action): State {
     }
 
     case 'setInsertMode': {
-      return { ...state, insertMode: action.payload.insertMode };
+      if (action.payload.insertMode !== 'normal') {
+        const current = get(scope, ast);
+        const text = current.text;
+        const isOnLeft = text[state.cursor]?.type === 'script';
+        if (isOnLeft)
+          return {
+            ...state,
+            insertMode: action.payload.insertMode,
+            indexCursor: 0,
+          };
+        const index = getScriptIndex(text, state.cursor);
+        if (!index) return { ...state, insertMode: action.payload.insertMode };
+        const script = text[index] as Script;
+        const scriptText =
+          script[state.insertMode as 'superscript' | 'subscript']?.text;
+        const indexCursor = scriptText?.length ?? 0;
+        return {
+          ...state,
+          insertMode: action.payload.insertMode,
+          indexCursor,
+        };
+      }
+
+      return {
+        ...state,
+        insertMode: action.payload.insertMode,
+      };
     }
 
     case 'insertSymbol': {
