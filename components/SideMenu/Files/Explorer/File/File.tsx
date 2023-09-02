@@ -76,7 +76,8 @@ export const File = ({ path, isNew }: FileProps) => {
     const name = path.substring(path.lastIndexOf('/') + 1);
     const newAst = {
       signature: {
-        text: [{ type: 'variable', name: `${name}` }],
+        text:
+          name?.split('').map((char) => ({ type: 'char', value: char })) ?? [],
         type: 'signature',
         path: 'signature',
       },

@@ -128,7 +128,8 @@ export const POST = auth(async (req) => {
   const name = file.path.split('/').pop();
   const ast = {
     signature: {
-      text: [{ type: 'variable', name: `${name}` }],
+      text:
+        name?.split('').map((char) => ({ type: 'char', value: char })) ?? [],
       type: 'signature',
       path: 'signature',
     },
