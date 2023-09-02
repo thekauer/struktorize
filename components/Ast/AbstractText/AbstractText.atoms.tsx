@@ -37,7 +37,6 @@ export const Cursor = styled.div<{ $insertMode: InsertMode; $offset: number }>`
     ${({ $insertMode, $offset }) =>
       $insertMode !== 'normal' &&
       css`
-        font-size: 0.7em;
         font-family: KaTeX_Main;
         right: -${$offset}ch;
       `}
@@ -45,12 +44,14 @@ export const Cursor = styled.div<{ $insertMode: InsertMode; $offset: number }>`
     ${({ $insertMode }) =>
       $insertMode === 'superscript' &&
       css`
+        font-size: 0.77em;
         margin-bottom: 0.625rem;
       `};
 
     ${({ $insertMode }) =>
       $insertMode === 'subscript' &&
       css`
+        font-size: 0.8em;
         margin-top: 0.625rem;
       `};
   }

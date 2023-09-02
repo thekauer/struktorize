@@ -112,7 +112,7 @@ const isBannedFirstChar = (char: AbstractChar) => {
 };
 
 const isSpaceScript = (first: AbstractChar, second: AbstractChar) => {
-  if (first.type !== 'space') return false;
+  if (first?.type !== 'space') return false;
   return isScript(second);
 };
 
@@ -173,10 +173,9 @@ export const addChar =
 
       if (!getScriptIndex(currentText, cursor)) {
         if (
+          newText === ' ' ||
           currentText.length === 0 ||
-          ['space'].includes(
-            currentText[cursor - 1]?.type || currentText[cursor]?.type,
-          )
+          ['space'].includes(currentText[at - 1]?.type || currentText[at]?.type)
         )
           return { text: currentText, cursor, indexCursor: cursorIndex };
 
@@ -267,7 +266,7 @@ export const addAbstractChar =
     if (insertMode !== 'normal') {
       if (!getScriptIndex(currentText, cursor)) {
         if (
-          char.type === 'space' ||
+          char?.type === 'space' ||
           currentText.length === 0 ||
           ['space', 'script'].includes(
             currentText[cursor - 1]?.type || currentText[cursor]?.type,
@@ -513,7 +512,7 @@ const up = (
   const script = getScript(text, cursor);
   if (!script?.superscript) return { cursor, insertMode, indexCursor };
 
-  const newIndexCursor = indexCursorOnEnter(text, cursor, 'subscript');
+  const newIndexCursor = indexCursorOnEnter(text, cursor, 'superscript');
   return { cursor, insertMode: 'superscript', indexCursor: newIndexCursor };
 };
 
