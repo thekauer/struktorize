@@ -324,7 +324,7 @@ export const deleteAbstractChar =
         currentText,
         insertMode,
         cursor,
-        deleteAbstractChar('normal', cursor, cursorIndex),
+        deleteAbstractChar('normal', cursorIndex, 0),
       );
     }
 
@@ -349,7 +349,7 @@ export const deleteAbstractText =
         currentText,
         insertMode,
         cursor,
-        deleteAbstractText('normal', cursor, cursorIndex, length),
+        deleteAbstractText('normal', cursorIndex, 0, length),
       );
     }
 
