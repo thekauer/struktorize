@@ -45,6 +45,11 @@ export const Condition = styled.div<StyleProps>`
     css`
       background-color: var(--s-selected-hovered);
     `}
+  ${({ $editing }) =>
+    $editing &&
+    css`
+      border: 2px solid var(--s-active);
+    `}
 `;
 
 export const True = styled.div`
@@ -107,4 +112,9 @@ export const TrueBranch = styled(Branch)`
 
 export const FalseBranch = styled(Branch)`
   justify-self: flex-end;
+`;
+
+export const Text = styled.div`
+  display: flex;
+  flex: 1;
 `;

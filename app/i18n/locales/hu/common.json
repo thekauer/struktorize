@@ -30,6 +30,10 @@
       "signOut": "Kijelenkezés"
     }
   },
+  "bottomMenu": {
+    "saving": "Mentés...",
+    "saved": "Mentve"
+  },
   "main": {
     "emptyBody": {
       "getStarted": [
@@ -62,6 +66,7 @@
     "ge": "Nagyobb Egyenlő",
     "le": "Kissebb Egyenlő",
     "subscript": "Alsó Index",
-    "superscript": "Felső Index"
+    "superscript": "Felső Index",
+    "editmode": "Szerkesztő mód"
   }
 }

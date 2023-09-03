@@ -23,7 +23,8 @@ export const CodeCompletion = ({
     item.scrollIntoView({ block: 'nearest' });
   }, [selected]);
 
-  const targetContainer = document.querySelector('.hovered');
+  const targetContainer =
+    document.querySelector('#cursor') || document.querySelector('.hovered');
   if (!visible || items.length === 0 || !targetContainer) return null;
 
   return createPortal(
@@ -39,6 +40,11 @@ export const CodeCompletion = ({
           >
             <img src={`/cc/${item.type}.svg`} alt="variable" />
             <span>{item.value}</span>
+            <S.Type $selected={selected === index}>
+              {item.type === 'variable' || item.type === 'function'
+                ? item.typeId
+                : ''}
+            </S.Type>
             <S.Tab $selected={selected === index}>[Tab]</S.Tab>
           </S.Row>
         ))}

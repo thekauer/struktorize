@@ -10,7 +10,7 @@ export const Statement = ({ text, path }: StatementAst) => {
 
   return (
     <S.Container {...containerProps}>
-      <AbstractText>{text}</AbstractText>
+      <AbstractText hovered={containerProps.$hovered}>{text}</AbstractText>
     </S.Container>
   );
 };

@@ -42,6 +42,11 @@ export const Container = styled.div<StyleProps>`
     css`
       background-color: var(--s-selected-hovered);
     `}
+  ${({ $editing }) =>
+    $editing &&
+    css`
+      border: 2px solid var(--s-active);
+    `}
 `;
 
 export const Line = styled.div`

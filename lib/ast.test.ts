@@ -4635,6 +4635,7 @@ describe('ast', () => {
           {
             type: 'branch',
             path: 'body.0',
+            text: [],
             ifBranch: [
               {
                 type: 'statement',
@@ -4698,6 +4699,7 @@ describe('ast', () => {
           {
             type: 'loop',
             path: 'body.0',
+            text: [],
             body: [
               {
                 type: 'statement',

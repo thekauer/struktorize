@@ -12,12 +12,15 @@ export interface AstBase {
   type: AstType;
 }
 
-export type Variable = { type: 'variable'; name: string };
+export type Char = { type: 'char'; value: string };
 export type Subscript = { type: 'subscript'; text: AbstractText };
 export type SuperScript = { type: 'superscript'; text: AbstractText };
+export type Script = {
+  type: 'script';
+  subscript?: Subscript;
+  superscript?: SuperScript;
+};
 export type MathBB = { type: 'mathbb'; value: 'S' | 'R' | 'N' | 'Z' | 'B' };
-
-export type InsertInsideAvailable = SuperScript | Subscript;
 
 export type Operator = {
   type:
@@ -38,7 +41,8 @@ export type Operator = {
     | 'star'
     | 'bang'
     | 'space'
-    | 'minus';
+    | 'minus'
+    | 'dot';
 };
 export type Symbol = {
   type:
@@ -60,13 +64,7 @@ export type Symbol = {
     | 'empty';
 };
 
-export type AbstractChar =
-  | Operator
-  | Symbol
-  | Variable
-  | Subscript
-  | SuperScript
-  | MathBB;
+export type AbstractChar = Operator | Symbol | Char | Script | MathBB;
 
 export type AbstractText = AbstractChar[];
 

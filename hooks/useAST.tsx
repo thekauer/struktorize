@@ -25,16 +25,21 @@ import {
   get,
   AstNode,
   AbstractChar,
+  Script,
 } from '../lib/ast';
 import {
   addAbstractChar,
   addText,
-  deleteLast,
-  deleteLastVariable,
-  getFunctionName,
+  Cursor,
   InsertMode,
+  type Jump,
+  deleteAbstractChar,
+  editAdapter,
+  deleteAbstractText,
+  getScriptIndex,
 } from '@/lib/abstractText';
 import { useTheme } from './useTheme';
+import { parseIdsText, parseSignatureText } from '@/lib/parser';
 
 type ChangeListener = (state: State) => void;
 
@@ -45,6 +50,9 @@ type StateContext = {
   changed: boolean;
   selected: Set<string>;
   insertMode: InsertMode;
+  editing: boolean;
+  cursor: number;
+  indexCursor: number;
 };
 
 export const AstContext = createContext<Dispatch<Action>>(null as any);
@@ -56,30 +64,46 @@ type State = {
   path: string;
   changeListeners: Record<string, ChangeListener>;
   changed: boolean;
+  editing: boolean;
   selected: Set<string>;
   history: CST[];
   history_index: number;
   insertMode: InsertMode;
+  cursor: number;
+  indexCursor: number;
 };
 
+type NavigationPayload = { select?: boolean; move?: boolean; jump?: Jump };
+
 type Action =
-  | { type: 'up'; payload: { select?: boolean; move?: boolean } }
-  | { type: 'down'; payload: { select?: boolean; move?: boolean } }
-  | { type: 'left'; payload: { select?: boolean; move?: boolean } }
-  | { type: 'right'; payload: { select?: boolean; move?: boolean } }
+  | { type: 'up'; payload: NavigationPayload }
+  | { type: 'down'; payload: NavigationPayload }
+  | { type: 'left'; payload: NavigationPayload }
+  | { type: 'right'; payload: NavigationPayload }
   | { type: 'add'; payload: Ast }
   | {
       type: 'text';
-      payload: { text: string; insertMode?: InsertMode };
+      payload: {
+        text: string;
+        insertMode?: InsertMode;
+        jump?: Jump;
+        last?: boolean;
+      };
     }
   | {
       type: 'insertSymbol';
-      payload: { symbol: AbstractChar; insertMode?: InsertMode };
+      payload: {
+        symbol: AbstractChar;
+        insertMode?: InsertMode;
+        isCC?: boolean;
+      };
     }
   | { type: 'setInsertMode'; payload: { insertMode: InsertMode } }
   | { type: 'backspace'; payload: { force: boolean } }
   | { type: 'popLastText' }
   | { type: 'setScope'; payload: string[] }
+  | { type: 'setEditing'; payload: boolean }
+  | { type: 'toggleEditing' }
   | { type: 'load'; payload: { ast: Ast; path: string } }
   | {
       type: 'addChangeListener';
@@ -93,12 +117,61 @@ type Action =
   | { type: 'undo' }
   | { type: 'redo' };
 
+function navigateText(
+  type: 'up' | 'down' | 'left' | 'right',
+  state: State,
+  jump: Jump = 'none',
+): State {
+  const current = get(state.scope, state.ast);
+  const text = current.text;
+  const cursor = state.cursor;
+  switch (type) {
+    case 'left':
+      return {
+        ...state,
+        ...Cursor.left(text, cursor, state.indexCursor, state.insertMode, jump),
+      };
+
+    case 'right':
+      return {
+        ...state,
+        ...Cursor.right(
+          text,
+          cursor,
+          state.indexCursor,
+          state.insertMode,
+          jump,
+        ),
+      };
+    case 'down':
+      return {
+        ...state,
+        ...Cursor.down(text, cursor, state.indexCursor, state.insertMode),
+      };
+    case 'up':
+      return {
+        ...state,
+        ...Cursor.up(text, cursor, state.indexCursor, state.insertMode),
+      };
+  }
+}
+
 function navigate(
   moveScope: (scope: string[], ast: Ast) => string[],
   state: State,
-  action: Action & { payload: { select?: boolean; move?: boolean } },
+  action: Action & { payload: NavigationPayload },
 ) {
-  const { scope, ast } = state;
+  const { scope, ast, editing } = state;
+
+  if (editing) {
+    if (
+      action.type === 'up' ||
+      action.type === 'down' ||
+      action.type === 'left' ||
+      action.type === 'right'
+    )
+      return navigateText(action.type, state, action.payload.jump);
+  }
 
   const newScope = moveScope(scope, ast);
   if (action.payload.select) {
@@ -151,50 +224,101 @@ function reducer(state: State, action: Action): State {
     case 'add': {
       return pushHistory({
         ...state,
+        insertMode: 'normal',
         ...add(scope, ast, action.payload),
         changed: true,
       });
     }
 
     case 'text': {
-      const cst = edit(
-        scope,
-        ast,
+      const current = get(scope, ast);
+
+      const offset = action.payload.last ? +1 : 0;
+      const newIndexCursor = state.editing ? state.indexCursor + offset : -1;
+      const adder = editAdapter(
+        current.text,
         addText(
           action.payload.text,
           action.payload.insertMode ?? state.insertMode,
+          state.editing ? state.cursor + offset : -1,
+          newIndexCursor,
         ),
       );
+
+      const { editCallback, cursor, indexCursor } = adder;
+      const cst = edit(scope, ast, editCallback);
 
       return updateHistory({
         ...state,
         ...cst,
+        cursor,
+        indexCursor,
         changed: true,
       });
     }
 
     case 'setInsertMode': {
-      return { ...state, insertMode: action.payload.insertMode };
+      if (action.payload.insertMode !== 'normal') {
+        const current = get(scope, ast);
+        const text = current.text;
+        const isOnLeft = text[state.cursor]?.type === 'script';
+        if (isOnLeft)
+          return {
+            ...state,
+            insertMode: action.payload.insertMode,
+            indexCursor: 0,
+          };
+        const index = getScriptIndex(text, state.cursor);
+        if (!index)
+          return {
+            ...state,
+            insertMode: action.payload.insertMode,
+            indexCursor: 0,
+          };
+        const script = text[index] as Script;
+        const scriptText =
+          script[state.insertMode as 'superscript' | 'subscript']?.text;
+        const indexCursor = scriptText?.length ?? 0;
+        return {
+          ...state,
+          insertMode: action.payload.insertMode,
+          indexCursor,
+        };
+      }
+
+      return {
+        ...state,
+        insertMode: action.payload.insertMode,
+      };
     }
 
     case 'insertSymbol': {
-      const cst = edit(
-        scope,
-        ast,
+      const current = get(scope, ast);
+      const offset = action.payload.isCC ? +1 : 0;
+      const newIndexCursor = state.editing ? state.indexCursor + offset : -1;
+      const adder = editAdapter(
+        current.text,
         addAbstractChar(
           action.payload.symbol,
           action.payload.insertMode ?? state.insertMode,
+          state.editing ? state.cursor + offset : -1,
+          newIndexCursor,
         ),
       );
+
+      const { editCallback, cursor, indexCursor } = adder;
+      const cst = edit(scope, ast, editCallback);
 
       return updateHistory({
         ...state,
         ...cst,
+        cursor,
+        indexCursor,
         changed: true,
       });
     }
 
-    case 'backspace':
+    case 'backspace': {
       if (isEmpty(scope, ast) || action.payload.force) {
         return {
           ...state,
@@ -202,11 +326,65 @@ function reducer(state: State, action: Action): State {
           changed: true,
         };
       }
-      return { ...state, ...edit(scope, ast, deleteLast) };
-    case 'popLastText':
-      return { ...state, ...edit(scope, ast, deleteLastVariable) };
+
+      const current = get(scope, ast);
+      const editor = editAdapter(
+        current.text,
+        deleteAbstractChar(
+          state.insertMode,
+          state.editing ? state.cursor : -1,
+          state.editing ? state.indexCursor : -1,
+        ),
+      );
+
+      const cst = edit(scope, ast, editor.editCallback);
+
+      return {
+        ...state,
+        ...cst,
+        cursor: editor.cursor,
+        indexCursor: editor.indexCursor,
+        changed: true,
+      };
+    }
+
+    case 'popLastText': {
+      const current = get(scope, ast);
+      const word = Cursor.currentWord(
+        current.text,
+        state.cursor,
+        state.indexCursor,
+        state.insertMode,
+      );
+      if (!word) return state;
+
+      const editor = editAdapter(
+        current.text,
+        deleteAbstractText(
+          state.insertMode,
+          state.cursor,
+          state.indexCursor,
+          word.length,
+        ),
+      );
+
+      const cst = edit(scope, ast, editor.editCallback);
+
+      return {
+        ...state,
+        ...cst,
+        cursor: editor.cursor,
+        indexCursor: editor.indexCursor,
+        changed: true,
+      };
+    }
+
     case 'setScope':
       return { ...state, ast, scope: action.payload };
+    case 'setEditing':
+      return { ...state, editing: action.payload };
+    case 'toggleEditing':
+      return { ...state, editing: !state.editing };
     case 'load':
       return {
         ...state,
@@ -268,6 +446,9 @@ const defaultState: State = {
   path: '/main',
   changeListeners: {},
   changed: false,
+  editing: false,
+  cursor: defaultCST.ast.signature.text.length,
+  indexCursor: 0,
   selected: new Set<string>(),
   history: [defaultCST],
   history_index: 0,
@@ -282,9 +463,22 @@ export const AstProvider = ({ children }: AstProviderProps) => {
   const [state, dispatch] = useReducer(reducer, defaultState);
   const { showScope } = useTheme();
 
-  const { ast, scope, changed, selected, insertMode } = state;
+  const {
+    ast,
+    scope,
+    changed,
+    selected,
+    insertMode,
+    editing,
+    cursor,
+    indexCursor,
+  } = state;
 
-  const functionName = getFunctionName((ast as FunctionAst).signature.text);
+  const signatureText = (ast as FunctionAst).signature.text;
+  const signature = parseSignatureText(signatureText);
+  const functionName =
+    signature?.name || parseIdsText(signatureText)[0]?.name || 'main';
+
   const stateContext = {
     ast,
     scope: showScope ? scope : [],
@@ -292,6 +486,9 @@ export const AstProvider = ({ children }: AstProviderProps) => {
     changed,
     selected,
     insertMode,
+    editing,
+    cursor,
+    indexCursor,
   };
 
   return (
@@ -311,15 +508,16 @@ export const useAst = () => {
   const defaultNavigationPayload = {
     select: false,
     move: false,
+    jump: 'none' as const,
   };
 
-  const up = (payload = defaultNavigationPayload) =>
+  const up = (payload: NavigationPayload = defaultNavigationPayload) =>
     dispatch({ type: 'up', payload });
-  const down = (payload = defaultNavigationPayload) =>
+  const down = (payload: NavigationPayload = defaultNavigationPayload) =>
     dispatch({ type: 'down', payload });
-  const left = (payload = defaultNavigationPayload) =>
+  const left = (payload: NavigationPayload = defaultNavigationPayload) =>
     dispatch({ type: 'left', payload });
-  const right = (payload = defaultNavigationPayload) =>
+  const right = (payload: NavigationPayload = defaultNavigationPayload) =>
     dispatch({ type: 'right', payload });
   const addStatement = () => {
     dispatch({
@@ -374,19 +572,31 @@ export const useAst = () => {
     dispatch({ type: 'popLastText' });
     callChangeListeners();
   };
-  const edit = (text: string, insertMode?: InsertMode) => {
-    dispatch({ type: 'text', payload: { text, insertMode } });
+  const edit = (
+    text: string,
+    insertMode?: InsertMode,
+    jump: Jump = 'none',
+    last?: boolean,
+  ) => {
+    dispatch({ type: 'text', payload: { text, insertMode, jump, last } });
     callChangeListeners();
   };
   const setInsertMode = (insertMode: InsertMode) => {
     dispatch({ type: 'setInsertMode', payload: { insertMode } });
   };
-  const insert = (symbol: AbstractChar, insertMode?: InsertMode) => {
-    dispatch({ type: 'insertSymbol', payload: { symbol, insertMode } });
+  const insert = (
+    symbol: AbstractChar,
+    insertMode?: InsertMode,
+    isCC?: boolean,
+  ) => {
+    dispatch({ type: 'insertSymbol', payload: { symbol, insertMode, isCC } });
     callChangeListeners();
   };
   const setScope = (scope: string[]) =>
     dispatch({ type: 'setScope', payload: scope });
+  const setEditing = (editing: boolean) =>
+    dispatch({ type: 'setEditing', payload: editing });
+  const toggleEditing = () => dispatch({ type: 'toggleEditing' });
   const load = (ast: Ast, path: string) => {
     dispatch({ type: 'load', payload: { ast, path } });
   };
@@ -423,6 +633,8 @@ export const useAst = () => {
     insert,
     setInsertMode,
     setScope,
+    setEditing,
+    toggleEditing,
     load,
     addChangeListener,
     save,
@@ -435,11 +647,11 @@ export const useAst = () => {
 };
 
 export const useNode = (path: string | null) => {
-  const { scope, selected } = useContext(AstStateContext);
+  const { scope, selected, editing } = useContext(AstStateContext);
 
   const hovered = scope.join('.') === path;
   const isSelected = selected.has(path || '');
-  const { setScope, select, deselect, deselectAll } = useAst();
+  const { setScope, select, deselect, deselectAll, setEditing } = useAst();
   const onClick = (e: MouseEvent<HTMLDivElement>) => {
     const scopeToSet = path?.split('.') || [];
     setScope(scopeToSet);
@@ -457,10 +669,16 @@ export const useNode = (path: string | null) => {
     }
   };
 
+  const onDoubleClick = () => {
+    setEditing(true);
+  };
+
   return {
     $hovered: hovered,
     $selected: isSelected,
+    $editing: editing && hovered,
     onClick,
+    onDoubleClick,
     className: hovered ? 'hovered' : undefined,
   };
 };

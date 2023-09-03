@@ -14,7 +14,9 @@ export const Branch = ({ text, ifBranch, elseBranch, path }: BranchAst) => {
       <S.Condition {...containerProps}>
         <S.True>t</S.True>
         <S.False>f</S.False>
-        <AbstractText>{text}</AbstractText>
+        <S.Text>
+          <AbstractText hovered={containerProps.$hovered}>{text}</AbstractText>
+        </S.Text>
       </S.Condition>
       <S.Container>
         <S.TrueBranch>

@@ -1,42 +1,55 @@
 import {
   AbstractChar,
   AbstractText,
-  Ast,
-  TraversableAstNode,
-  InsertInsideAvailable,
   Operator,
-  Subscript,
-  SuperScript,
   Symbol,
-  traverse,
-  Variable,
+  Script,
+  Char,
 } from './ast';
 
-const getLast = <T extends AbstractChar>(text: AbstractText) => {
-  return text.at(-1) as T | undefined;
+const toSpliced = (
+  text: AbstractText,
+  index: number,
+  deleteCount: number,
+  ...char: AbstractChar[]
+) => {
+  return [...text.slice(0, index), ...char, ...text.slice(index + deleteCount)];
 };
 
-const doesEndWithScript = (text: AbstractText) => {
-  const last = getLast(text);
-  if (!last) return false;
-
-  return last.type === 'subscript' || last.type === 'superscript';
+export const isScript = (char?: AbstractChar) => {
+  return char?.type === 'script';
 };
 
-const doesEndWithVariable = (text: AbstractText) => {
-  return getLast(text)?.type === 'variable';
-};
-
-export type InsertMode = 'normal' | 'inside';
-
-const isInsertInsideAvaiable = (char: AbstractChar) => {
-  switch (char.type) {
-    case 'subscript':
-    case 'superscript':
-      return true;
+export const getScriptIndex = (text: AbstractText, cursor: number) => {
+  if (isScript(text.at(cursor))) {
+    const index = cursor;
+    if (index < 0) return text.length + index;
+    return index;
   }
-  return false;
+  if (isScript(text.at(cursor - 1))) {
+    const index = cursor - 1;
+    if (index < 0) return text.length + index;
+    return index;
+  }
+  return null;
 };
+
+const getScript = (text: AbstractText, cursor: number) => {
+  const index = getScriptIndex(text, cursor);
+  return index ? (text.at(index) as Script) : null;
+};
+
+const getCurrentScript = (
+  text: AbstractText,
+  cursor: number,
+  insertMode: InsertMode,
+) => {
+  const script = getScript(text, cursor);
+
+  return insertMode === 'superscript' ? script?.superscript : script?.subscript;
+};
+
+export type InsertMode = 'normal' | 'superscript' | 'subscript';
 
 const OPERATOR_MAP: Record<string, Operator> = {
   '&': { type: 'and' },
@@ -95,149 +108,432 @@ const isOperatorType = (char: AbstractChar) => {
 };
 
 const isBannedFirstChar = (char: AbstractChar) => {
-  return ['space', 'superscript', 'subscript'].includes(char.type);
+  return ['space', 'superscript', 'subscript', 'script'].includes(char.type);
 };
 
 const isSpaceScript = (first: AbstractChar, second: AbstractChar) => {
-  if (first.type !== 'space') return false;
-  return second.type === 'superscript' || second.type === 'subscript';
+  if (first?.type !== 'space') return false;
+  return isScript(second);
 };
 
-const isSameScriptTwice = (first: AbstractChar, second: AbstractChar) => {
-  const script = ['superscript', 'subscript'];
-  return script.includes(first.type) && first.type === second.type;
+type EditResult = { text: AbstractText; cursor: number; indexCursor: number };
+
+export const editAdapter = (
+  text: AbstractText,
+  callback: (text: AbstractText) => EditResult,
+) => {
+  const { cursor, indexCursor } = callback(text);
+
+  return {
+    editCallback: (text: AbstractText) => callback(text).text,
+    cursor,
+    indexCursor,
+  };
 };
+
+const editScriptInText = (
+  currentText: AbstractText,
+  insertMode: InsertMode,
+  cursor: number,
+  callback: (text: AbstractText) => EditResult,
+): EditResult => {
+  if (insertMode === 'normal')
+    return { text: currentText, cursor, indexCursor: 0 };
+  const scriptIndex = getScriptIndex(currentText, cursor);
+  if (!scriptIndex) return { text: currentText, cursor, indexCursor: 0 };
+  const script = currentText[scriptIndex] as Script;
+  const currentScript = script[insertMode];
+  const text = currentScript?.text;
+  if (!text) return { text: currentText, cursor, indexCursor: 0 };
+
+  const { text: newScriptText, cursor: newIndexCursor } = callback(text);
+
+  const newScript = {
+    ...script,
+    [insertMode]: { type: insertMode, text: newScriptText },
+  };
+
+  return {
+    text: toSpliced(currentText, scriptIndex, 1, newScript),
+    cursor,
+    indexCursor: newIndexCursor,
+  };
+};
+
+export const addChar =
+  (
+    newText: string,
+    insertMode: InsertMode = 'normal',
+    cursor: number,
+    cursorIndex: number,
+  ) =>
+  (currentText: AbstractText): EditResult => {
+    if (insertMode !== 'normal') {
+      const at = cursor < 0 ? currentText.length + 1 + cursor : cursor;
+
+      if (!getScriptIndex(currentText, cursor)) {
+        if (
+          newText === ' ' ||
+          currentText.length === 0 ||
+          ['space'].includes(currentText[at - 1]?.type || currentText[at]?.type)
+        )
+          return { text: currentText, cursor, indexCursor: cursorIndex };
+
+        const withScript = toSpliced(currentText, at, 0, {
+          type: 'script',
+          subscript: { type: 'subscript', text: [] },
+          superscript: { type: 'superscript', text: [] },
+        });
+
+        return editScriptInText(
+          withScript,
+          insertMode,
+          at,
+          addText(newText, 'normal', cursorIndex, 0),
+        );
+      }
+      return editScriptInText(
+        currentText,
+        insertMode,
+        at,
+        addText(newText, 'normal', cursorIndex, 0),
+      );
+    }
+
+    const at = cursor < 0 ? currentText.length + 1 + cursor : cursor;
+    if (isOperator(newText)) {
+      return addAbstractChar(
+        OPERATOR_MAP[newText],
+        insertMode,
+        at,
+        cursorIndex,
+      )(currentText);
+    }
+
+    if (currentText.length === 0)
+      return {
+        text: [{ type: 'char', value: newText }],
+        cursor: 1,
+        indexCursor: 0,
+      };
+
+    return {
+      text: toSpliced(currentText, at, 0, {
+        type: 'char',
+        value: newText,
+      }),
+      cursor: at + 1,
+      indexCursor: cursorIndex,
+    };
+  };
 
 export const addText =
-  (newText: string, insertMode: InsertMode = 'normal') =>
-  (currentText: AbstractText): AbstractText => {
-    const last = getLast(currentText);
-
-    if (isOperator(newText)) {
-      return addAbstractChar(OPERATOR_MAP[newText], insertMode)(currentText);
-    }
-
-    if (!last) return [{ type: 'variable', name: newText }];
-    if (insertMode === 'inside' && isInsertInsideAvaiable(last)) {
-      const lastInsertable = last as InsertInsideAvailable;
-      return currentText.slice(0, -1).concat({
-        ...lastInsertable,
-        text: addText(newText, 'normal')(lastInsertable.text),
-      });
-    }
-
-    if (last.type === 'variable') {
-      return currentText.slice(0, -1).concat({
-        ...last,
-        name: last.name + newText,
-      });
-    }
-
-    return currentText.concat({ type: 'variable', name: newText });
+  (
+    newText: string,
+    insertMode: InsertMode = 'normal',
+    cursor: number,
+    cursorIndex: number,
+  ) =>
+  (currentText: AbstractText): EditResult => {
+    return newText.split('').reduce(
+      (acc, char) => {
+        return addChar(char, insertMode, acc.cursor, acc.indexCursor)(acc.text);
+      },
+      { text: currentText, cursor, indexCursor: cursorIndex },
+    );
   };
 
 export const addAbstractChar =
-  (char: AbstractChar, insertMode: InsertMode) =>
-  (currentText: AbstractText): AbstractText => {
-    const last = getLast(currentText);
-    if (!last) return isBannedFirstChar(char) ? [] : [char];
+  (
+    char: AbstractChar,
+    insertMode: InsertMode,
+    cursor: number,
+    cursorIndex: number,
+  ) =>
+  (currentText: AbstractText): EditResult => {
+    const at = cursor < 0 ? currentText.length + 1 + cursor : cursor;
+    const current = currentText[at - 1];
+    if (isSpaceScript(current, char)) {
+      return { text: currentText, cursor, indexCursor: cursorIndex };
+    }
 
-    if (isSameScriptTwice(last, char)) return currentText;
-    if (isSpaceScript(last, char)) return currentText;
-    const isDoubleOperator = isOperatorType(char) && isOperatorType(last);
+    if (!current) {
+      return isBannedFirstChar(char)
+        ? { text: currentText, cursor, indexCursor: cursorIndex }
+        : { text: [char, ...currentText], cursor: 1, indexCursor: 0 };
+    }
+
+    if (insertMode !== 'normal') {
+      if (!getScriptIndex(currentText, cursor)) {
+        if (
+          char?.type === 'space' ||
+          currentText.length === 0 ||
+          ['space', 'script'].includes(
+            currentText[cursor - 1]?.type || currentText[cursor]?.type,
+          )
+        )
+          return { text: currentText, cursor, indexCursor: cursorIndex };
+
+        const withScript = toSpliced(currentText, cursor, 0, {
+          type: 'script',
+          subscript: { type: 'subscript', text: [] },
+          superscript: { type: 'superscript', text: [] },
+        });
+
+        return editScriptInText(
+          withScript,
+          insertMode,
+          cursor,
+          addAbstractChar(char, 'normal', cursorIndex, 0),
+        );
+      }
+      return editScriptInText(
+        currentText,
+        insertMode,
+        cursor,
+        addAbstractChar(char, 'normal', cursorIndex, 0),
+      );
+    }
+
+    const isDoubleOperator = isOperatorType(char) && isOperatorType(current);
     if (isDoubleOperator) {
-      return currentText
-        .slice(0, -1)
-        .concat(transformDoubleOperator(last, char));
+      const op = transformDoubleOperator(current, char);
+      return {
+        text: toSpliced(currentText, at - 1, 1, ...op),
+        cursor: op.length === 2 ? at + 1 : at,
+        indexCursor: cursorIndex,
+      };
     }
 
-    if (insertMode === 'inside' && isInsertInsideAvaiable(last)) {
-      const lastInsertable = last as InsertInsideAvailable;
-
-      return currentText.slice(0, -1).concat({
-        ...lastInsertable,
-        text: addAbstractChar(char, 'normal')(lastInsertable.text),
-      });
-    }
-
-    return currentText.concat(char);
+    return {
+      text: toSpliced(currentText, at, 0, char),
+      cursor: at + 1,
+      indexCursor: cursorIndex,
+    };
   };
 
-export const deleteLast = (text: AbstractText): AbstractText => {
-  if (doesEndWithScript(text)) {
-    return text.slice(0, -1);
-  }
-
-  if (doesEndWithVariable(text)) {
-    const lastText = getLast<Variable>(text)!.name;
-    if (lastText.length > 1) {
-      const newLastVariable: Variable = {
-        type: 'variable',
-        name: lastText.substring(0, lastText.length - 1),
-      };
-      return text.slice(0, -1).concat([newLastVariable]);
+export const deleteAbstractChar =
+  (insertMode: InsertMode, cursor: number, cursorIndex: number) =>
+  (currentText: AbstractText): EditResult => {
+    if (insertMode !== 'normal') {
+      return editScriptInText(
+        currentText,
+        insertMode,
+        cursor,
+        deleteAbstractChar('normal', cursorIndex, 0),
+      );
     }
 
-    return text.slice(0, -1);
-  }
+    const at = cursor < 0 ? currentText.length + 1 + cursor : cursor;
+    return {
+      text: toSpliced(currentText, at - 1, 1),
+      cursor: at - 1,
+      indexCursor: cursorIndex,
+    };
+  };
 
-  return text.slice(0, -1);
-};
-
-export const deleteLastVariable = (text: AbstractText): AbstractText => {
-  if (doesEndWithVariable(text)) {
-    return text.slice(0, -1);
-  }
-  if (doesEndWithScript(text)) {
-    const last = getLast<Subscript | SuperScript>(text)!;
-    const newText = last.text.slice(0, -1);
-    const newLast = { type: last.type, text: newText };
-    return text.slice(0, -1).concat(newLast);
-  }
-  return text;
-};
-
-const getAllVariablesInNode = (node: TraversableAstNode) => {
-  return node.text.reduce((acc, curr) => {
-    switch (curr.type) {
-      case 'subscript':
-      case 'superscript':
-        return acc.concat(
-          curr.text.filter((char) => char.type === 'variable') as Variable[],
-        );
-      case 'variable':
-        acc.push(curr);
-        return acc;
-      default:
-        return acc;
+export const deleteAbstractText =
+  (
+    insertMode: InsertMode,
+    cursor: number,
+    cursorIndex: number,
+    length: number,
+  ) =>
+  (currentText: AbstractText): EditResult => {
+    if (insertMode !== 'normal') {
+      return editScriptInText(
+        currentText,
+        insertMode,
+        cursor,
+        deleteAbstractText('normal', cursorIndex, 0, length),
+      );
     }
-  }, [] as Variable[]);
+
+    const at = cursor < 0 ? currentText.length + 1 + cursor : cursor;
+    return {
+      text: toSpliced(currentText, at - length, length),
+      cursor: at - 1 - length,
+      indexCursor: cursorIndex,
+    };
+  };
+
+type CursorMovement = {
+  cursor: number;
+  insertMode: InsertMode;
+  indexCursor: number;
 };
 
-const getAllVariableNames = (body: Ast) => {
-  const variables = traverse(body, (node) =>
-    getAllVariablesInNode(node as TraversableAstNode),
-  );
-  return Array.from(new Set(variables.map((variable) => variable.name)));
+export type Jump = 'none' | 'word' | 'line';
+
+const isOnRightSideOfScript = (text: AbstractText, cursor: number) => {
+  return text[cursor - 1] && isScript(text[cursor - 1]);
 };
 
-export const getLastText = (current: TraversableAstNode) => {
-  return getAllVariablesInNode(current).at(-1)?.name;
-};
-
-export const getAllVariablesExceptCurrent = (
-  body: Ast,
-  current: TraversableAstNode,
+const indexCursorOnEnter = (
+  text: AbstractText,
+  cursor: number,
+  nextInsertMode: InsertMode,
 ) => {
-  return getAllVariableNames(body).filter(
-    (variable) => variable !== getLastText(current),
-  );
+  const script = getScript(text, cursor);
+  if (!script || !isOnRightSideOfScript(text, cursor)) {
+    return 0;
+  }
+
+  if (nextInsertMode === 'subscript') return script.subscript?.text.length || 0;
+  if (nextInsertMode === 'superscript')
+    return script.superscript?.text.length || 0;
+
+  return 0;
 };
 
-export const getFunctionName = (text: AbstractText): string => {
-  return text[0]?.type === 'variable' ? text[0]?.name : '';
+const isAlphaNumeric = (char?: AbstractChar) => {
+  if (!char) return false;
+  return char.type === 'char' && char.value.match(/[a-zA-Z0-9]/i);
 };
 
-export const doesEndWithSpace = (text: AbstractText) => {
-  return text.at(-1)?.type === 'space';
+const currentCharIndex = (
+  text: AbstractText,
+  cursor: number,
+  indexCursor: number,
+  insertMode: InsertMode = 'normal',
+): number => {
+  if (insertMode !== 'normal') {
+    const scriptText = getCurrentScript(text, cursor, insertMode)?.text;
+    if (scriptText) {
+      return currentCharIndex(scriptText, indexCursor, 0, 'normal');
+    }
+  }
+
+  if (text.length === 0) return -1;
+
+  if (isAlphaNumeric(text[cursor - 1])) return cursor - 1;
+  if (isAlphaNumeric(text[cursor])) return cursor;
+  return -1;
+};
+
+export const currentWord = (
+  text: AbstractText,
+  cursor: number,
+  indexCursor: number,
+  insertMode: InsertMode = 'normal',
+): string | null => {
+  if (insertMode !== 'normal') {
+    const scriptText = getCurrentScript(text, cursor, insertMode)?.text;
+    if (scriptText) {
+      return currentWord(scriptText, indexCursor, 0, 'normal');
+    }
+  }
+  if (text.length === 0) return null;
+
+  const index = currentCharIndex(text, cursor, indexCursor, insertMode);
+  if (index === -1) return null;
+
+  let left = index;
+  let right = index;
+
+  while (left > 0 && isAlphaNumeric(text[left - 1])) left--;
+  while (right < text.length - 1 && isAlphaNumeric(text[right + 1])) right++;
+
+  return text
+    .slice(left, right + 1)
+    .map((char) => (char as Char).value)
+    .join('');
+};
+
+const right = (
+  text: AbstractText,
+  cursor: number,
+  indexCursor: number,
+  insertMode: InsertMode = 'normal',
+  jump: Jump = 'none',
+): CursorMovement => {
+  if (insertMode !== 'normal') {
+    const scriptText = getCurrentScript(text, cursor, insertMode)?.text;
+
+    if (scriptText) {
+      const movement = right(scriptText, indexCursor, 0, 'normal', jump);
+      return { cursor, insertMode, indexCursor: movement.cursor };
+    }
+  }
+
+  if (cursor === text.length) return { cursor, insertMode, indexCursor };
+  if (jump === 'line')
+    return { cursor: text.length, insertMode: 'normal', indexCursor };
+  if (
+    jump === 'word' &&
+    cursor < text.length - 1 &&
+    text[cursor + 1].type === 'char'
+  )
+    return right(text, cursor + 1, indexCursor, insertMode, jump);
+
+  return { cursor: cursor + 1, insertMode, indexCursor };
+};
+
+const left = (
+  text: AbstractText,
+  cursor: number,
+  indexCursor: number,
+  insertMode: InsertMode = 'normal',
+  jump: Jump = 'none',
+): CursorMovement => {
+  if (insertMode !== 'normal') {
+    const scriptText = getCurrentScript(text, cursor, insertMode)?.text;
+
+    if (scriptText) {
+      const movement = left(scriptText, indexCursor, 0, 'normal', jump);
+      return { cursor, insertMode, indexCursor: movement.cursor };
+    }
+  }
+
+  if (cursor === 0) return { cursor, insertMode, indexCursor };
+  if (jump === 'line') return { cursor: 0, insertMode: 'normal', indexCursor };
+
+  const prev = text[cursor - 1];
+  if (jump === 'word' && cursor > 0 && prev?.type === 'char')
+    return left(text, cursor - 1, indexCursor, insertMode, jump);
+
+  return { cursor: cursor - 1, insertMode, indexCursor };
+};
+
+const up = (
+  text: AbstractText,
+  cursor: number,
+  indexCursor: number,
+  insertMode: InsertMode = 'normal',
+): CursorMovement => {
+  if (insertMode === 'superscript') return { cursor, insertMode, indexCursor };
+  if (insertMode === 'subscript')
+    return { cursor, insertMode: 'normal', indexCursor };
+
+  const script = getScript(text, cursor);
+  if (!script?.superscript) return { cursor, insertMode, indexCursor };
+
+  const newIndexCursor = indexCursorOnEnter(text, cursor, 'superscript');
+  return { cursor, insertMode: 'superscript', indexCursor: newIndexCursor };
+};
+
+const down = (
+  text: AbstractText,
+  cursor: number,
+  indexCursor: number,
+  insertMode: InsertMode = 'normal',
+): CursorMovement => {
+  if (insertMode === 'subscript') return { cursor, insertMode, indexCursor };
+  if (insertMode === 'superscript')
+    return { cursor, insertMode: 'normal', indexCursor };
+
+  const script = getScript(text, cursor);
+  if (!script?.subscript) return { cursor, insertMode, indexCursor };
+
+  const newIndexCursor = indexCursorOnEnter(text, cursor, 'subscript');
+
+  return { cursor, insertMode: 'subscript', indexCursor: newIndexCursor };
+};
+
+export const Cursor = {
+  up,
+  down,
+  left,
+  right,
+  currentWord,
 };

@@ -1,26 +1,28 @@
 'use client';
 
 import { useAstState } from '@/hooks/useAST';
-import { InsertMode } from '@/lib/abstractText';
+import { InsertMode, getScriptIndex } from '@/lib/abstractText';
 import {
   AbstractChar,
   AbstractText as AbstractTextType,
+  Char,
   MathBB,
-  Subscript,
-  SuperScript,
-  Variable,
 } from '@/lib/ast';
 import { Latex } from '../Latex/Latex';
+import { useEffect, useRef, useState } from 'react';
+import * as S from './AbstractText.atoms';
 
 interface AbstractTextProps {
+  hovered: boolean;
   children: AbstractTextType;
 }
 
 type BasicAbstractChar = Exclude<
   AbstractChar,
-  | { type: 'variable' }
+  | { type: 'char' }
   | { type: 'subscript' }
   | { type: 'superscript' }
+  | { type: 'script' }
   | { type: 'mathbb' }
 >;
 
@@ -66,6 +68,8 @@ const basicTransform = (char: BasicAbstractChar): string => {
       return '\\;';
     case 'minus':
       return '-';
+    case 'dot':
+      return '.';
     case 'epsilon':
       return '\\varepsilon{}';
     case 'pi':
@@ -105,27 +109,57 @@ const basicTransform = (char: BasicAbstractChar): string => {
 };
 
 const SCRIPT_STYLE =
-  '\\htmlStyle{background-color: var(--s-script); padding: 2px; border-radius: 3px;}';
+  '\\htmlStyle{background-color: var(--s-script); padding: 2px; border-radius: 3px;z-index: 2;}';
 
-const transform = (text: AbstractTextType, insertmode: InsertMode) => {
+const scriptBody = (
+  isHighlighted: boolean,
+  insertmode: InsertMode,
+  type: InsertMode,
+  script: string,
+) => {
+  if (isHighlighted && insertmode === type) {
+    return `{${SCRIPT_STYLE}{\\htmlId{highlighted_script}{${script}}}}`;
+  }
+
+  return `{${script}}`;
+};
+
+const transform = (
+  text: AbstractTextType,
+  insertmode: InsertMode,
+  cursor: number,
+) => {
   return text
-    .map((char, index, { length }): string => {
-      const isLast = index === length - 1;
-      const isHighlighted = isLast && insertmode === 'inside'; //TODO: && insertmode is ""nside"
+    .map((char, index): string => {
+      const isHighlighted = index === cursor;
+
       switch (char.type) {
-        case 'variable': {
-          const text = (char as Variable).name;
+        case 'char': {
+          const text = (char as Char).value;
           return `\\text{${text}}`;
         }
-        case 'superscript': {
-          const text = (char as SuperScript).text;
-          const transformedText = transform(text, 'normal');
-          return `^{${isHighlighted ? SCRIPT_STYLE : ''}{${transformedText}}}`;
-        }
-        case 'subscript': {
-          const text = (char as Subscript).text;
-          const transformedText = transform(text, 'normal');
-          return `_{${isHighlighted ? SCRIPT_STYLE : ''}{${transformedText}}}`;
+        case 'script': {
+          const superscriptText = char.superscript
+            ? transform(char.superscript.text, 'normal', cursor)
+            : '';
+          const subscriptText = char.subscript
+            ? transform(char.subscript.text, 'normal', cursor)
+            : '';
+
+          const superscript = scriptBody(
+            isHighlighted,
+            insertmode,
+            'superscript',
+            superscriptText,
+          );
+          const subscript = scriptBody(
+            isHighlighted,
+            insertmode,
+            'subscript',
+            subscriptText,
+          );
+
+          return `^{${superscript}}_{${subscript}}`;
         }
         case 'mathbb': {
           return `\\mathbb{${(char as MathBB).value}}`;
@@ -138,7 +172,73 @@ const transform = (text: AbstractTextType, insertmode: InsertMode) => {
     .join('');
 };
 
-export const AbstractText = ({ children }: AbstractTextProps) => {
-  const { insertMode } = useAstState();
-  return <Latex>{transform(children, insertMode)}</Latex>;
+export const AbstractText = ({ children, hovered }: AbstractTextProps) => {
+  const { insertMode, editing, cursor, indexCursor } = useAstState();
+  const [scriptOffset, setScriptOffset] = useState(0);
+  const cursorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!editing) return;
+    const script = document.querySelector('#highlighted_script');
+    if (!script) {
+      if (insertMode !== 'normal') {
+        setScriptOffset(9);
+      }
+      return;
+    }
+    const getCharRight = () => {
+      if (indexCursor === 0) {
+        const char = script.children?.item(0) as HTMLElement;
+        return char?.getBoundingClientRect().left;
+      } else {
+        const char = script.children?.item(indexCursor - 1) as HTMLElement;
+        return char?.getBoundingClientRect().right;
+      }
+    };
+
+    const charRight = getCharRight();
+    if (!charRight) {
+      setScriptOffset(0);
+      return;
+    }
+    const scriptRight = script.getBoundingClientRect().left;
+    const offset = charRight - scriptRight;
+    setScriptOffset(offset);
+  }, [indexCursor, editing, insertMode]);
+
+  useEffect(() => {
+    cursorRef.current?.getAnimations().forEach((animation) => {
+      animation.cancel();
+      animation.play();
+    });
+  }, [cursor]);
+
+  const text = children;
+  const middle =
+    insertMode !== 'normal'
+      ? getScriptIndex(text, cursor) ?? cursor - 1
+      : cursor;
+
+  const isEditing = editing && hovered;
+
+  if (!isEditing) {
+    const text = transform(children, insertMode, middle);
+    return <Latex>{text}</Latex>;
+  }
+
+  const left = transform(text.slice(0, middle), insertMode, middle);
+  const right = transform(text.slice(middle), insertMode, 0);
+
+  return (
+    <>
+      {left.length > 0 && <Latex>{left}</Latex>}
+      <S.Cursor
+        $insertMode={insertMode}
+        $offset={scriptOffset}
+        ref={cursorRef}
+      />
+      <div id="cursor" />
+      {right.length > 0 && <Latex>{right}</Latex>}
+    </>
+  );
 };

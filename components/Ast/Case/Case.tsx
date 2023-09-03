@@ -13,7 +13,9 @@ export const Case = ({ body, text, path }: CaseAst) => {
     <S.Container>
       <S.Condition {...containerProps}>
         <S.True> </S.True>
-        <AbstractText>{text}</AbstractText>
+        <S.Text>
+          <AbstractText hovered={containerProps.$hovered}>{text}</AbstractText>
+        </S.Text>
       </S.Condition>
       <S.Body>
         <Render head={body} />

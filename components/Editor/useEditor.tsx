@@ -1,6 +1,12 @@
 import { useTheme } from '../../hooks/useTheme';
 import { KeyboardEvent, useRef } from 'react';
-import { useAst } from '../../hooks/useAST';
+import { useAst, useAstState } from '../../hooks/useAST';
+import { Jump } from '@/lib/abstractText';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import {
+  ccShownAtom,
+  codeCompletionVisibleAtom,
+} from './CodeCompletion/useCodeCompletion';
 
 interface UseEditorProps {
   readonly?: boolean;
@@ -14,7 +20,6 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     left,
     right,
     edit,
-    insert,
     backspace,
     deleteBlock,
     addStatement,
@@ -22,9 +27,14 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     undo,
     redo,
     setInsertMode,
+    setEditing,
+    toggleEditing,
   } = useAst();
+  const { editing, insertMode } = useAstState();
   const { astTheme } = useTheme();
   const rootRef = useRef<HTMLDivElement>(null);
+  const setCCVisible = useSetAtom(codeCompletionVisibleAtom);
+  const ccShown = useAtomValue(ccShownAtom);
 
   const getKey = (e: KeyboardEvent) => {
     if (e.key === 'Dead' && e.code === 'Digit3') return '^';
@@ -53,10 +63,39 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     if (!readonly) {
       handleUndoRedo(e);
       handleDeleteBlock(e);
+
+      if (e.key === 'Enter') {
+        setEditing(false);
+      }
+
+      if (e.key === 'Escape') {
+        if (ccShown) {
+          setCCVisible(false);
+          return;
+        }
+        if (editing && insertMode === 'normal') {
+          toggleEditing();
+          return;
+        }
+        if (insertMode !== 'normal') {
+          setCCVisible(false);
+          setInsertMode('normal');
+          return;
+        }
+      }
+
+      if (e.ctrlKey && e.key === 'e') {
+        toggleEditing();
+      }
     }
     if (e.ctrlKey) return;
 
-    const navigationPayload = { select: e.shiftKey, move: e.altKey };
+    const jump = e.ctrlKey ? 'line' : e.altKey ? 'word' : 'none';
+    const navigationPayload = {
+      select: e.shiftKey,
+      move: e.altKey,
+      jump: jump as Jump,
+    };
     const canDeselect = !(e.shiftKey || e.altKey);
     if (!disableNavigation) {
       switch (key) {
@@ -73,10 +112,11 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
           if (canDeselect) deselectAll();
           return;
         case 'ArrowRight':
-          setInsertMode('normal');
-
           right(navigationPayload);
           if (canDeselect) deselectAll();
+          return;
+        case 'Escape':
+          setInsertMode('normal');
           return;
       }
     }
@@ -84,19 +124,16 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
 
     switch (key) {
       case 'Backspace':
-        setInsertMode('normal');
         backspace();
         return;
       case 'Enter':
         addStatement();
         return;
       case '^':
-        insert({ type: 'superscript', text: [] }, 'normal');
-        setInsertMode('inside');
+        setInsertMode('superscript');
         return;
       case '_':
-        insert({ type: 'subscript', text: [] }, 'normal');
-        setInsertMode('inside');
+        setInsertMode('subscript');
         return;
     }
 

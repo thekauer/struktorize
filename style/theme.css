@@ -6,6 +6,10 @@
   --text-secondary: #888;
   --blue: #007acc;
   --blue-light: #0099ff;
+  --red: #be1100;
+  --yellow: #b89500;
+  --purple: #b180d7;
+  --green: #89d185;
 
   --s-bg: #1e1e1e;
   --s-border: #252526;
@@ -124,4 +128,9 @@ body,
   padding: 0;
   margin: 0;
   box-sizing: border-box;
+}
+
+span.mspace.mtight {
+  margin-right: 0 !important;
+  padding-right: 0.3253em !important;
 }

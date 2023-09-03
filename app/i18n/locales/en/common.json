@@ -30,6 +30,10 @@
       "signOut": "Sign out"
     }
   },
+  "bottomMenu": {
+    "saving": "Saving...",
+    "saved": "Saved"
+  },
   "main": {
     "emptyBody": {
       "getStarted": ["Press", "or type", "or", "to get started"],
@@ -57,6 +61,7 @@
     "ge": "Greater Equal",
     "le": "Less equal",
     "subscript": "Subscript",
-    "superscript": "Superscript"
+    "superscript": "Superscript",
+    "editmode": "Edit Mode"
   }
 }
