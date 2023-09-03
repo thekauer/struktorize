@@ -41,7 +41,8 @@ export type Operator = {
     | 'star'
     | 'bang'
     | 'space'
-    | 'minus';
+    | 'minus'
+    | 'dot';
 };
 export type Symbol = {
   type:

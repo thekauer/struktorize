@@ -29,10 +29,51 @@ describe('parser', () => {
           { type: 'char', value: 'a' },
           { type: 'space' },
           { type: 'char', value: '2' },
-          { type: 'char', value: 'a' },
         ] as AbstractText;
         const result = parseIdsText(input);
         expect(result.map((r) => r.name)).toEqual(['b2', 'a']);
+      });
+
+      it('should return id when it starts with capital letter', () => {
+        const input = [
+          { type: 'char', value: 'Q' },
+          { type: 'char', value: 'u' },
+          { type: 'char', value: 'e' },
+          { type: 'char', value: 'u' },
+          { type: 'char', value: 'e' },
+        ] as AbstractText;
+        const result = parseIdsText(input);
+        expect(result.map((r) => r.name)).toEqual(['Queue']);
+      });
+
+      it('should return function from Q:=Queue; Q.add(s)', () => {
+        const input = [
+          { type: 'char', value: 'Q' },
+          { type: 'coloneq' },
+          { type: 'char', value: 'Q' },
+          { type: 'char', value: 'u' },
+          { type: 'char', value: 'e' },
+          { type: 'char', value: 'u' },
+          { type: 'char', value: 'e' },
+          { type: 'semicolon' },
+          { type: 'space' },
+          { type: 'char', value: 'Q' },
+          { type: 'dot' },
+          { type: 'char', value: 'a' },
+          { type: 'char', value: 'd' },
+          { type: 'char', value: 'd' },
+          { type: 'lp' },
+          { type: 'char', value: 's' },
+          { type: 'rp' },
+        ] as AbstractText;
+        const result = parseIdsText(input);
+        expect(result.map((r) => r.name)).toEqual([
+          'Q',
+          'Queue',
+          'Q',
+          'add',
+          's',
+        ]);
       });
     });
 

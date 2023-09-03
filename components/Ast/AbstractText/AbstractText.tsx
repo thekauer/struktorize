@@ -68,6 +68,8 @@ const basicTransform = (char: BasicAbstractChar): string => {
       return '\\;';
     case 'minus':
       return '-';
+    case 'dot':
+      return '.';
     case 'epsilon':
       return '\\varepsilon{}';
     case 'pi':

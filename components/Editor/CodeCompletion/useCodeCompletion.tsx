@@ -11,7 +11,6 @@ export const codeCompletionVisibleAtom = atom(false);
 export const ccShownAtom = atom(false);
 
 const getAllVariables = (ast: FunctionAst) => {
-  const seen = new Set<string>();
   return parseAll(ast)
     .map((node) => {
       if (node._type === 'signature') {
@@ -31,14 +30,7 @@ const getAllVariables = (ast: FunctionAst) => {
 
       return { value: node.name, type: 'variable' as const };
     })
-    .flat()
-    .filter((variable) => {
-      const name = `${variable.type}_${variable.value}`;
-      if (seen.has(name)) return false;
-
-      seen.add(name);
-      return true;
-    });
+    .flat();
 };
 
 const getAllVariablesExceptCurrent = (
@@ -50,6 +42,7 @@ const getAllVariablesExceptCurrent = (
 ) => {
   const variables = getAllVariables(ast);
   if (node.type === 'switch') return variables;
+  const seen = new Set<string>();
 
   const current = Cursor.currentWord(
     (node as Exclude<AstNode, SwitchAst>).text,
@@ -58,7 +51,16 @@ const getAllVariablesExceptCurrent = (
     insertMode,
   );
 
-  return variables.filter((variable) => variable.value !== current);
+  return variables
+    .filter((variable) => variable.value !== current)
+
+    .filter((variable) => {
+      const name = `${variable.type}_${variable.value}`;
+      if (seen.has(name)) return false;
+
+      seen.add(name);
+      return true;
+    });
 };
 
 export type CodeCompletionItem =
@@ -119,6 +121,8 @@ export const useCodeCompletion = () => {
 
   const items: CodeCompletionItem[] =
     currentWord === null ? allItems : searcher.search(currentWord);
+
+  console.log({ allItems, items });
 
   setShown(visible && items.length > 0);
 
