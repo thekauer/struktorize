@@ -178,7 +178,12 @@ export const AbstractText = ({ children, hovered }: AbstractTextProps) => {
   useEffect(() => {
     if (!editing) return;
     const script = document.querySelector('#highlighted_script');
-    if (!script) return;
+    if (!script) {
+      if (insertMode !== 'normal') {
+        setScriptOffset(9);
+      }
+      return;
+    }
     const getCharRight = () => {
       if (indexCursor === 0) {
         const char = script.children?.item(0) as HTMLElement;
@@ -197,7 +202,7 @@ export const AbstractText = ({ children, hovered }: AbstractTextProps) => {
     const scriptRight = script.getBoundingClientRect().left;
     const offset = charRight - scriptRight;
     setScriptOffset(offset);
-  }, [indexCursor, editing]);
+  }, [indexCursor, editing, insertMode]);
 
   useEffect(() => {
     cursorRef.current?.getAnimations().forEach((animation) => {
