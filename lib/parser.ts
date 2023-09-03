@@ -189,7 +189,8 @@ export function parseIdsText(input: AbstractText) {
   while (!iter.peek().done) {
     const variable = parseId(iter);
     if (!variable) {
-      while (!iter.peek().done && !isAlpha(iter.peek().value)) iter.next();
+      let next = iter.peek();
+      while (!next.done && !isAlpha(next.value)) next = iter.next();
     } else variables.push(variable);
   }
   return variables;
