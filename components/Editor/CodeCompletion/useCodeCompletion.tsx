@@ -11,6 +11,7 @@ export const codeCompletionVisibleAtom = atom(false);
 export const ccShownAtom = atom(false);
 
 const getAllVariables = (ast: FunctionAst) => {
+  const seen = new Set<string>();
   return parseAll(ast)
     .map((node) => {
       if (node._type === 'signature') {
@@ -30,7 +31,14 @@ const getAllVariables = (ast: FunctionAst) => {
 
       return { value: node.name, type: 'variable' as const };
     })
-    .flat();
+    .flat()
+    .filter((variable) => {
+      const name = `${variable.type}_${variable.value}`;
+      if (seen.has(name)) return false;
+
+      seen.add(name);
+      return true;
+    });
 };
 
 const getAllVariablesExceptCurrent = (
