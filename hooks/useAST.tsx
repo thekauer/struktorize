@@ -236,7 +236,7 @@ function reducer(state: State, action: Action): State {
         addText(
           action.payload.text,
           action.payload.insertMode ?? state.insertMode,
-          state.editing ? state.cursor : -1,
+          state.editing ? state.cursor + offset : -1,
           newIndexCursor,
         ),
       );

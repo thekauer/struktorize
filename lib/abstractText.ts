@@ -297,14 +297,10 @@ export const addAbstractChar =
 
     const isDoubleOperator = isOperatorType(char) && isOperatorType(current);
     if (isDoubleOperator) {
+      const op = transformDoubleOperator(current, char);
       return {
-        text: toSpliced(
-          currentText,
-          at - 1,
-          1,
-          ...transformDoubleOperator(current, char),
-        ),
-        cursor: at,
+        text: toSpliced(currentText, at - 1, 1, ...op),
+        cursor: op.length === 2 ? at + 1 : at,
         indexCursor: cursorIndex,
       };
     }
