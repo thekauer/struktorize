@@ -92,7 +92,11 @@ type Action =
     }
   | {
       type: 'insertSymbol';
-      payload: { symbol: AbstractChar; insertMode?: InsertMode };
+      payload: {
+        symbol: AbstractChar;
+        insertMode?: InsertMode;
+        isCC?: boolean;
+      };
     }
   | { type: 'setInsertMode'; payload: { insertMode: InsertMode } }
   | { type: 'backspace'; payload: { force: boolean } }
@@ -290,13 +294,15 @@ function reducer(state: State, action: Action): State {
 
     case 'insertSymbol': {
       const current = get(scope, ast);
+      const offset = action.payload.isCC ? +1 : 0;
+      const newIndexCursor = state.editing ? state.indexCursor + offset : -1;
       const adder = editAdapter(
         current.text,
         addAbstractChar(
           action.payload.symbol,
           action.payload.insertMode ?? state.insertMode,
-          state.editing ? state.cursor : -1,
-          state.editing ? state.indexCursor : -1,
+          state.editing ? state.cursor + offset : -1,
+          newIndexCursor,
         ),
       );
 
@@ -578,8 +584,12 @@ export const useAst = () => {
   const setInsertMode = (insertMode: InsertMode) => {
     dispatch({ type: 'setInsertMode', payload: { insertMode } });
   };
-  const insert = (symbol: AbstractChar, insertMode?: InsertMode) => {
-    dispatch({ type: 'insertSymbol', payload: { symbol, insertMode } });
+  const insert = (
+    symbol: AbstractChar,
+    insertMode?: InsertMode,
+    isCC?: boolean,
+  ) => {
+    dispatch({ type: 'insertSymbol', payload: { symbol, insertMode, isCC } });
     callChangeListeners();
   };
   const setScope = (scope: string[]) =>

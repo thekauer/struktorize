@@ -147,7 +147,7 @@ export const useCodeCompletion = () => {
 
       default:
         if (item.type === 'symbol') {
-          insert(item.symbol);
+          insert(item.symbol, undefined, true);
 
           return;
         }
