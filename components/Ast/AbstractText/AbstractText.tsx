@@ -190,6 +190,10 @@ export const AbstractText = ({ children, hovered }: AbstractTextProps) => {
     };
 
     const charRight = getCharRight();
+    if (!charRight) {
+      setScriptOffset(0);
+      return;
+    }
     const scriptRight = script.getBoundingClientRect().left;
     const offset = charRight - scriptRight;
     setScriptOffset(offset);
