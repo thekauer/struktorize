@@ -264,7 +264,12 @@ function reducer(state: State, action: Action): State {
             indexCursor: 0,
           };
         const index = getScriptIndex(text, state.cursor);
-        if (!index) return { ...state, insertMode: action.payload.insertMode };
+        if (!index)
+          return {
+            ...state,
+            insertMode: action.payload.insertMode,
+            indexCursor: 0,
+          };
         const script = text[index] as Script;
         const scriptText =
           script[state.insertMode as 'superscript' | 'subscript']?.text;
