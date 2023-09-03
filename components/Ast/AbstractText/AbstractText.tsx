@@ -9,7 +9,7 @@ import {
   MathBB,
 } from '@/lib/ast';
 import { Latex } from '../Latex/Latex';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as S from './AbstractText.atoms';
 
 interface AbstractTextProps {
@@ -109,6 +109,19 @@ const basicTransform = (char: BasicAbstractChar): string => {
 const SCRIPT_STYLE =
   '\\htmlStyle{background-color: var(--s-script); padding: 2px; border-radius: 3px;z-index: 2;}';
 
+const scriptBody = (
+  isHighlighted: boolean,
+  insertmode: InsertMode,
+  type: InsertMode,
+  script: string,
+) => {
+  if (isHighlighted && insertmode === type) {
+    return `{${SCRIPT_STYLE}{\\htmlId{highlighted_script}{${script}}}}`;
+  }
+
+  return `{${script}}`;
+};
+
 const transform = (
   text: AbstractTextType,
   insertmode: InsertMode,
@@ -124,17 +137,27 @@ const transform = (
           return `\\text{${text}}`;
         }
         case 'script': {
-          const superscript = char.superscript
+          const superscriptText = char.superscript
             ? transform(char.superscript.text, 'normal', cursor)
             : '';
-          const subscript = char.subscript
+          const subscriptText = char.subscript
             ? transform(char.subscript.text, 'normal', cursor)
             : '';
-          return `^{${
-            isHighlighted && insertmode === 'superscript' ? SCRIPT_STYLE : ''
-          }{${superscript}}}_{${
-            isHighlighted && insertmode === 'subscript' ? SCRIPT_STYLE : ''
-          }{${subscript}}}`;
+
+          const superscript = scriptBody(
+            isHighlighted,
+            insertmode,
+            'superscript',
+            superscriptText,
+          );
+          const subscript = scriptBody(
+            isHighlighted,
+            insertmode,
+            'subscript',
+            subscriptText,
+          );
+
+          return `^{${superscript}}_{${subscript}}`;
         }
         case 'mathbb': {
           return `\\mathbb{${(char as MathBB).value}}`;
@@ -149,7 +172,28 @@ const transform = (
 
 export const AbstractText = ({ children, hovered }: AbstractTextProps) => {
   const { insertMode, editing, cursor, indexCursor } = useAstState();
+  const [scriptOffset, setScriptOffset] = useState(0);
   const cursorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!editing) return;
+    const script = document.querySelector('#highlighted_script');
+    if (!script) return;
+    const getCharRight = () => {
+      if (indexCursor === 0) {
+        const char = script.children?.item(0) as HTMLElement;
+        return char?.getBoundingClientRect().left;
+      } else {
+        const char = script.children?.item(indexCursor - 1) as HTMLElement;
+        return char?.getBoundingClientRect().right;
+      }
+    };
+
+    const charRight = getCharRight();
+    const scriptRight = script.getBoundingClientRect().left;
+    const offset = charRight - scriptRight;
+    setScriptOffset(offset);
+  }, [indexCursor, editing]);
 
   useEffect(() => {
     cursorRef.current?.getAnimations().forEach((animation) => {
@@ -159,7 +203,6 @@ export const AbstractText = ({ children, hovered }: AbstractTextProps) => {
   }, [cursor]);
 
   const text = children;
-  console.log({ cursor, si: getScriptIndex(text, cursor) });
   const middle =
     insertMode !== 'normal'
       ? getScriptIndex(text, cursor) ?? cursor - 1
@@ -180,7 +223,7 @@ export const AbstractText = ({ children, hovered }: AbstractTextProps) => {
       {left.length > 0 && <Latex>{left}</Latex>}
       <S.Cursor
         $insertMode={insertMode}
-        $offset={indexCursor}
+        $offset={scriptOffset}
         ref={cursorRef}
       />
       <div id="cursor" />

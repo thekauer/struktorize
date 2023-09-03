@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import KaTeX, { TrustContext } from 'katex';
 
 const trustHandler = ({ command }: TrustContext) => {
-  return command === '\\htmlStyle';
+  return command === '\\htmlStyle' || command === '\\htmlId';
 };
 
 const createMathComponent = (Component: any, { displayMode }: any): any => {

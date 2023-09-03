@@ -38,7 +38,7 @@ export const Cursor = styled.div<{ $insertMode: InsertMode; $offset: number }>`
       $insertMode !== 'normal' &&
       css`
         font-family: KaTeX_Main;
-        right: -${$offset}ch;
+        left: ${$offset}px;
       `}
 
     ${({ $insertMode }) =>
