@@ -122,8 +122,6 @@ export const useCodeCompletion = () => {
   const items: CodeCompletionItem[] =
     currentWord === null ? allItems : searcher.search(currentWord);
 
-  console.log({ allItems, items });
-
   setShown(visible && items.length > 0);
 
   useLayoutEffect(() => {
