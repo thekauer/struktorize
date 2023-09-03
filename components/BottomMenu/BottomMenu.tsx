@@ -9,7 +9,6 @@ export const BottomMenu = () => {
   return (
     <S.Container>
       <S.Left>
-        <Save />
         <LanguageSelector />
         <UndoRedo />
         <Mode />
