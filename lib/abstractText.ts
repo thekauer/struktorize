@@ -259,8 +259,8 @@ export const addAbstractChar =
 
     if (!current) {
       return isBannedFirstChar(char)
-        ? { text: [], cursor, indexCursor: cursorIndex }
-        : { text: [char], cursor: 1, indexCursor: 0 };
+        ? { text: currentText, cursor, indexCursor: cursorIndex }
+        : { text: [char, ...currentText], cursor: 1, indexCursor: 0 };
     }
 
     if (insertMode !== 'normal') {

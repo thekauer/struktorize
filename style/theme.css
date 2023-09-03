@@ -129,3 +129,8 @@ body,
   margin: 0;
   box-sizing: border-box;
 }
+
+span.mspace.mtight {
+  margin-right: 0 !important;
+  padding-right: 0.3253em !important;
+}

@@ -228,15 +228,14 @@ function reducer(state: State, action: Action): State {
 
     case 'text': {
       const current = get(scope, ast);
-      const isLast = action.payload.last ?? false;
 
       const adder = editAdapter(
         current.text,
         addText(
           action.payload.text,
           action.payload.insertMode ?? state.insertMode,
-          isLast ? -1 : state.editing ? state.cursor : -1,
-          isLast ? -1 : state.editing ? state.indexCursor : -1,
+          state.editing ? state.cursor : -1,
+          state.editing ? state.indexCursor : -1,
         ),
       );
 
