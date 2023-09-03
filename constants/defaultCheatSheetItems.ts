@@ -82,8 +82,8 @@ export const ITEMS: ItemProps[] = [
   {
     id: 'exitScript',
     image: '/aa.png',
-    shortcut: ['→'],
-    pressed: (e) => e.key === 'ArrowRight',
+    shortcut: ['ESC'],
+    pressed: (e) => e.key === 'Escape',
     name: 'exitScript',
     type: 'Kbd',
   },
@@ -143,6 +143,14 @@ export const ITEMS: ItemProps[] = [
     shortcut: '^',
     name: 'superscript',
     type: 'Latex',
+  },
+  {
+    id: 'editmode',
+    image: '/pencil-line.png',
+    shortcut: ['Ctrl', 'e'],
+    pressed: (e) => e.key === 'e' && e.ctrlKey,
+    name: 'editmode',
+    type: 'Kbd',
   },
 ];
 

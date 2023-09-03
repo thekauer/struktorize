@@ -61,6 +61,7 @@
     "ge": "Greater Equal",
     "le": "Less equal",
     "subscript": "Subscript",
-    "superscript": "Superscript"
+    "superscript": "Superscript",
+    "editmode": "Edit Mode"
   }
 }
