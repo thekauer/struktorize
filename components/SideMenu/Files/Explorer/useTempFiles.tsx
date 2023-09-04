@@ -1,11 +1,11 @@
 import { useAstState } from '@/hooks/useAST';
-import { getFunctionName } from '@/lib/abstractText';
 import { FunctionAst } from '@/lib/ast';
 import { File } from '@/lib/repository';
 import { useSession } from 'next-auth/react';
 import { useEffect, useRef } from 'react';
 import { useCreateFile } from './useCreateFile';
 import { useFiles } from './useFiles';
+import { parseSignatureText } from '@/lib/parser';
 
 const TEMP_FILE_KEY = 'tempFile';
 
@@ -23,9 +23,10 @@ export const useLoadTempFile = () => {
       if (tempAst)
         try {
           const ast = JSON.parse(tempAst);
-          const path = `/${getFunctionName(
-            (ast as FunctionAst).signature.text,
-          )}`;
+          const path = `/${
+            parseSignatureText((ast as FunctionAst).signature.text)?.name ??
+            'untitled'
+          }`;
           const type = 'file';
 
           return { type, path, ast } as File;
@@ -50,10 +51,8 @@ export const useLoadTempFile = () => {
         ran.current = true;
         const hasAccount = files.length > 0;
         const changed = !!ogFile;
-        console.log({ changed, hasAccount, files });
         if (!changed) {
           if (hasAccount) return;
-          console.log('create new empty file');
           createFile.mutate({
             type: 'file',
             path: '/main',
@@ -64,7 +63,6 @@ export const useLoadTempFile = () => {
         const file = maybeRenameFile(ogFile);
 
         createFile.mutate(file);
-        console.log('saving file');
         localStorage.removeItem(TEMP_FILE_KEY);
       }
     };

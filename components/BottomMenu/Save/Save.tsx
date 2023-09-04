@@ -1,11 +1,12 @@
-import { useAst, useAstState } from '@/hooks/useAST';
+import { useAstState } from '@/hooks/useAST';
 import { useSession } from 'next-auth/react';
 import * as S from './Save.atoms';
 import { useTranslation } from 'react-i18next';
+import { useSaveCurrentFile } from '@/components/SideMenu/Files/Explorer/useSaveCurrentFile';
 
 export const Save = () => {
   const { changed } = useAstState();
-  const { save } = useAst(); // TODO: use save file insted
+  const saveCurrentFile = useSaveCurrentFile();
   const { status } = useSession();
   const { t } = useTranslation(['common'], { keyPrefix: 'bottomMenu' });
   if (status !== 'authenticated') return null;
@@ -13,7 +14,7 @@ export const Save = () => {
   return (
     <>
       {changed ? (
-        <S.Container onClick={() => save()}>
+        <S.Container onClick={() => saveCurrentFile.mutate()}>
           <S.ImageContainer>
             <S.Image $src="/cloud-off-line.png" />
           </S.ImageContainer>
