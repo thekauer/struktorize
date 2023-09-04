@@ -1,4 +1,4 @@
-import { useAstState } from '@/hooks/useAST';
+import { useAst, useAstState } from '@/hooks/useAST';
 import { FunctionAst } from '@/lib/ast';
 import { File } from '@/lib/repository';
 import { useSession } from 'next-auth/react';
@@ -12,6 +12,7 @@ const TEMP_FILE_KEY = 'tempFile';
 export const useLoadTempFile = () => {
   const { status } = useSession();
   const { ast } = useAstState();
+  const { load } = useAst();
   const { files, isLoading } = useFiles();
   const createFile = useCreateFile();
   const ran = useRef(false);
@@ -63,6 +64,7 @@ export const useLoadTempFile = () => {
         const file = maybeRenameFile(ogFile);
 
         createFile.mutate(file);
+        load(file.ast, file.path);
         localStorage.removeItem(TEMP_FILE_KEY);
       }
     };
