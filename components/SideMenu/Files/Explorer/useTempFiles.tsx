@@ -1,4 +1,4 @@
-import { useAst, useAstState } from '@/hooks/useAST';
+import { useAstState } from '@/hooks/useAST';
 import { FunctionAst } from '@/lib/ast';
 import { File } from '@/lib/repository';
 import { useSession } from 'next-auth/react';
@@ -6,15 +6,16 @@ import { useEffect, useRef } from 'react';
 import { useCreateFile } from './useCreateFile';
 import { useFiles } from './useFiles';
 import { parseSignatureText } from '@/lib/parser';
+import { useSelectFile } from './useSelectFile';
 
 const TEMP_FILE_KEY = 'tempFile';
 
 export const useLoadTempFile = () => {
   const { status } = useSession();
   const { ast } = useAstState();
-  const { load } = useAst();
   const { files, isLoading } = useFiles();
   const createFile = useCreateFile();
+  const selectFile = useSelectFile();
   const ran = useRef(false);
 
   useEffect(() => {
@@ -64,7 +65,7 @@ export const useLoadTempFile = () => {
         const file = maybeRenameFile(ogFile);
 
         createFile.mutate(file);
-        load(file.ast, file.path);
+        selectFile.mutate(file.path);
         localStorage.removeItem(TEMP_FILE_KEY);
       }
     };
