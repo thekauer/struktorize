@@ -8,10 +8,15 @@ import { useTranslation } from '@/i18n/client';
 import toast from 'react-hot-toast';
 import { useAst, useAstState } from '@/hooks/useAST';
 import { useExplorer } from '../useExplorer';
-import { useFiles } from '../useFiles';
 import { Ast } from 'lib/ast';
 import { useSetAtom } from 'jotai';
 import { codeCompletionVisibleAtom } from '@/components/Editor/CodeCompletion/useCodeCompletion';
+import { useCreateFile } from '../useCreateFile';
+import { useDeleteFile } from '../useDeleteFile';
+import { useRenameFile } from '../useRenameFile';
+import { shareFile } from '../shareFile';
+import { useSaveCurrentFile } from '../useSaveCurrentFile';
+import { useSelectFile } from '../useSelectFile';
 
 export interface FileProps {
   path: string;
@@ -25,15 +30,12 @@ export const File = ({ path, isNew }: FileProps) => {
   const { files, activePath, setNewPath } = useExplorer();
   const { changed, ast } = useAstState();
   const { load } = useAst();
-  const {
-    saveFile,
-    createFile,
-    deleteFile,
-    renameFile,
-    shareFile,
-    setActivePath,
-    recent,
-  } = useFiles();
+  const saveCurrentFile = useSaveCurrentFile();
+  const createFile = useCreateFile();
+  const deleteFile = useDeleteFile();
+  const renameFile = useRenameFile();
+  const selectFile = useSelectFile();
+
   const thisFile = files.find((f) => f.path === path)!;
   const setCCVisivle = useSetAtom(codeCompletionVisibleAtom);
 
@@ -50,9 +52,8 @@ export const File = ({ path, isNew }: FileProps) => {
     if (path === activePath) return;
     const nextFile = files.find((f: any) => f.path === path);
     if (nextFile?.type === 'file') {
-      saveFile({ ...recent!, ast, recent: nextFile.path });
-      load(nextFile.ast as any, nextFile.path);
-      setActivePath(path);
+      saveCurrentFile.mutate();
+      selectFile.mutate(path);
       focusRoot();
     }
   };
@@ -60,7 +61,7 @@ export const File = ({ path, isNew }: FileProps) => {
   const handleDelete = () => {
     if (isNew) return;
 
-    deleteFile(path);
+    deleteFile.mutate(path);
   };
 
   const createNewFile = (path: string) => {
@@ -68,9 +69,10 @@ export const File = ({ path, isNew }: FileProps) => {
     setCCVisivle(false);
     if (!validName(newName)) return;
     if (changed) {
-      saveFile({ ...recent!, ast });
+      saveCurrentFile.mutate();
     }
-    createFile(path);
+    createFile.mutate({ type: 'file', path });
+    selectFile.mutate(path);
     setNewPath(null);
 
     const name = path.substring(path.lastIndexOf('/') + 1);
@@ -140,7 +142,11 @@ export const File = ({ path, isNew }: FileProps) => {
       if (!validName(newName)) return;
 
       const oldPath = path.substring(0, path.lastIndexOf('/') + 1);
-      renameFile(thisFile, oldPath + newName);
+      renameFile.mutate({
+        ast: thisFile.ast,
+        from: path,
+        to: oldPath + newName,
+      });
     }
   };
 
@@ -148,7 +154,10 @@ export const File = ({ path, isNew }: FileProps) => {
     switch (e.key) {
       case 'Enter':
         handleRename();
-        if (isNew) createNewFile(path + inputRef.current?.value!);
+        if (isNew) {
+          const newPath = path + inputRef.current?.value!;
+          createNewFile(newPath);
+        }
         break;
 
       case 'Delete':

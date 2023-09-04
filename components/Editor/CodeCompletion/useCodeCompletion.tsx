@@ -1,5 +1,5 @@
 import { useAst, useAstState, useNodeInScope } from '@/hooks/useAST';
-import { defaultCodeCompletions } from 'constants/defaultCodeCompletions';
+import { defaultCodeCompletions } from '@/constants/defaultCodeCompletions';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import FuzzySearch from 'fuzzy-search';
 import { FunctionAst, AbstractChar, AstNode, SwitchAst } from '@/lib/ast';

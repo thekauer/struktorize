@@ -6,7 +6,7 @@ import React, {
   useReducer,
   MouseEvent,
 } from 'react';
-import { DEFAULT_FUNCTION } from '../constants/defaultFunction';
+import { DEFAULT_FUNCTION } from '@/constants/defaultFunction';
 import {
   Ast,
   up,
@@ -47,6 +47,7 @@ type StateContext = {
   ast: Ast;
   scope: string[];
   functionName: string;
+  path: string;
   changed: boolean;
   selected: Set<string>;
   insertMode: InsertMode;
@@ -472,6 +473,7 @@ export const AstProvider = ({ children }: AstProviderProps) => {
     editing,
     cursor,
     indexCursor,
+    path,
   } = state;
 
   const signatureText = (ast as FunctionAst).signature.text;
@@ -481,6 +483,7 @@ export const AstProvider = ({ children }: AstProviderProps) => {
 
   const stateContext = {
     ast,
+    path,
     scope: showScope ? scope : [],
     functionName,
     changed,

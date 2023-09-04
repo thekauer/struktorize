@@ -7,6 +7,7 @@ import { useEditor } from './useEditor';
 import * as S from './Editor.atoms';
 import { CodeCompletion } from './CodeCompletion/CodeCompletion';
 import { useCodeCompletion } from './CodeCompletion/useCodeCompletion';
+import { useSaveTempFile } from '../SideMenu/Files/Explorer/useTempFiles';
 
 const Root = () => {
   const { ast } = useAstState();
@@ -28,6 +29,7 @@ export const Editor = ({ readonly }: EditorProps) => {
     readonly,
     disableNavigation: codeCompletionProps.visible,
   });
+  useSaveTempFile();
 
   useEffect(() => {
     rootRef.current?.focus();

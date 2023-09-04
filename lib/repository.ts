@@ -1,5 +1,5 @@
 import { Redis } from '@upstash/redis';
-import { DEFAULT_FUNCTION } from 'constants/defaultFunction';
+import { DEFAULT_FUNCTION } from '@/constants/defaultFunction';
 import { Ast } from './ast';
 import { makeId } from './serverUtils';
 
@@ -151,4 +151,14 @@ export async function getSharedFile(id: string) {
   const { key, path } = sharedFile;
 
   return (await getRedis().hget(key, path)) as File;
+}
+export async function getRecent(userId: string) {
+  const userData = await getUserData(userId);
+  return userData?.recent || null;
+}
+
+export async function setRecent(userId: string, path: string) {
+  return await getRedis().hset(`user:${userId}`, {
+    recent: path,
+  });
 }
