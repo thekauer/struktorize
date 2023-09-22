@@ -357,6 +357,14 @@ export const deleteAbstractText =
     };
   };
 
+export const deleteAllText = (_text: AbstractText): EditResult => {
+  return {
+    text: [],
+    cursor: 0,
+    indexCursor: 0,
+  };
+};
+
 const isEmptyScript = (char: AbstractChar) => {
   if (char.type !== 'script') return false;
   const script = char as Script;
