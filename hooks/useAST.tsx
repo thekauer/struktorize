@@ -38,6 +38,7 @@ import {
   deleteAbstractText,
   getScriptIndex,
   clearEmptyScripts,
+  deleteAllText,
 } from '@/lib/abstractText';
 import { useTheme } from './useTheme';
 import { parseIdsText, parseSignatureText } from '@/lib/parser';
@@ -324,6 +325,22 @@ function reducer(state: State, action: Action): State {
     }
 
     case 'backspace': {
+      const current = get(scope, ast);
+
+      if (current.type === 'signature' && action.payload.force) {
+        const editor = editAdapter(current.text, deleteAllText);
+
+        const cst = edit(scope, ast, editor.editCallback);
+
+        return {
+          ...state,
+          ...cst,
+          cursor: editor.cursor,
+          indexCursor: editor.indexCursor,
+          changed: true,
+        };
+      }
+
       if (isEmpty(scope, ast) || action.payload.force) {
         return {
           ...state,
@@ -332,7 +349,6 @@ function reducer(state: State, action: Action): State {
         };
       }
 
-      const current = get(scope, ast);
       const editor = editAdapter(
         current.text,
         deleteAbstractChar(
