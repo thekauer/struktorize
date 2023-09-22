@@ -37,6 +37,7 @@ import {
   editAdapter,
   deleteAbstractText,
   getScriptIndex,
+  clearEmptyScripts,
 } from '@/lib/abstractText';
 import { useTheme } from './useTheme';
 import { parseIdsText, parseSignatureText } from '@/lib/parser';
@@ -287,8 +288,11 @@ function reducer(state: State, action: Action): State {
         };
       }
 
+      const cst = edit(scope, ast, clearEmptyScripts);
+
       return {
         ...state,
+        ...cst,
         insertMode: action.payload.insertMode,
       };
     }

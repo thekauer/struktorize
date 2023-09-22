@@ -357,6 +357,18 @@ export const deleteAbstractText =
     };
   };
 
+const isEmptyScript = (char: AbstractChar) => {
+  if (char.type !== 'script') return false;
+  const script = char as Script;
+  const subscriptLength = script.subscript?.text?.length || 0;
+  const superscriptLength = script.superscript?.text?.length || 0;
+  return subscriptLength === 0 && superscriptLength === 0;
+};
+
+export const clearEmptyScripts = (text: AbstractText) => {
+  return text.filter((char) => !isEmptyScript(char));
+};
+
 type CursorMovement = {
   cursor: number;
   insertMode: InsertMode;
