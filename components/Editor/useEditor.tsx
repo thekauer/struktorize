@@ -85,6 +85,7 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
       }
 
       if (e.ctrlKey && e.key === 'e') {
+        e.preventDefault();
         toggleEditing();
       }
     }
