@@ -207,7 +207,7 @@ export const AbstractText = ({ children, hovered }: AbstractTextProps) => {
   }, [indexCursor, editing, insertMode]);
 
   useEffect(() => {
-    cursorRef.current?.getAnimations().forEach((animation) => {
+    cursorRef.current?.getAnimations?.()?.forEach((animation) => {
       animation.cancel();
       animation.play();
     });

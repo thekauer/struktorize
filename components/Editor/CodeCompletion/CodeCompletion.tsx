@@ -28,7 +28,7 @@ export const CodeCompletion = ({
   if (!visible || items.length === 0 || !targetContainer) return null;
 
   return createPortal(
-    <S.Container className="CodeCompletion">
+    <S.Container className="CodeCompletion" data-testid="CodeCompletion">
       <S.RowContainer>
         {items.map((item, index) => (
           <S.Row

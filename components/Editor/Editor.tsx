@@ -11,6 +11,7 @@ import { useSaveTempFile } from '../SideMenu/Files/Explorer/useTempFiles';
 
 const Root = () => {
   const { ast } = useAstState();
+  console.log('ast', ast?.body?.[0]);
 
   return (
     <S.Root>
@@ -36,7 +37,7 @@ export const Editor = ({ readonly }: EditorProps) => {
   }, []);
 
   return (
-    <S.Container {...containerProps}>
+    <S.Container {...containerProps} data-testid="root-container">
       <Root />
       {!readonly && <CodeCompletion {...codeCompletionProps} />}
     </S.Container>

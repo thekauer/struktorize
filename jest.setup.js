@@ -7,4 +7,6 @@ import '@testing-library/jest-dom/extend-expect';
 
 import { TextEncoder, TextDecoder } from 'util';
 
-Object.assign(global, { TextDecoder, TextEncoder });
+const structuredClone = (object) => JSON.parse(JSON.stringify(object));
+
+Object.assign(global, { TextDecoder, TextEncoder, structuredClone });

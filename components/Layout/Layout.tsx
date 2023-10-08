@@ -5,7 +5,6 @@ import { ReactNode } from 'react';
 import { useTheme } from '../../hooks/useTheme';
 import { CheatSheet } from '../CheatSheet/CheatSheet';
 import { CommandPalette } from '../CommandPalette/CommandPalette';
-import { ExplorerProvider } from '../SideMenu/Files/Explorer/useExplorer';
 import { SideMenu } from '../SideMenu/SideMenu';
 import * as S from './Layout.atoms';
 import { Toaster } from 'react-hot-toast';
@@ -25,7 +24,7 @@ export const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <ExplorerProvider>
+    <>
       <Toaster position="bottom-center" toastOptions={toastOptions} />
       <FocusTrap>
         <S.StackContainer>
@@ -40,6 +39,6 @@ export const Layout = ({ children }: LayoutProps) => {
           <BottomMenu />
         </S.StackContainer>
       </FocusTrap>
-    </ExplorerProvider>
+    </>
   );
 };

@@ -235,7 +235,8 @@ function reducer(state: State, action: Action): State {
     case 'text': {
       const current = get(scope, ast);
 
-      const offset = action.payload.last ? +1 : 0;
+      // const offset = action.payload.last ? +1 : 0;
+      const offset = 0;
       const newIndexCursor = state.editing ? state.indexCursor + offset : -1;
       const adder = editAdapter(
         current.text,

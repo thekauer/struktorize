@@ -169,9 +169,12 @@ export const addChar =
   ) =>
   (currentText: AbstractText): EditResult => {
     if (insertMode !== 'normal') {
+      console.log('add', { newText, cursorIndex });
       const at = cursor < 0 ? currentText.length + 1 + cursor : cursor;
 
+      debugger;
       if (!getScriptIndex(currentText, cursor)) {
+        console.log('no scropt');
         if (
           newText === ' ' ||
           currentText.length === 0 ||
@@ -185,6 +188,7 @@ export const addChar =
           superscript: { type: 'superscript', text: [] },
         });
 
+        console.log('yes script');
         return editScriptInText(
           withScript,
           insertMode,
@@ -235,6 +239,7 @@ export const addText =
     cursorIndex: number,
   ) =>
   (currentText: AbstractText): EditResult => {
+    console.log('adding', { newText, insertMode, cursor, cursorIndex });
     return newText.split('').reduce(
       (acc, char) => {
         return addChar(char, insertMode, acc.cursor, acc.indexCursor)(acc.text);

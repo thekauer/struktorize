@@ -4,13 +4,14 @@ import { Home } from './index';
 import { auth } from '@/auth/auth';
 
 export default async function Index() {
-  const session = await auth();
+  // const session = await auth();
 
-  const userId = session?.user?.id;
-  const userData = await getUserData(userId);
-
-  const recent =
-    userData?.files[userData.recent] || Object.values(userData?.files || {})[0];
+  // const userId = session?.user?.id;
+  // const userData = await getUserData(userId);
+  //
+  // const recent =
+  //   userData?.files[userData.recent] || Object.values(userData?.files || {})[0];
+  const recent = null;
 
   return (
     <>
