@@ -20,10 +20,18 @@ export const useRenameFile = () => {
           if (!userDataDto) return previousFiles!;
           const { files, recent } = userDataDto;
 
+          const isMovingIntoFolder =
+            to === '/' || files.find((f) => f.path === to)?.type === 'folder';
+
+          const fromName = from.split('/').pop();
+          const newPath = isMovingIntoFolder
+            ? `${to === '/' ? '' : to}/${fromName}`
+            : to;
+
           const renamedFile: File = {
-            path: to,
+            path: newPath,
             ast: ast,
-            type: 'file',
+            type: files.find((f) => f.path === from)?.type || 'file',
           };
           const filesAndRenamedFile = [
             ...files.filter((f) => f.path !== from),

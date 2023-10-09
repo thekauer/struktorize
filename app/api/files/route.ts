@@ -69,7 +69,7 @@ export const GET = auth(async (req) => {
 });
 
 const fileValidator = z.object({
-  type: z.literal('file'),
+  type: z.union([z.literal('file'), z.literal('folder')]),
   path: z.string(),
   ast: astSchmea,
 });
@@ -96,7 +96,7 @@ export const PUT = auth(async (req) => {
 });
 
 const newFileValidator = z.object({
-  type: z.literal('file'),
+  type: z.union([z.literal('file'), z.literal('folder')]),
   path: z.string(),
   ast: astSchmea.optional(),
 });
@@ -137,7 +137,8 @@ export const POST = auth(async (req) => {
     path: '',
   } as Ast;
 
-  await updateFile(userId, { ...file, ast: file.ast || ast });
+  const newAst = file.type === 'folder' ? undefined : file.ast || ast;
+  await updateFile(userId, { ...file, ast: newAst as Ast });
   return Created();
 });
 

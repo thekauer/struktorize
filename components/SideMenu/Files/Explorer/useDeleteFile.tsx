@@ -20,7 +20,9 @@ export const useDeleteFile = () => {
           if (!userDataDto) return previousFiles!;
           const { files } = userDataDto;
 
-          const filesWithoutFile = files.filter((f) => f.path !== path);
+          const filesWithoutFile = files.filter(
+            (f) => f.path !== path && f.type === 'file',
+          );
           const nextFile = filesWithoutFile[0];
           load(nextFile.ast as any, nextFile.path);
           return {

@@ -1,5 +1,6 @@
 import 'style/theme.css';
 import 'katex/dist/katex.min.css';
+import 'rc-tree/assets/index.css';
 
 import { Analytics } from '@vercel/analytics/react';
 import { Providers } from '@/lib/providers';

@@ -16,7 +16,7 @@ export function getRedis() {
 
 export type File = {
   ast: Ast;
-  type: 'file';
+  type: 'file' | 'folder';
   path: string;
   sharedId?: string;
 };

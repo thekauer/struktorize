@@ -53,6 +53,7 @@ export const useExplorer = () => {
   const selectFile = useSelectFile();
   const activePath = recent?.path!;
   const setCCVisible = useSetAtom(codeCompletionVisibleAtom);
+  const [newEntryType, setNewEntryType] = useState<'file' | 'folder'>('file');
 
   useEffect(() => {
     if (!recent) return;
@@ -96,6 +97,12 @@ export const useExplorer = () => {
 
   const newFileClick = () => {
     setCCVisible(false);
+    setNewEntryType('file');
+    setNewPath(activePath.substring(0, activePath.lastIndexOf('/') + 1));
+  };
+  const newFolderClick = () => {
+    setCCVisible(false);
+    setNewEntryType('folder');
     setNewPath(activePath.substring(0, activePath.lastIndexOf('/') + 1));
   };
 
@@ -119,17 +126,21 @@ export const useExplorer = () => {
     (f: FileDTO) => f.path === activePath && f.type === 'file',
   ) as FileDTO;
 
-  const newFile: FileProps = {
+  const newFile: FileProps & { newType: 'file' | 'folder' } = {
     path: newPath!,
     isNew: true,
+    newType: newEntryType,
   };
 
   const filesWithNewFile = !newPath
     ? files
-    : [...files, newFile as File].sort((a, b) => b.path.localeCompare(a.path));
+    : [...files, newFile as any as File].sort((a, b) =>
+        b.path.localeCompare(a.path),
+      );
 
   return {
     newFileClick,
+    newFolderClick,
     refreshClick,
     onFileClick,
     files: filesWithNewFile,

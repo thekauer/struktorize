@@ -1,0 +1,40 @@
+.rc-tree {
+  align-self: flex-start;
+  width: 100%;
+}
+
+.rc-tree-node,
+.rc-tree-treenode-draggable {
+  display: flex;
+}
+.rc-tree .rc-tree-treenode .rc-tree-node-content-wrapper {
+  display: flex;
+  flex: 1;
+}
+
+.rc-tree-node-content-wrapper {
+  align-items: center;
+}
+
+.rc-tree-switcher {
+  background: none !important;
+}
+
+span.rc-tree-switcher {
+  align-self: center;
+}
+
+.rc-tree-title {
+  line-height: normal;
+  flex: 1;
+}
+
+.rc-tree-node-selected {
+  background: color-mix(in srgb, var(--blue-light) 30%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--blue-light) 30%, transparent);
+  width: calc(100% - 18px);
+}
+
+.rc-tree .rc-tree-treenode.drop-target {
+  background: color-mix(in srgb, var(--blue-light) 30%, transparent);
+}

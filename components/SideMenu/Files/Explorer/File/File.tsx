@@ -21,15 +21,15 @@ import { useSelectFile } from '../useSelectFile';
 export interface FileProps {
   path: string;
   isNew?: boolean;
+  newType?: 'file' | 'folder';
 }
 
-export const File = ({ path, isNew }: FileProps) => {
+export const File = ({ path, isNew, newType }: FileProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(isNew);
   const { t } = useTranslation(['common'], { keyPrefix: 'menu.files' });
   const { files, activePath, setNewPath } = useExplorer();
-  const { changed, ast } = useAstState();
-  const { load } = useAst();
+  const { changed } = useAstState();
   const saveCurrentFile = useSaveCurrentFile();
   const createFile = useCreateFile();
   const deleteFile = useDeleteFile();
@@ -50,8 +50,8 @@ export const File = ({ path, isNew }: FileProps) => {
 
   const onFileClick = () => {
     if (path === activePath) return;
-    const nextFile = files.find((f: any) => f.path === path);
-    if (nextFile?.type === 'file') {
+    const nextNode = files.find((f: any) => f.path === path);
+    if (nextNode?.type === 'file') {
       saveCurrentFile.mutate();
       selectFile.mutate(path);
       focusRoot();
@@ -64,31 +64,17 @@ export const File = ({ path, isNew }: FileProps) => {
     deleteFile.mutate(path);
   };
 
-  const createNewFile = (path: string) => {
+  const createNewFile = (path: string, type: 'file' | 'folder') => {
     const newName = inputRef.current?.value!;
     setCCVisivle(false);
     if (!validName(newName)) return;
     if (changed) {
       saveCurrentFile.mutate();
     }
-    createFile.mutate({ type: 'file', path });
-    selectFile.mutate(path);
+    createFile.mutate({ type, path });
+    if (type === 'file') selectFile.mutate(path);
     setNewPath(null);
 
-    const name = path.substring(path.lastIndexOf('/') + 1);
-    const newAst = {
-      signature: {
-        text:
-          name?.split('').map((char) => ({ type: 'char', value: char })) ?? [],
-        type: 'signature',
-        path: 'signature',
-      },
-      body: [],
-      type: 'function',
-      path: '',
-    } as Ast;
-
-    load(newAst, path);
     focusRoot();
   };
 
@@ -156,7 +142,7 @@ export const File = ({ path, isNew }: FileProps) => {
         handleRename();
         if (isNew) {
           const newPath = path + inputRef.current?.value!;
-          createNewFile(newPath);
+          createNewFile(newPath, newType as 'file' | 'folder');
         }
         break;
 
@@ -180,7 +166,6 @@ export const File = ({ path, isNew }: FileProps) => {
       onClick={onFileClick}
       tabIndex={-1}
     >
-      <S.Image $src={'/structogram.png'} />
       {editing ? (
         <S.Input ref={inputRef} />
       ) : (
