@@ -141,7 +141,7 @@ export const FileTree = ({ files: data }: FileTreeProps) => {
   const onDrop: TreeProps['onDrop'] = (info: any) => {
     const to =
       info.node.file.type === 'file'
-        ? '/' + info.node.path.split('/').slice(0, -1).join('/')
+        ? info.node.file.path.split('/').slice(0, -1).join('/')
         : info.node.path;
     renameFile.mutate({
       to,

@@ -1,6 +1,6 @@
 'use client';
 
-import { Editor } from '@/components/Editor/Editor';
+import { CompositeEditor } from '@/components/Editor/Editor';
 import { Layout } from '@/components/Layout/Layout';
 import { useEffect } from 'react';
 import { useAst } from '@/hooks/useAST';
@@ -21,7 +21,7 @@ export function Home({ recent }: HomeProps) {
   return (
     <>
       <Layout>
-        <Editor />
+        <CompositeEditor />
       </Layout>
     </>
   );

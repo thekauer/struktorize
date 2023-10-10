@@ -1,7 +1,6 @@
 'use client';
 
 import * as S from './Explorer.atoms';
-import { File } from './File/File';
 import { useExplorer } from './useExplorer';
 import { File as FileType } from '@/lib/repository';
 import { useLoadTempFile } from './useTempFiles';
@@ -24,15 +23,7 @@ export const Explorer = () => {
         <S.MenuItem $src={'/refresh.png'} onClick={refreshClick} />
       </S.Menu>
       <S.FileContainer>
-        <FileTree
-          files={[
-            ...files,
-            { path: '/afolder/a', type: 'file' },
-            { path: '/afolder/b', type: 'file' },
-            { path: '/afolder/another/c', type: 'file' },
-            { path: '/notafolder', type: 'file' },
-          ]}
-        />
+        <FileTree files={files as any} />
       </S.FileContainer>
     </S.Container>
   );

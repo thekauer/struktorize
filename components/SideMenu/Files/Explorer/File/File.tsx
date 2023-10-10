@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 import { useAst, useAstState } from '@/hooks/useAST';
 import { useExplorer } from '../useExplorer';
 import { Ast } from 'lib/ast';
-import { useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { codeCompletionVisibleAtom } from '@/components/Editor/CodeCompletion/useCodeCompletion';
 import { useCreateFile } from '../useCreateFile';
 import { useDeleteFile } from '../useDeleteFile';
@@ -17,6 +17,8 @@ import { useRenameFile } from '../useRenameFile';
 import { shareFile } from '../shareFile';
 import { useSaveCurrentFile } from '../useSaveCurrentFile';
 import { useSelectFile } from '../useSelectFile';
+import { useSelectFolder } from '../useSelectFolder';
+import { multiEditorPath } from '@/components/Editor/Editor';
 
 export interface FileProps {
   path: string;
@@ -35,7 +37,8 @@ export const File = ({ path, isNew, newType }: FileProps) => {
   const deleteFile = useDeleteFile();
   const renameFile = useRenameFile();
   const selectFile = useSelectFile();
-
+  const { selectFolder, deselectFolder } = useSelectFolder();
+  const folderPath = useAtomValue(multiEditorPath);
   const thisFile = files.find((f) => f.path === path)!;
   const setCCVisivle = useSetAtom(codeCompletionVisibleAtom);
 
@@ -49,12 +52,17 @@ export const File = ({ path, isNew, newType }: FileProps) => {
     document.querySelector<HTMLDivElement>('#root-container')?.focus();
 
   const onFileClick = () => {
-    if (path === activePath) return;
+    if (path === activePath && folderPath === null) return;
     const nextNode = files.find((f: any) => f.path === path);
     if (nextNode?.type === 'file') {
-      saveCurrentFile.mutate();
+      if (thisFile.type === 'file') saveCurrentFile.mutate();
+      deselectFolder();
       selectFile.mutate(path);
       focusRoot();
+    }
+    if (nextNode?.type === 'folder') {
+      if (thisFile.type === 'file') saveCurrentFile.mutate();
+      selectFolder(path);
     }
   };
 
@@ -158,10 +166,12 @@ export const File = ({ path, isNew, newType }: FileProps) => {
   };
 
   const isChanged = changed && path === activePath;
+  const isSelected =
+    folderPath !== null ? folderPath === path : path === activePath;
 
   return (
     <S.Container
-      $active={path === activePath}
+      $active={isSelected}
       onKeyDown={onKeyDown}
       onClick={onFileClick}
       tabIndex={-1}
