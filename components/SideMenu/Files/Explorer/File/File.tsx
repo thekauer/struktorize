@@ -6,9 +6,8 @@ import * as S from './File.atoms';
 import * as ES from '../Explorer.atoms';
 import { useTranslation } from '@/i18n/client';
 import toast from 'react-hot-toast';
-import { useAst, useAstState } from '@/hooks/useAST';
+import { useAstState } from '@/hooks/useAST';
 import { useExplorer } from '../useExplorer';
-import { Ast } from 'lib/ast';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { codeCompletionVisibleAtom } from '@/components/Editor/CodeCompletion/useCodeCompletion';
 import { useCreateFile } from '../useCreateFile';
@@ -19,6 +18,8 @@ import { useSaveCurrentFile } from '../useSaveCurrentFile';
 import { useSelectFile } from '../useSelectFile';
 import { useSelectFolder } from '../useSelectFolder';
 import { multiEditorPath } from '@/components/Editor/Editor';
+import { useMoveFile } from '../useMoveFile';
+import * as Files from '@/lib/files';
 
 export interface FileProps {
   path: string;
@@ -36,6 +37,7 @@ export const File = ({ path, isNew, newType }: FileProps) => {
   const createFile = useCreateFile();
   const deleteFile = useDeleteFile();
   const renameFile = useRenameFile();
+  const moveFile = useMoveFile();
   const selectFile = useSelectFile();
   const { selectFolder, deselectFolder } = useSelectFolder();
   const folderPath = useAtomValue(multiEditorPath);
@@ -134,6 +136,15 @@ export const File = ({ path, isNew, newType }: FileProps) => {
     if (finishedRenaming) {
       const newName = inputRef.current?.value!;
       if (!validName(newName)) return;
+
+      const isFolder = thisFile.type === 'folder';
+      if (isFolder) {
+        moveFile.mutate({
+          from: thisFile.path,
+          to: Files.path(Files.parent(thisFile.path), newName),
+        });
+        return;
+      }
 
       const oldPath = path.substring(0, path.lastIndexOf('/') + 1);
       renameFile.mutate({

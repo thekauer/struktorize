@@ -3,9 +3,10 @@ import { DataNode, Key, TreeNodeProps } from 'rc-tree/lib/interface';
 import { useState } from 'react';
 import { File as FileDto } from '@/lib/repository';
 import { File } from '../File/File';
-import { useRenameFile } from '../useRenameFile';
 import * as S from './FileTree.atoms';
 import './FileTree.css';
+import { useMoveFile } from '../useMoveFile';
+import * as Files from '@/lib/files';
 
 type FileType =
   | (FileDto & { isNew?: boolean; newType: undefined })
@@ -31,22 +32,20 @@ const newEntry = (segment: string, file: FileType, level: number) => {
   const path = file.path;
   const isFile =
     file.type === 'file' && file.path.split('/').slice(1 + level).length === 1;
-  const filePath = isFile
-    ? path
-    : path.split('/').slice(0, -1).join('/') || path;
+  const nodePath = Files.path(...path.split('/').slice(1, 2 + level));
 
   return {
     key: segment,
     title: () => (
       <File
-        path={filePath}
+        path={nodePath}
         isNew={file.isNew || false}
         newType={file.newType}
       />
     ),
     children: [] as DataNode[],
     isLeaf: file.newType === 'file' || isFile,
-    path: filePath,
+    path: nodePath,
     file,
   };
 };
@@ -130,7 +129,7 @@ interface FileTreeProps {
 export const FileTree = ({ files: data }: FileTreeProps) => {
   const [expandedKeys, setExpandedKeys] = useState<Key[]>([]);
   const [autoExpandParent, setAutoExpandParent] = useState<boolean>(false);
-  const renameFile = useRenameFile();
+  const moveFile = useMoveFile();
 
   const files: DataNode[] = filesToNodes(data);
 
@@ -143,10 +142,9 @@ export const FileTree = ({ files: data }: FileTreeProps) => {
       info.node.file.type === 'file'
         ? info.node.file.path.split('/').slice(0, -1).join('/')
         : info.node.path;
-    renameFile.mutate({
+    moveFile.mutate({
       to,
       from: info.dragNode.path,
-      ast: info.dragNode.file.ast,
     });
     const dropKey = info.node.props.eventKey;
     const dragKey = info.dragNode.props.eventKey;

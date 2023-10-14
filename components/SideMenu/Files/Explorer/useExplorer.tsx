@@ -98,12 +98,12 @@ export const useExplorer = () => {
   const newFileClick = () => {
     setCCVisible(false);
     setNewEntryType('file');
-    setNewPath(activePath.substring(0, activePath.lastIndexOf('/') + 1));
+    setNewPath('/');
   };
   const newFolderClick = () => {
     setCCVisible(false);
     setNewEntryType('folder');
-    setNewPath(activePath.substring(0, activePath.lastIndexOf('/') + 1));
+    setNewPath('/');
   };
 
   const focusRoot = () =>

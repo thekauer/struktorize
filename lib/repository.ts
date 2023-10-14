@@ -110,8 +110,19 @@ export async function deleteFile(userId: string, path: string) {
     .filter((p) => p !== path);
   if (paths.length === 0) return false;
   const file = filesInRedis![path];
+  const isFile = file.type === 'file';
 
-  await getRedis().hdel(`user:${userId}`, path);
+  if (isFile) {
+    await getRedis().hdel(`user:${userId}`, path);
+  } else {
+    const childPaths = paths.filter((p) => p.startsWith(path));
+    const tx = getRedis().multi();
+    tx.hdel(`user:${userId}`, path);
+    for (const childPath of childPaths) {
+      tx.hdel(`user:${userId}`, childPath);
+    }
+    await tx.exec();
+  }
   if (userData?.recent === path)
     await getRedis().hset(`user:${userId}`, { recent: paths[0] });
   if (file.sharedId) await getRedis().json.del(`shared:${file.sharedId}`);
