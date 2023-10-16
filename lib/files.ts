@@ -1,4 +1,5 @@
 export const path = (...segments: string[]) => {
+  if (segments.length === 0) return '/';
   return ['', ...segments].join('/').replace(/\/+/g, '/');
 };
 

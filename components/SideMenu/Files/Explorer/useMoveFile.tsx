@@ -1,8 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { UserDataDTO } from '@/api/files/route';
-import { File } from '@/lib/repository';
-import { Ast } from '@/lib/ast';
 import * as Files from '@/lib/files';
 
 export const useMoveFile = () => {

@@ -139,7 +139,7 @@ export const File = ({ path, isNew, newType }: FileProps) => {
 
       const isFolder = thisFile.type === 'folder';
       if (isFolder) {
-        moveFile.mutate({
+        renameFile.mutate({
           from: thisFile.path,
           to: Files.path(Files.parent(thisFile.path), newName),
         });
@@ -148,7 +148,6 @@ export const File = ({ path, isNew, newType }: FileProps) => {
 
       const oldPath = path.substring(0, path.lastIndexOf('/') + 1);
       renameFile.mutate({
-        ast: thisFile.ast,
         from: path,
         to: oldPath + newName,
       });

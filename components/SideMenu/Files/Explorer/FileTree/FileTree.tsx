@@ -35,7 +35,7 @@ const newEntry = (segment: string, file: FileType, level: number) => {
   const nodePath = Files.path(...path.split('/').slice(1, 2 + level));
 
   return {
-    key: segment,
+    key: nodePath,
     title: () => (
       <File
         path={nodePath}
@@ -54,8 +54,9 @@ const addFile = (arr: DataNode[], file: FileType, level = 0): DataNode[] => {
   const path = file.path.split('/').slice(1);
 
   if (path.length === 0 && !file.isNew) return arr;
-  const segment = file.isNew && level === 0 ? '/' : path.at(level);
-  if (!segment) return arr;
+  if (path.length < level + 1) return arr;
+  const segment =
+    file.isNew && level === 0 ? '/' : Files.path(...path.slice(0, level + 1));
 
   const index = arr.findIndex((node) => node.key === segment);
   if (index === -1) {
@@ -130,6 +131,7 @@ export const FileTree = ({ files: data }: FileTreeProps) => {
   const [expandedKeys, setExpandedKeys] = useState<Key[]>([]);
   const [autoExpandParent, setAutoExpandParent] = useState<boolean>(false);
   const moveFile = useMoveFile();
+  console.log(expandedKeys);
 
   const files: DataNode[] = filesToNodes(data);
 
@@ -142,6 +144,8 @@ export const FileTree = ({ files: data }: FileTreeProps) => {
       info.node.file.type === 'file'
         ? info.node.file.path.split('/').slice(0, -1).join('/')
         : info.node.path;
+
+    setExpandedKeys((keys) => [...keys, to.split('/').pop()]);
     moveFile.mutate({
       to,
       from: info.dragNode.path,
