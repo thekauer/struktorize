@@ -1,6 +1,6 @@
 import Tree, { TreeProps } from 'rc-tree';
 import { DataNode, Key, TreeNodeProps } from 'rc-tree/lib/interface';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { File as FileDto } from '@/lib/repository';
 import { File } from '../File/File';
 import * as S from './FileTree.atoms';
@@ -125,30 +125,39 @@ function DropIndicator({
 
 interface FileTreeProps {
   files: FileType[];
+  recent?: FileType;
 }
 
-export const FileTree = ({ files: data }: FileTreeProps) => {
+export const FileTree = ({ files: data, recent }: FileTreeProps) => {
   const [expandedKeys, setExpandedKeys] = useState<Key[]>([]);
   const [autoExpandParent, setAutoExpandParent] = useState<boolean>(false);
   const moveFile = useMoveFile();
-  console.log(expandedKeys);
 
   const files: DataNode[] = filesToNodes(data);
+
+  useEffect(() => {
+    if (!recent) return;
+    const path = recent.path.split('/').slice(1);
+    const keys = path.map((_, i) => Files.path(...path.slice(0, i + 1)));
+    setExpandedKeys(keys);
+  }, [recent]);
 
   const onDragEnter: TreeProps['onDragEnter'] = ({ expandedKeys }) => {
     setExpandedKeys(expandedKeys);
   };
 
   const onDrop: TreeProps['onDrop'] = (info: any) => {
+    const from = info.dragNode.path;
     const to =
       info.node.file.type === 'file'
         ? info.node.file.path.split('/').slice(0, -1).join('/')
         : info.node.path;
 
+    if (from === to) return;
     setExpandedKeys((keys) => [...keys, to.split('/').pop()]);
     moveFile.mutate({
       to,
-      from: info.dragNode.path,
+      from,
     });
     const dropKey = info.node.props.eventKey;
     const dragKey = info.dragNode.props.eventKey;

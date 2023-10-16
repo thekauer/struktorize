@@ -144,6 +144,7 @@ export const useExplorer = () => {
     refreshClick,
     onFileClick,
     files: filesWithNewFile,
+    recent,
     activePath,
     activeFile,
     setNewPath,

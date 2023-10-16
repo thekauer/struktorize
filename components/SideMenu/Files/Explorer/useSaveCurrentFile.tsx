@@ -7,10 +7,10 @@ export const useSaveCurrentFile = () => {
   const queryClient = useQueryClient();
   const { save } = useAst();
   const { ast, path } = useAstState();
+  const file: FileDTO = { type: 'file', ast, path };
 
   return useMutation(
     () => {
-      const file: FileDTO = { type: 'file', ast, path };
       return axios['put']('/api/files', file);
     },
     {
@@ -21,10 +21,14 @@ export const useSaveCurrentFile = () => {
         const updater = (userDataDto?: UserDataDTO): UserDataDTO => {
           if (!userDataDto) return previousFiles!;
           const { files, recent } = userDataDto;
+          const filesWithNewFile = files.filter((f) => f.path !== path);
+          filesWithNewFile.push(file);
+          const isRecent = recent.path === path;
+          const newRecent = isRecent ? { ...recent, ast } : recent;
 
           return {
-            recent,
-            files,
+            recent: newRecent,
+            files: filesWithNewFile,
           };
         };
         queryClient.setQueryData(['files'], updater);

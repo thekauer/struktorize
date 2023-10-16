@@ -37,7 +37,6 @@ export const File = ({ path, isNew, newType }: FileProps) => {
   const createFile = useCreateFile();
   const deleteFile = useDeleteFile();
   const renameFile = useRenameFile();
-  const moveFile = useMoveFile();
   const selectFile = useSelectFile();
   const { selectFolder, deselectFolder } = useSelectFolder();
   const folderPath = useAtomValue(multiEditorPath);
@@ -53,17 +52,17 @@ export const File = ({ path, isNew, newType }: FileProps) => {
   const focusRoot = () =>
     document.querySelector<HTMLDivElement>('#root-container')?.focus();
 
-  const onFileClick = () => {
+  const onFileClick = async () => {
     if (path === activePath && folderPath === null) return;
     const nextNode = files.find((f: any) => f.path === path);
     if (nextNode?.type === 'file') {
-      if (thisFile.type === 'file') saveCurrentFile.mutate();
+      saveCurrentFile.mutate();
       deselectFolder();
       selectFile.mutate(path);
       focusRoot();
     }
     if (nextNode?.type === 'folder') {
-      if (thisFile.type === 'file') saveCurrentFile.mutate();
+      await saveCurrentFile.mutateAsync();
       selectFolder(path);
     }
   };

@@ -7,7 +7,8 @@ import { useLoadTempFile } from './useTempFiles';
 import { FileTree } from './FileTree/FileTree';
 
 export const Explorer = () => {
-  const { newFileClick, newFolderClick, refreshClick, files } = useExplorer();
+  const { newFileClick, newFolderClick, refreshClick, files, recent } =
+    useExplorer();
 
   useLoadTempFile();
   const getName = (file: FileType) => file.path.split('/').pop()!;
@@ -23,7 +24,7 @@ export const Explorer = () => {
         <S.MenuItem $src={'/refresh.png'} onClick={refreshClick} />
       </S.Menu>
       <S.FileContainer>
-        <FileTree files={files as any} />
+        <FileTree files={files as any} recent={recent} />
       </S.FileContainer>
     </S.Container>
   );

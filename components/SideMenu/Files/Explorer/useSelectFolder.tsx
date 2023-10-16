@@ -4,15 +4,20 @@ import {
   multiEditorFiles,
   multiEditorPath,
 } from '@/components/Editor/Editor';
-import { useFiles } from './useFiles';
+import { useQueryClient } from '@tanstack/react-query';
+import { File } from '@/lib/repository';
 
 export const useSelectFolder = () => {
   const setMultiEditor = useSetAtom(multiEditorAtom);
   const setFiles = useSetAtom(multiEditorFiles);
   const setPath = useSetAtom(multiEditorPath);
-  const { files } = useFiles();
+
+  const queryClient = useQueryClient();
 
   const selectFolder = (path: string) => {
+    const files = queryClient.getQueryData<{ files: File[]; recent: File }>([
+      'files',
+    ])!.files;
     const folder = files.find((f) => f.path === path && f.type === 'folder');
     if (!folder) return;
     const folderSegmentCount = folder.path.split('/').length;
