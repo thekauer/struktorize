@@ -34,6 +34,10 @@ export function InternalServerError(reason?: string) {
   return new Response(reason || 'Internal Server Error', { status: 500 });
 }
 
+export function Forbidden(reason?: string) {
+  return new Response(reason || 'Forbidden', { status: 403 });
+}
+
 export type Token = {
   name: string;
   email: string;

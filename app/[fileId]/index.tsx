@@ -1,18 +1,23 @@
 'use client';
 
-import { Editor } from '@/components/Editor/Editor';
+import { Editor, MultiEditor } from '@/components/Editor/Editor';
 import { useAst } from '@/hooks/useAST';
 import { useEffect } from 'react';
 import * as S from '@/components/Layout/Layout.atoms';
 import { useTheme } from '@/hooks/useTheme';
-import { File } from '@/lib/repository';
+import { File, getSharedFile } from '@/lib/repository';
+
+type SharedNodetype = Awaited<ReturnType<typeof getSharedFile>>;
 
 interface PageProps {
-  file?: File | null;
+  sharedNode?: SharedNodetype;
 }
 
-export default function Page({ file }: PageProps) {
+export default function Page({ sharedNode }: PageProps) {
   const { theme } = useTheme();
+
+  const file = sharedNode?.file;
+  console.log(sharedNode);
 
   const { load } = useAst();
   useEffect(() => {
@@ -25,8 +30,12 @@ export default function Page({ file }: PageProps) {
       <S.Container className={theme}>
         <S.MainContainer>
           <S.Main>
-            {file ? (
-              <Editor readonly />
+            {sharedNode ? (
+              file ? (
+                <Editor readonly />
+              ) : (
+                <MultiEditor files={sharedNode.children} />
+              )
             ) : (
               <S.Center>
                 <h1>Structogram not found</h1>

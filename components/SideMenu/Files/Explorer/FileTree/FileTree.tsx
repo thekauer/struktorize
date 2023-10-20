@@ -133,6 +133,7 @@ export const FileTree = ({ files: data, recent }: FileTreeProps) => {
   const [autoExpandParent, setAutoExpandParent] = useState<boolean>(false);
   const moveFile = useMoveFile();
 
+  const ogFiles = data;
   const files: DataNode[] = filesToNodes(data);
 
   useEffect(() => {
@@ -150,10 +151,14 @@ export const FileTree = ({ files: data, recent }: FileTreeProps) => {
     const from = info.dragNode.path;
     const to =
       info.node.file.type === 'file'
-        ? info.node.file.path.split('/').slice(0, -1).join('/')
+        ? Files.path(Files.parent(info.node.file.path))
         : info.node.path;
 
     if (from === to) return;
+    const isFromAFolder =
+      ogFiles.find((node) => node.path === from)?.type === 'folder';
+    if (isFromAFolder) return;
+
     setExpandedKeys((keys) => [...keys, to.split('/').pop()]);
     moveFile.mutate({
       to,

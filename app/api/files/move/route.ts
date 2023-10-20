@@ -1,6 +1,7 @@
 import z from 'zod';
 import {
   BadRequest,
+  Forbidden,
   getBody,
   NotFound,
   Ok,
@@ -30,7 +31,10 @@ const moveFile = async (
     return NotFound('File not found');
   }
 
-  const newPath = Files.path(to, Files.name(from));
+  const newPath = Files.fileNameIfDuplicate(
+    Files.path(to, Files.name(from)),
+    Object.keys(userData.files),
+  );
   const newFile = { ...oldFile, path: newPath };
 
   const tx = getRedis().multi();
@@ -104,7 +108,7 @@ export const POST = auth(async (req) => {
   if (!userData) return NotFound('User not found');
 
   const isMovingFolder = userData.files[from]?.type === 'folder';
-  if (isMovingFolder) return await moveFolder(userId, userData, from, to);
+  if (isMovingFolder) return Forbidden("Can't move folders yet");
   return await moveFile(userId, userData, from, to);
 });
 

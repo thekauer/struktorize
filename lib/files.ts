@@ -14,3 +14,8 @@ export const relative = (path: string, base: string) => {
 export const parent = (path: string) => {
   return path.split('/').slice(0, -1).join('/');
 };
+
+export const fileNameIfDuplicate = (path: string, files: string[]): string => {
+  if (!files.includes(path)) return path;
+  return fileNameIfDuplicate(`${path}Copy`, files);
+};

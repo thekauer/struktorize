@@ -186,7 +186,7 @@ export const File = ({ path, isNew, newType }: FileProps) => {
       tabIndex={-1}
     >
       {editing ? (
-        <S.Input ref={inputRef} />
+        <S.Input ref={inputRef} defaultValue={path.split('/').pop()} />
       ) : (
         <>
           <S.Name title={path.split('/').pop()}>

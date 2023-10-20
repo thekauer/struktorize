@@ -161,7 +161,15 @@ export async function getSharedFile(id: string) {
   if (!sharedFile) return null;
   const { key, path } = sharedFile;
 
-  return (await getRedis().hget(key, path)) as File;
+  const node = (await getRedis().hget(key, path)) as File;
+  if (node.type === 'file') return { type: 'file', file: node };
+
+  const userData = await getUserData(key.replace('user:', ''));
+  const paths = Object.keys(userData?.files || {});
+  const childPaths = paths.filter((p) => p.startsWith(path));
+  const children = childPaths.map((p) => userData!.files[p]);
+
+  return { type: 'folder', path: path, children };
 }
 export async function getRecent(userId: string) {
   const userData = await getUserData(userId);

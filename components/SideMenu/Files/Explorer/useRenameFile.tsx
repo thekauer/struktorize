@@ -23,13 +23,14 @@ export const useRenameFile = () => {
           const fromFile = files.find((f) => f.path === from)!;
           const isRenamingFolder = fromFile.type === 'folder';
           if (isRenamingFolder) {
+            debugger;
             const diff = Object.values(files).reduce(
               (acc, curr) => {
                 const isRenaming = curr.path.startsWith(fromFile.path);
                 if (isRenaming) {
                   const newPath = Files.path(
                     to,
-                    Files.relative(curr.path, Files.parent(fromFile.path)),
+                    Files.relative(curr.path, fromFile.path),
                   );
                   acc.update.files.push({ ...curr, path: newPath });
                   acc.delete.push(curr.path);
@@ -48,7 +49,9 @@ export const useRenameFile = () => {
 
             const newFiles = files
               .filter((f) => !diff.delete.includes(f.path))
-              .concat(diff.update.files);
+              .concat(diff.update.files)
+              .sort((a, b) => a.path.localeCompare(b.path));
+
             return { recent: diff.update.recent, files: newFiles };
           }
 
