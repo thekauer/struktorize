@@ -24,7 +24,7 @@ export const Explorer = () => {
         <S.MenuItem $src={'/refresh.png'} onClick={refreshClick} />
       </S.Menu>
       <S.FileContainer>
-        <FileTree files={files as any} recent={recent} />
+        <FileTree files={files as any} recent={recent as any} />
       </S.FileContainer>
     </S.Container>
   );

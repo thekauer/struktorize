@@ -51,16 +51,17 @@ const getAllVariablesExceptCurrent = (
     insertMode,
   );
 
-  return variables
-    .filter((variable) => variable.value !== current)
+  const fnVariable = variables.find((variable) => variable.type === 'function');
 
-    .filter((variable) => {
-      const name = `${variable.type}_${variable.value}`;
-      if (seen.has(name)) return false;
+  return variables.filter((variable) => {
+    const name = `${variable.type}_${variable.value}`;
+    if (variable.type === 'variable' && variable.value === fnVariable?.value)
+      return false;
+    if (seen.has(name)) return false;
 
-      seen.add(name);
-      return true;
-    });
+    seen.add(name);
+    return true;
+  });
 };
 
 export type CodeCompletionItem =

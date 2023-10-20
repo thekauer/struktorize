@@ -182,6 +182,29 @@ describe('parser', () => {
         });
       });
 
+      it('should return name and one arg for a function with a single arg and no return type single charachter name and arg', () => {
+        const input = [
+          { type: 'space' },
+          { type: 'char', value: 'f' },
+          { type: 'lp' },
+          { type: 'space' },
+          { type: 'char', value: 'a' },
+          { type: 'space' },
+          { type: 'in' },
+          { type: 'space' },
+          { type: 'char', value: 'A' },
+          { type: 'rp' },
+        ] as AbstractText;
+        const result = parseSignatureText(input);
+        expect(result).toEqual({
+          _type: 'signature',
+          name: 'f',
+          args: [{ _type: 'arg', name: 'a', typeId: 'A' }],
+          returnType: null,
+          type: 'A → any',
+        });
+      });
+
       it('should return name and two args for a function with two args and no return type', () => {
         const input = [
           { type: 'space' },
