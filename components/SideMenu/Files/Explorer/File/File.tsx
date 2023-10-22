@@ -6,10 +6,9 @@ import * as S from './File.atoms';
 import * as ES from '../Explorer.atoms';
 import { useTranslation } from '@/i18n/client';
 import toast from 'react-hot-toast';
-import { useAst, useAstState } from '@/hooks/useAST';
+import { useAstState } from '@/hooks/useAST';
 import { useExplorer } from '../useExplorer';
-import { Ast } from 'lib/ast';
-import { useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { codeCompletionVisibleAtom } from '@/components/Editor/CodeCompletion/useCodeCompletion';
 import { useCreateFile } from '../useCreateFile';
 import { useDeleteFile } from '../useDeleteFile';
@@ -17,25 +16,30 @@ import { useRenameFile } from '../useRenameFile';
 import { shareFile } from '../shareFile';
 import { useSaveCurrentFile } from '../useSaveCurrentFile';
 import { useSelectFile } from '../useSelectFile';
+import { useSelectFolder } from '../useSelectFolder';
+import { multiEditorPath } from '@/components/Editor/Editor';
+import { useMoveFile } from '../useMoveFile';
+import * as Files from '@/lib/files';
 
 export interface FileProps {
   path: string;
   isNew?: boolean;
+  newType?: 'file' | 'folder';
 }
 
-export const File = ({ path, isNew }: FileProps) => {
+export const File = ({ path, isNew, newType }: FileProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(isNew);
   const { t } = useTranslation(['common'], { keyPrefix: 'menu.files' });
   const { files, activePath, setNewPath } = useExplorer();
-  const { changed, ast } = useAstState();
-  const { load } = useAst();
+  const { changed } = useAstState();
   const saveCurrentFile = useSaveCurrentFile();
   const createFile = useCreateFile();
   const deleteFile = useDeleteFile();
   const renameFile = useRenameFile();
   const selectFile = useSelectFile();
-
+  const { selectFolder, deselectFolder } = useSelectFolder();
+  const folderPath = useAtomValue(multiEditorPath);
   const thisFile = files.find((f) => f.path === path)!;
   const setCCVisivle = useSetAtom(codeCompletionVisibleAtom);
 
@@ -48,13 +52,18 @@ export const File = ({ path, isNew }: FileProps) => {
   const focusRoot = () =>
     document.querySelector<HTMLDivElement>('#root-container')?.focus();
 
-  const onFileClick = () => {
-    if (path === activePath) return;
-    const nextFile = files.find((f: any) => f.path === path);
-    if (nextFile?.type === 'file') {
+  const onFileClick = async () => {
+    if (path === activePath && folderPath === null) return;
+    const nextNode = files.find((f: any) => f.path === path);
+    if (nextNode?.type === 'file') {
       saveCurrentFile.mutate();
+      deselectFolder();
       selectFile.mutate(path);
       focusRoot();
+    }
+    if (nextNode?.type === 'folder') {
+      await saveCurrentFile.mutateAsync();
+      selectFolder(path);
     }
   };
 
@@ -64,31 +73,17 @@ export const File = ({ path, isNew }: FileProps) => {
     deleteFile.mutate(path);
   };
 
-  const createNewFile = (path: string) => {
+  const createNewFile = (path: string, type: 'file' | 'folder') => {
     const newName = inputRef.current?.value!;
     setCCVisivle(false);
     if (!validName(newName)) return;
     if (changed) {
       saveCurrentFile.mutate();
     }
-    createFile.mutate({ type: 'file', path });
-    selectFile.mutate(path);
+    createFile.mutate({ type, path });
+    if (type === 'file') selectFile.mutate(path);
     setNewPath(null);
 
-    const name = path.substring(path.lastIndexOf('/') + 1);
-    const newAst = {
-      signature: {
-        text:
-          name?.split('').map((char) => ({ type: 'char', value: char })) ?? [],
-        type: 'signature',
-        path: 'signature',
-      },
-      body: [],
-      type: 'function',
-      path: '',
-    } as Ast;
-
-    load(newAst, path);
     focusRoot();
   };
 
@@ -141,9 +136,17 @@ export const File = ({ path, isNew }: FileProps) => {
       const newName = inputRef.current?.value!;
       if (!validName(newName)) return;
 
+      const isFolder = thisFile.type === 'folder';
+      if (isFolder) {
+        renameFile.mutate({
+          from: thisFile.path,
+          to: Files.path(Files.parent(thisFile.path), newName),
+        });
+        return;
+      }
+
       const oldPath = path.substring(0, path.lastIndexOf('/') + 1);
       renameFile.mutate({
-        ast: thisFile.ast,
         from: path,
         to: oldPath + newName,
       });
@@ -156,7 +159,7 @@ export const File = ({ path, isNew }: FileProps) => {
         handleRename();
         if (isNew) {
           const newPath = path + inputRef.current?.value!;
-          createNewFile(newPath);
+          createNewFile(newPath, newType as 'file' | 'folder');
         }
         break;
 
@@ -172,17 +175,18 @@ export const File = ({ path, isNew }: FileProps) => {
   };
 
   const isChanged = changed && path === activePath;
+  const isSelected =
+    folderPath !== null ? folderPath === path : path === activePath;
 
   return (
     <S.Container
-      $active={path === activePath}
+      $active={isSelected}
       onKeyDown={onKeyDown}
       onClick={onFileClick}
       tabIndex={-1}
     >
-      <S.Image $src={'/structogram.png'} />
       {editing ? (
-        <S.Input ref={inputRef} />
+        <S.Input ref={inputRef} defaultValue={path.split('/').pop()} />
       ) : (
         <>
           <S.Name title={path.split('/').pop()}>

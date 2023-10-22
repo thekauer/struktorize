@@ -19,6 +19,12 @@ export const useCreateFile = () => {
         const updater = (userDataDto?: UserDataDTO): UserDataDTO => {
           if (!userDataDto) return previousFiles!;
           const { files, recent } = userDataDto;
+          if (newFile.type === 'folder') {
+            return {
+              recent,
+              files,
+            };
+          }
 
           const path = newFile.path;
           const name = path.substring(path.lastIndexOf('/') + 1);

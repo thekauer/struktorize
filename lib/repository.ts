@@ -16,7 +16,7 @@ export function getRedis() {
 
 export type File = {
   ast: Ast;
-  type: 'file';
+  type: 'file' | 'folder';
   path: string;
   sharedId?: string;
 };
@@ -110,8 +110,19 @@ export async function deleteFile(userId: string, path: string) {
     .filter((p) => p !== path);
   if (paths.length === 0) return false;
   const file = filesInRedis![path];
+  const isFile = file.type === 'file';
 
-  await getRedis().hdel(`user:${userId}`, path);
+  if (isFile) {
+    await getRedis().hdel(`user:${userId}`, path);
+  } else {
+    const childPaths = paths.filter((p) => p.startsWith(path));
+    const tx = getRedis().multi();
+    tx.hdel(`user:${userId}`, path);
+    for (const childPath of childPaths) {
+      tx.hdel(`user:${userId}`, childPath);
+    }
+    await tx.exec();
+  }
   if (userData?.recent === path)
     await getRedis().hset(`user:${userId}`, { recent: paths[0] });
   if (file.sharedId) await getRedis().json.del(`shared:${file.sharedId}`);
@@ -150,7 +161,15 @@ export async function getSharedFile(id: string) {
   if (!sharedFile) return null;
   const { key, path } = sharedFile;
 
-  return (await getRedis().hget(key, path)) as File;
+  const node = (await getRedis().hget(key, path)) as File;
+  if (node.type === 'file') return { type: 'file', file: node };
+
+  const userData = await getUserData(key.replace('user:', ''));
+  const paths = Object.keys(userData?.files || {});
+  const childPaths = paths.filter((p) => p.startsWith(path));
+  const children = childPaths.map((p) => userData!.files[p]);
+
+  return { type: 'folder', path: path, children };
 }
 export async function getRecent(userId: string) {
   const userData = await getUserData(userId);

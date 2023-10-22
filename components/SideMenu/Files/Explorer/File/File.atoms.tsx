@@ -58,6 +58,8 @@ export const Name = styled.span`
 `;
 
 export const Input = styled.input`
+  font-family: Consolas, monospace;
+  font-size: 0.9rem;
   border: 1px solid var(--blue);
   background-color: var(--dark);
   color: var(--text);

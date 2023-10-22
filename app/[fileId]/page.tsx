@@ -11,9 +11,12 @@ interface PageProps {
 export const runtime = 'edge';
 
 export default async function Page({ params: { fileId } }: PageProps) {
-  const file = await getSharedFile(fileId);
+  const sharedNode = await getSharedFile(fileId);
 
-  const name = file?.path.split('/').pop();
+  const name =
+    sharedNode?.type === 'file'
+      ? sharedNode?.file?.path.split('/').pop()
+      : sharedNode?.path?.split('/').pop();
 
   return (
     <>
@@ -22,7 +25,7 @@ export default async function Page({ params: { fileId } }: PageProps) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <FilePage file={file} />
+      <FilePage sharedNode={sharedNode} />
     </>
   );
 }

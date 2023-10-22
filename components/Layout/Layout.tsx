@@ -10,6 +10,8 @@ import { SideMenu } from '../SideMenu/SideMenu';
 import * as S from './Layout.atoms';
 import { Toaster } from 'react-hot-toast';
 import { BottomMenu } from '../BottomMenu/BottomMenu';
+import { useAtomValue } from 'jotai';
+import { multiEditorAtom } from '../Editor/Editor';
 
 interface LayoutProps {
   children?: ReactNode;
@@ -17,12 +19,14 @@ interface LayoutProps {
 
 export const Layout = ({ children }: LayoutProps) => {
   const { theme } = useTheme();
+  const isMultiEditor = useAtomValue(multiEditorAtom);
   const toastOptions = {
     style: {
       background: 'var(--mid)',
       color: 'var(--text)',
     },
   };
+  const Main = isMultiEditor ? S.MultiMain : S.Main;
 
   return (
     <ExplorerProvider>
@@ -32,7 +36,7 @@ export const Layout = ({ children }: LayoutProps) => {
           <S.Container className={theme}>
             <SideMenu />
             <S.MainContainer>
-              <S.Main>{children}</S.Main>
+              <Main>{children}</Main>
               <CommandPalette />
               <CheatSheet />
             </S.MainContainer>

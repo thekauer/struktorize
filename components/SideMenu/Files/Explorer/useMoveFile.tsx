@@ -1,15 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { UserDataDTO } from '@/api/files/route';
-import { RenameDTO } from '@/api/files/rename/route';
 import * as Files from '@/lib/files';
 
-export const useRenameFile = () => {
+export const useMoveFile = () => {
   const queryClient = useQueryClient();
 
   return useMutation(
-    ({ to, from }: RenameDTO) => {
-      return axios.post(`/api/files/rename`, { to, from });
+    ({ to, from }: { to: string; from: string }) => {
+      return axios.post(`/api/files/move`, { to, from });
     },
     {
       onMutate: async ({ to, from }) => {
@@ -20,22 +19,23 @@ export const useRenameFile = () => {
           if (!userDataDto) return previousFiles!;
           const { files, recent } = userDataDto;
 
-          const fromFile = files.find((f) => f.path === from)!;
-          const isRenamingFolder = fromFile.type === 'folder';
-          if (isRenamingFolder) {
-            debugger;
+          const fromFile = files.find((f) => f.path === from);
+          if (!fromFile) return userDataDto;
+
+          const isMovingFolder = fromFile.type === 'folder';
+          if (isMovingFolder) {
             const diff = Object.values(files).reduce(
               (acc, curr) => {
-                const isRenaming = curr.path.startsWith(fromFile.path);
-                if (isRenaming) {
+                const isMoving = curr.path.startsWith(from);
+                if (isMoving) {
                   const newPath = Files.path(
                     to,
-                    Files.relative(curr.path, fromFile.path),
+                    Files.relative(curr.path, Files.parent(from)),
                   );
                   acc.update.files.push({ ...curr, path: newPath });
                   acc.delete.push(curr.path);
-                  const isRenamingRecent = curr.path === recent.path;
-                  if (isRenamingRecent) {
+                  const isMovingRecent = curr.path === recent.path;
+                  if (isMovingRecent) {
                     acc.update.recent = { ...recent, path: newPath };
                   }
                 }
@@ -49,22 +49,20 @@ export const useRenameFile = () => {
 
             const newFiles = files
               .filter((f) => !diff.delete.includes(f.path))
-              .concat(diff.update.files)
-              .sort((a, b) => a.path.localeCompare(b.path));
-
+              .concat(diff.update.files);
             return { recent: diff.update.recent, files: newFiles };
           }
 
-          const newPath = Files.path(to, Files.name(fromFile.path));
+          const newPath = Files.path(to, Files.name(from));
           const newFile = { ...fromFile, path: newPath };
-          const isRenamingRecent = fromFile.path === recent.path;
-          const filesAndRenamedFile = files
-            .filter((f) => f.path !== fromFile.path)
-            .concat(newFile);
+          const isMovingRecent = fromFile.path === recent.path;
+          const newRecent = isMovingRecent ? newFile : recent;
+          const newFiles = files.filter((f) => f.path !== from).concat(newFile);
 
-          const newRecent = isRenamingRecent ? newFile : recent;
-
-          return { recent: newRecent, files: filesAndRenamedFile };
+          return {
+            recent: newRecent,
+            files: newFiles,
+          };
         };
         queryClient.setQueryData(['files'], updater);
 
