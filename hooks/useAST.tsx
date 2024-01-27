@@ -676,6 +676,12 @@ export const useNode = (path: string | null) => {
   const isSelected = selected.has(path || '');
   const { setScope, select, deselect, deselectAll, setEditing } = useAst();
   const onClick = (e: MouseEvent<HTMLDivElement>) => {
+    const isDoubleClick = e.detail === 2;
+    if (isDoubleClick) {
+      setEditing(true);
+      return;
+    }
+
     const scopeToSet = path?.split('.') || [];
     setScope(scopeToSet);
 
@@ -692,16 +698,11 @@ export const useNode = (path: string | null) => {
     }
   };
 
-  const onDoubleClick = () => {
-    setEditing(true);
-  };
-
   return {
     $hovered: hovered,
     $selected: isSelected,
     $editing: editing && hovered,
     onClick,
-    onDoubleClick,
     className: hovered ? 'hovered' : undefined,
   };
 };
