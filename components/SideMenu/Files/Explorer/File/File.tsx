@@ -161,6 +161,7 @@ export const File = ({ path, isNew, newType }: FileProps) => {
           const newPath = path + inputRef.current?.value!;
           createNewFile(newPath, newType as 'file' | 'folder');
         }
+        if (editing) setEditing(false);
         break;
 
       case 'Delete':
