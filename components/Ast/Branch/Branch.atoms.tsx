@@ -66,7 +66,7 @@ export const True = styled.div`
     content: ' ';
     width: 1.5px;
     height: 2.2em;
-    background-color: var(--mid);
+    background-color: var(--s-text);
     transform: rotate(-45deg);
   }
 `;
@@ -85,7 +85,7 @@ export const False = styled.div`
     content: ' ';
     width: 1.5px;
     height: 2.2em;
-    background-color: var(--mid);
+    background-color: var(--s-text);
     transform: rotate(45deg);
   }
 `;
