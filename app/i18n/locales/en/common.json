@@ -17,8 +17,8 @@
         "themes": {
           "dark": "Dark",
           "light": "Light",
-          "blackOnWhite": "Black on White",
-          "whiteOnBlack": "White on Black"
+          "blackOnWhite": "black background ",
+          "whiteOnBlack": "white background "
         }
       },
       "download": "Download",

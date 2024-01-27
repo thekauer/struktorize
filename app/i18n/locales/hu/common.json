@@ -17,8 +17,8 @@
         "themes": {
           "dark": "Sötét",
           "light": "Világos",
-          "blackOnWhite": "Feketén fehér",
-          "whiteOnBlack": "Fehéren fekete"
+          "blackOnWhite": "fekete háttér",
+          "whiteOnBlack": "fehér háttér"
         }
       },
       "download": "Letöltés",
