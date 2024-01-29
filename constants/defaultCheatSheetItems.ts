@@ -10,6 +10,14 @@ export const ITEMS: ItemProps[] = [
     type: 'Kbd',
   },
   {
+    id: 'statementBefore',
+    image: '/statement.png',
+    name: 'Statement above current block',
+    shortcut: ['Shift', 'Enter'],
+    pressed: (e) => e.key === 'Enter' && e.shiftKey,
+    type: 'Kbd',
+  },
+  {
     id: 'codecompletion',
     image: '/codecompletion.svg',
     shortcut: ['Ctrl', 'Space'],

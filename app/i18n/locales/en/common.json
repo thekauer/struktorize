@@ -43,6 +43,7 @@
   "cheatSheet": {
     "title": "Cheat Sheet",
     "statement": "Statement",
+    "statementBefore": "Insert statement above cursor",
     "branch": "Branch",
     "loop": "Loop",
     "codecompletion": "StructoriSense™",

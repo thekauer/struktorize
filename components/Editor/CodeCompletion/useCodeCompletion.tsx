@@ -92,8 +92,7 @@ export const useCodeCompletion = () => {
   const pathRef = useRef('');
   const mountedref = useRef(false);
   const node = useNodeInScope();
-  const { addIf, addLoop, addSwitch, addCase, edit, insert, popLastText } =
-    useAst();
+  const { add, edit, insert, popLastText } = useAst();
   const { ast, cursor, indexCursor, insertMode } = useAstState();
 
   const functionAst = ast as FunctionAst;
@@ -132,20 +131,20 @@ export const useCodeCompletion = () => {
     pathRef.current = node.path;
   }, [node]);
 
-  const complete = (item: CodeCompletionItem) => {
+  const complete = (item: CodeCompletionItem, before?: boolean) => {
     popLastText();
     switch (item.value) {
       case 'if':
-        addIf();
+        add({ type: 'branch', before });
         break;
       case 'loop':
-        addLoop();
+        add({ type: 'loop', before });
         break;
       case 'switch':
-        addSwitch();
+        add({ type: 'switch', before });
         break;
       case 'case':
-        addCase();
+        add({ type: 'case', before });
         break;
 
       default:
@@ -191,10 +190,11 @@ export const useCodeCompletion = () => {
           e.preventDefault();
           setSelected((prev) => (prev > 0 ? prev - 1 : length - 1));
           break;
+        case 'Enter':
         case 'Tab':
           e.stopPropagation();
           e.preventDefault();
-          complete(items[selected]);
+          complete(items[selected], e.shiftKey);
           document.querySelector<HTMLDivElement>('#root-container')?.focus();
           setVisible(false);
           break;
@@ -203,8 +203,6 @@ export const useCodeCompletion = () => {
           e.preventDefault();
           setVisible(false);
           break;
-        default:
-          setSelected(0);
       }
     };
     window.addEventListener('keydown', keydown);

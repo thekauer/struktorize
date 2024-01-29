@@ -14,6 +14,7 @@ import {
   left,
   right,
   add,
+  addBefore,
   edit,
   isEmpty,
   remove,
@@ -77,13 +78,20 @@ type State = {
 };
 
 type NavigationPayload = { select?: boolean; move?: boolean; jump?: Jump };
+type AddableAst = 'branch' | 'switch' | 'case' | 'loop' | 'statement';
 
 type Action =
   | { type: 'up'; payload: NavigationPayload }
   | { type: 'down'; payload: NavigationPayload }
   | { type: 'left'; payload: NavigationPayload }
   | { type: 'right'; payload: NavigationPayload }
-  | { type: 'add'; payload: Ast }
+  | {
+      type: 'add';
+      payload: {
+        type: AddableAst;
+        before?: boolean;
+      };
+    }
   | {
       type: 'text';
       payload: {
@@ -225,10 +233,25 @@ function reducer(state: State, action: Action): State {
     case 'right':
       return navigate(right, state, action);
     case 'add': {
+      const payloads: Record<AddableAst, Ast> = {
+        statement: { type: 'statement', path: '', text: [] },
+        branch: {
+          type: 'branch',
+          path: '',
+          text: [],
+        },
+        loop: { type: 'loop', body: [], path: '', text: [] },
+        switch: { type: 'switch', cases: [], path: '' },
+        case: { type: 'case', body: [], path: '', text: [] },
+      };
+
+      const placeholder = payloads[action.payload.type];
+      const adder = action.payload.before ? addBefore : add;
+
       return pushHistory({
         ...state,
         insertMode: 'normal',
-        ...add(scope, ast, action.payload),
+        ...adder(scope, ast, placeholder),
         changed: true,
       });
     }
@@ -542,46 +565,14 @@ export const useAst = () => {
     dispatch({ type: 'left', payload });
   const right = (payload: NavigationPayload = defaultNavigationPayload) =>
     dispatch({ type: 'right', payload });
-  const addStatement = () => {
+  const add = (payload: { type: AddableAst; before?: boolean }) => {
     dispatch({
       type: 'add',
-      payload: { type: 'statement', path: '', text: [] },
-    });
-    callChangeListeners();
-  };
-  const addIf = () => {
-    dispatch({
-      type: 'add',
-      payload: {
-        type: 'branch',
-        path: '',
-        text: [],
-      },
-    });
-    callChangeListeners();
-  };
-  const addLoop = () => {
-    dispatch({
-      type: 'add',
-      payload: { type: 'loop', body: [], path: '', text: [] },
-    });
-    callChangeListeners();
-  };
-  const addSwitch = () => {
-    dispatch({
-      type: 'add',
-      payload: { type: 'switch', cases: [], path: '' },
+      payload: payload,
     });
     callChangeListeners();
   };
 
-  const addCase = () => {
-    dispatch({
-      type: 'add',
-      payload: { type: 'case', body: [], path: '', text: [] },
-    });
-    callChangeListeners();
-  };
   const backspace = (n = 1) => {
     for (let i = 0; i < n; i++)
       dispatch({ type: 'backspace', payload: { force: false } });
@@ -644,11 +635,7 @@ export const useAst = () => {
     down,
     left,
     right,
-    addStatement,
-    addIf,
-    addLoop,
-    addSwitch,
-    addCase,
+    add,
     backspace,
     deleteBlock,
     popLastText,

@@ -22,7 +22,7 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
     edit,
     backspace,
     deleteBlock,
-    addStatement,
+    add,
     deselectAll,
     undo,
     redo,
@@ -130,7 +130,7 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
         backspace();
         return;
       case 'Enter':
-        addStatement();
+        if (!ccShown) add({ type: 'statement', before: e.shiftKey });
         return;
       case '^':
         setInsertMode('superscript');

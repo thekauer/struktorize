@@ -253,6 +253,9 @@ const insert = (scope: Scope, body: Ast[], index: number, node: Ast) => {
 const scopeIndex = (scope: Scope) =>
   isOnSignature(scope) ? -1 : Number(scope.at(-1)!);
 
+const scopeIndexBefore = (scope: Scope) =>
+  isOnSignature(scope) ? 0 : Number(scope.at(-1)!) - 1;
+
 const withScope = (scope: Scope, ast: any): any => {
   const [first, ...rest] = scope;
   if (rest.length === 0) {
@@ -370,6 +373,22 @@ const createBody = (scope: Scope, ast: Ast, node: Ast) => {
   const index = isOnSwitch(scope, ast)
     ? scopeIndex(scope.slice(0, -2))
     : scopeIndex(scope);
+  return insert(scope, parentBody, index, node);
+};
+
+const createBodyBefore = (scope: Scope, ast: Ast, node: Ast) => {
+  if (node.type === 'case') {
+    const closestSwitch = getClosestSwitch(scope, ast)!;
+    const body = closestSwitch.cases;
+    const index = scopeIndex(scope) - 1;
+    return insert(scope, body, index, node);
+  }
+
+  const parent = grandParent(scope, ast);
+  const parentBody = getBody(scope, parent);
+  const index = isOnSwitch(scope, ast)
+    ? scopeIndexBefore(scope.slice(0, -2))
+    : scopeIndexBefore(scope);
   return insert(scope, parentBody, index, node);
 };
 
@@ -540,6 +559,12 @@ const getScopeAfterAdd = (scope: Scope, ast: Ast, node: Ast) => {
   }
 
   return down(scope, ast);
+};
+
+const getScopeAfterAddBefore = (scope: Scope, ast: Ast, node: Ast) => {
+  if (node.type === 'switch') return scope.concat('cases', '0');
+
+  return scope;
 };
 
 const getChildScopes = (scope: Scope, ast: Ast): Scope[] => {
@@ -868,6 +893,25 @@ export const remove = (scope: Scope, ast: Ast, strict = false): CST => {
   const newBody = removeFromBody(scope, ast);
   const newAst = setBody(scope, ast, newBody);
   const newScope = up(scope, ast);
+
+  return { scope: newScope, ast: newAst };
+};
+
+export const addBefore = (scope: Scope, ast: Ast, node: Ast): CST => {
+  if (isCaseOutsideSwitch(scope, node) || isOnSignature(scope))
+    return { scope, ast };
+
+  const newNode = prepare(scope, node);
+  const newBody = createBodyBefore(scope, ast, newNode);
+  const newAst = isCaseInsideSwitch(scope, node)
+    ? addCase(scope, ast, newBody)
+    : setBody(scope, ast, newBody);
+
+  const newScope = getScopeAfterAddBefore(scope, newAst, node);
+
+  if (isAddingToPlaceholder(scope, ast, node)) {
+    return remove(scope, newAst);
+  }
 
   return { scope: newScope, ast: newAst };
 };

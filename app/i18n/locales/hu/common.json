@@ -48,6 +48,7 @@
   "cheatSheet": {
     "title": "Puska",
     "statement": "Állítás",
+    "statementBefore": "Állítás beszúrása a kurzor felé",
     "branch": "Elágazás",
     "loop": "Ciklus",
     "codecompletion": "StructoriSense™",
