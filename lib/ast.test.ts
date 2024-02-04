@@ -1,4 +1,14 @@
-import { down, up, left, right, remove, Ast, add, FunctionAst } from './ast';
+import {
+  down,
+  up,
+  left,
+  right,
+  remove,
+  Ast,
+  add,
+  FunctionAst,
+  addBefore,
+} from './ast';
 
 describe('ast', () => {
   describe('down', () => {
@@ -3537,6 +3547,423 @@ describe('ast', () => {
           },
         ]);
       });
+    });
+  });
+
+  describe('addBefore', () => {
+    it('should add statement before the first statement', () => {
+      const ast = {
+        type: 'function',
+        path: '',
+        signature: {
+          text: [],
+          type: 'signature',
+          path: 'signature',
+        },
+        body: [
+          {
+            type: 'statement',
+            text: [{ type: 'variable', name: 'a' }],
+            path: 'body.0',
+          },
+        ],
+      };
+
+      const scope = ['body', '0'];
+
+      const actual = addBefore(scope, ast, {
+        type: 'statement',
+        text: [],
+      });
+
+      const actualAst = actual.ast as any;
+
+      expect(actual.scope.join('.')).toBe('body.0');
+      expect(actualAst.body[0].text).toEqual([]);
+      expect(actualAst.body[1].text).toEqual([{ name: 'a', type: 'variable' }]);
+    });
+
+    it('should not add statement before the signature', () => {
+      const ast = {
+        type: 'function',
+        path: '',
+        signature: {
+          text: [],
+          type: 'signature',
+          path: 'signature',
+        },
+        body: [
+          {
+            type: 'statement',
+            text: [{ type: 'variable', name: 'a' }],
+            path: 'body.0',
+          },
+        ],
+      };
+
+      const scope = ['signature'];
+
+      const actual = addBefore(scope, ast, {
+        type: 'statement',
+        text: [],
+      });
+
+      expect(actual.scope.join('.')).toBe('signature');
+    });
+
+    it('should add branch before the first statement', () => {
+      const ast = {
+        type: 'function',
+        path: '',
+        signature: {
+          text: [],
+          type: 'signature',
+          path: 'signature',
+        },
+        body: [
+          {
+            type: 'statement',
+            text: [{ type: 'variable', name: 'a' }],
+            path: 'body.0',
+          },
+        ],
+      };
+
+      const scope = ['body', '0'];
+
+      const actual = addBefore(scope, ast, {
+        type: 'branch',
+        path: '',
+        text: [],
+      });
+
+      const actualAst = actual.ast as any;
+
+      expect(actual.scope.join('.')).toBe('body.0');
+      expect(actualAst.body[0].text).toEqual([]);
+      expect(actualAst.body[0].type).toEqual('branch');
+      expect(actualAst.body[1].text).toEqual([{ name: 'a', type: 'variable' }]);
+    });
+
+    it('should add loop before the first statement', () => {
+      const ast = {
+        type: 'function',
+        path: '',
+        signature: {
+          text: [],
+          type: 'signature',
+          path: 'signature',
+        },
+        body: [
+          {
+            type: 'statement',
+            text: [{ type: 'variable', name: 'a' }],
+            path: 'body.0',
+          },
+        ],
+      };
+
+      const scope = ['body', '0'];
+
+      const actual = addBefore(scope, ast, {
+        type: 'loop',
+        path: '',
+        text: [],
+        body: [],
+      });
+
+      const actualAst = actual.ast as any;
+
+      expect(actual.scope.join('.')).toBe('body.0');
+      expect(actualAst.body[0].text).toEqual([]);
+      expect(actualAst.body[0].type).toEqual('loop');
+      expect(actualAst.body[1].text).toEqual([{ name: 'a', type: 'variable' }]);
+    });
+
+    it('should add a statement before the first statement on an ifBranch', () => {
+      const ast = {
+        type: 'function',
+        path: '',
+        signature: {
+          text: [],
+          type: 'signature',
+          path: 'signature',
+        },
+        body: [
+          {
+            type: 'branch',
+            text: [{ type: 'variable', name: 'a' }],
+            path: 'body.0',
+            ifBranch: [
+              {
+                type: 'statement',
+                text: [{ type: 'variable', name: 'b' }],
+                path: 'body.0.ifBranch.0',
+              },
+            ],
+            elseBranch: [],
+          },
+        ],
+      };
+
+      const scope = ['body', '0', 'ifBranch', '0'];
+
+      const actual = addBefore(scope, ast, {
+        type: 'statement',
+        path: '',
+        text: [],
+      });
+
+      const actualAst = actual.ast as any;
+
+      expect(actual.scope.join('.')).toBe('body.0.ifBranch.0');
+      expect(actualAst.body[0].ifBranch[0].text).toEqual([]);
+      expect(actualAst.body[0].ifBranch[0].type).toEqual('statement');
+      expect(actualAst.body[0].ifBranch[1].text).toEqual([
+        { name: 'b', type: 'variable' },
+      ]);
+    });
+
+    it('should add a statement before the first statement on an elseBranch', () => {
+      const ast = {
+        type: 'function',
+        path: '',
+        signature: {
+          text: [],
+          type: 'signature',
+          path: 'signature',
+        },
+        body: [
+          {
+            type: 'branch',
+            text: [{ type: 'variable', name: 'a' }],
+            path: 'body.0',
+            ifBranch: [],
+            elseBranch: [
+              {
+                type: 'statement',
+                text: [{ type: 'variable', name: 'b' }],
+                path: 'body.0.ifBranch.0',
+              },
+            ],
+          },
+        ],
+      };
+
+      const scope = ['body', '0', 'elseBranch', '0'];
+
+      const actual = addBefore(scope, ast, {
+        type: 'statement',
+        path: '',
+        text: [],
+      });
+
+      const actualAst = actual.ast as any;
+
+      expect(actual.scope.join('.')).toBe('body.0.elseBranch.0');
+      expect(actualAst.body[0].elseBranch[0].text).toEqual([]);
+      expect(actualAst.body[0].elseBranch[0].type).toEqual('statement');
+      expect(actualAst.body[0].elseBranch[1].text).toEqual([
+        { name: 'b', type: 'variable' },
+      ]);
+    });
+
+    it('should add a statement before the condition of a branch', () => {
+      const ast = {
+        type: 'function',
+        path: '',
+        signature: {
+          text: [],
+          type: 'signature',
+          path: 'signature',
+        },
+        body: [
+          {
+            type: 'branch',
+            text: [{ type: 'variable', name: 'a' }],
+            path: 'body.0',
+            ifBranch: [],
+            elseBranch: [
+              {
+                type: 'statement',
+                text: [{ type: 'variable', name: 'b' }],
+                path: 'body.0.ifBranch.0',
+              },
+            ],
+          },
+        ],
+      };
+
+      const scope = ['body', '0'];
+
+      const actual = addBefore(scope, ast, {
+        type: 'statement',
+        path: '',
+        text: [],
+      });
+
+      const actualAst = actual.ast as any;
+
+      expect(actual.scope.join('.')).toBe('body.0');
+      expect(actualAst.body[0].text).toEqual([]);
+      expect(actualAst.body[0].type).toEqual('statement');
+      expect(actualAst.body[1].text).toEqual([{ name: 'a', type: 'variable' }]);
+    });
+
+    it('should add a case before the first case of a switch', () => {
+      const ast = {
+        type: 'function',
+        path: '',
+        signature: {
+          text: [],
+          type: 'signature',
+          path: 'signature',
+        },
+        body: [
+          {
+            type: 'switch',
+            text: [{ type: 'variable', name: 'a' }],
+            path: 'body.0',
+            cases: [
+              {
+                type: 'case',
+                text: [{ type: 'variable', name: 'b' }],
+                path: 'body.0.cases.0',
+                body: [],
+              },
+              {
+                type: 'case',
+                text: [{ type: 'variable', name: 'c' }],
+                path: 'body.0.cases.1',
+                body: [],
+              },
+            ],
+          },
+        ],
+      };
+
+      const scope = ['body', '0', 'cases', '0'];
+
+      const actual = addBefore(scope, ast, {
+        type: 'case',
+        body: [],
+        path: '',
+        text: [],
+      });
+
+      const actualAst = actual.ast as any;
+
+      expect(actual.scope.join('.')).toBe('body.0.cases.0');
+      expect(actualAst.body[0].cases[0].text).toEqual([]);
+      expect(actualAst.body[0].cases[0].type).toEqual('case');
+      expect(actualAst.body[0].cases[1].text).toEqual([
+        { name: 'b', type: 'variable' },
+      ]);
+    });
+
+    it('should add a case before the case of a switch', () => {
+      const ast = {
+        type: 'function',
+        path: '',
+        signature: {
+          text: [],
+          type: 'signature',
+          path: 'signature',
+        },
+        body: [
+          {
+            type: 'switch',
+            text: [{ type: 'variable', name: 'a' }],
+            path: 'body.0',
+            cases: [
+              {
+                type: 'case',
+                text: [{ type: 'variable', name: 'b' }],
+                path: 'body.0.cases.0',
+                body: [],
+              },
+              {
+                type: 'case',
+                text: [{ type: 'variable', name: 'c' }],
+                path: 'body.0.cases.1',
+                body: [],
+              },
+            ],
+          },
+        ],
+      };
+
+      const scope = ['body', '0', 'cases', '0'];
+
+      const actual = addBefore(scope, ast, {
+        type: 'case',
+        body: [],
+        path: '',
+        text: [],
+      });
+
+      const actualAst = actual.ast as any;
+
+      expect(actual.scope.join('.')).toBe('body.0.cases.0');
+      expect(actualAst.body[0].cases[0].text).toEqual([]);
+      expect(actualAst.body[0].cases[0].type).toEqual('case');
+      expect(actualAst.body[0].cases[1].text).toEqual([
+        { name: 'b', type: 'variable' },
+      ]);
+    });
+
+    it('should add a case before the second case of a switch', () => {
+      const ast = {
+        type: 'function',
+        path: '',
+        signature: {
+          text: [],
+          type: 'signature',
+          path: 'signature',
+        },
+        body: [
+          {
+            type: 'switch',
+            text: [{ type: 'variable', name: 'a' }],
+            path: 'body.0',
+            cases: [
+              {
+                type: 'case',
+                text: [{ type: 'variable', name: 'b' }],
+                path: 'body.0.cases.0',
+                body: [],
+              },
+              {
+                type: 'case',
+                text: [{ type: 'variable', name: 'c' }],
+                path: 'body.0.cases.1',
+                body: [],
+              },
+            ],
+          },
+        ],
+      };
+
+      const scope = ['body', '0', 'cases', '1'];
+
+      const actual = addBefore(scope, ast, {
+        type: 'case',
+        body: [],
+        path: '',
+        text: [],
+      });
+
+      const actualAst = actual.ast as any;
+
+      expect(actual.scope.join('.')).toBe('body.0.cases.1');
+      expect(actualAst.body[0].cases[1].text).toEqual([]);
+      expect(actualAst.body[0].cases[1].type).toEqual('case');
+      expect(actualAst.body[0].cases[0].text).toEqual([
+        { name: 'b', type: 'variable' },
+      ]);
+      expect(actualAst.body[0].cases[2].text).toEqual([
+        { name: 'c', type: 'variable' },
+      ]);
     });
   });
 
