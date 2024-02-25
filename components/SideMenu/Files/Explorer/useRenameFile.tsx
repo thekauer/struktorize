@@ -23,7 +23,6 @@ export const useRenameFile = () => {
           const fromFile = files.find((f) => f.path === from)!;
           const isRenamingFolder = fromFile.type === 'folder';
           if (isRenamingFolder) {
-            debugger;
             const diff = Object.values(files).reduce(
               (acc, curr) => {
                 const isRenaming = curr.path.startsWith(fromFile.path);
@@ -55,7 +54,8 @@ export const useRenameFile = () => {
             return { recent: diff.update.recent, files: newFiles };
           }
 
-          const newPath = Files.path(to, Files.name(fromFile.path));
+          const fromParent = Files.parent(to);
+          const newPath = Files.path(fromParent, Files.name(to));
           const newFile = { ...fromFile, path: newPath };
           const isRenamingRecent = fromFile.path === recent.path;
           const filesAndRenamedFile = files

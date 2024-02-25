@@ -8,7 +8,9 @@
       "errorGeneratingLink": "Valami hiba történt a linked generálása közben",
       "share": "Megosztás",
       "rename": "Átnevezés",
-      "delete": "Törlés"
+      "delete": "Törlés",
+      "fileExists": "Már létezik egy fájl ezzel a névvel",
+      "notAllowedCharacters": "Nem megengedett karakterek a fájl nevében. Megengedett karakterek: a-z, A-Z, 0-9"
     },
     "export": {
       "title": "Exportálás",

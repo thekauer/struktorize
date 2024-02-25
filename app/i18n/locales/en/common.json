@@ -8,7 +8,9 @@
       "errorGeneratingLink": "Something went wrong while generating your link",
       "share": "Share",
       "rename": "Rename",
-      "delete": "Delete"
+      "delete": "Delete",
+      "fileExists": "A file with this name already exists",
+      "notAllowedCharacters": "Not allowed characters in file name. Allowed characters: a-z, A-Z, 0-9"
     },
     "export": {
       "title": "Export",
