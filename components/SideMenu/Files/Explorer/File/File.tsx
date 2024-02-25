@@ -30,6 +30,7 @@ export interface FileProps {
 export const File = ({ path, isNew, newType }: FileProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(isNew);
+  const [error, setError] = useState<string>();
   const { t } = useTranslation(['common'], { keyPrefix: 'menu.files' });
   const { files, activePath, setNewPath } = useExplorer();
   const { changed } = useAstState();
@@ -42,6 +43,24 @@ export const File = ({ path, isNew, newType }: FileProps) => {
   const folderPath = useAtomValue(multiEditorPath);
   const thisFile = files.find((f) => f.path === path)!;
   const setCCVisivle = useSetAtom(codeCompletionVisibleAtom);
+
+  useEffect(() => {
+    function handleClickOutside(event: any) {
+      if (inputRef.current && !inputRef.current.contains(event.target)) {
+        if (editing) {
+          setEditing(false);
+          setError(undefined);
+        }
+        if (isNew) {
+          setNewPath(null);
+        }
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [inputRef, editing, isNew]);
 
   useEffect(() => {
     if (isNew) {
@@ -94,9 +113,15 @@ export const File = ({ path, isNew, newType }: FileProps) => {
   const validName = (name: string) => {
     if (name === '') return false;
     const isConflictingFileName = files.find((f) => f.path === `/${name}`);
-    if (isConflictingFileName) return false;
+    if (isConflictingFileName && !noNameChange()) {
+      setError(t('fileExists'));
+      return false;
+    }
     const nameHasOnlyAsciiLetters = !/^[a-zA-Z0-9]+$/.test(name);
-    if (nameHasOnlyAsciiLetters) return false;
+    if (nameHasOnlyAsciiLetters) {
+      setError(t('notAllowedCharacters'));
+      return false;
+    }
     return true;
   };
 
@@ -121,6 +146,8 @@ export const File = ({ path, isNew, newType }: FileProps) => {
     });
   };
 
+  const noNameChange = () => path.split('/').pop() === inputRef.current?.value;
+
   const handleRename = () => {
     const pressedEnterToStartRenaming = !editing;
     if (pressedEnterToStartRenaming) {
@@ -134,6 +161,12 @@ export const File = ({ path, isNew, newType }: FileProps) => {
     const finishedRenaming = !isNew && editing;
     if (finishedRenaming) {
       const newName = inputRef.current?.value!;
+      if (noNameChange()) {
+        setError(undefined);
+        setEditing(false);
+        return;
+      }
+
       if (!validName(newName)) return;
 
       const isFolder = thisFile.type === 'folder';
@@ -161,18 +194,26 @@ export const File = ({ path, isNew, newType }: FileProps) => {
           const newPath = path + inputRef.current?.value!;
           createNewFile(newPath, newType as 'file' | 'folder');
         }
+
+        const newName = inputRef.current?.value!;
+        const valid = validName(newName);
+        if (editing && !isNew && !valid) return;
         if (editing) setEditing(false);
-        break;
+        return;
 
       case 'Delete':
         handleDelete();
-        break;
+        return;
 
       case 'Escape':
-        if (editing) setEditing(false);
+        if (editing) {
+          setEditing(false);
+          setError(undefined);
+        }
         onEscape();
-        break;
+        return;
     }
+    if (error) setError(undefined);
   };
 
   const isChanged = changed && path === activePath;
@@ -187,7 +228,18 @@ export const File = ({ path, isNew, newType }: FileProps) => {
       tabIndex={-1}
     >
       {editing ? (
-        <S.Input ref={inputRef} defaultValue={path.split('/').pop()} />
+        <>
+          <S.Input
+            ref={inputRef}
+            defaultValue={path.split('/').pop()}
+            $error={!!error}
+          />
+          {!!error && (
+            <S.ErrorContainer>
+              <S.Error>{error}</S.Error>
+            </S.ErrorContainer>
+          )}
+        </>
       ) : (
         <>
           <S.Name title={path.split('/').pop()}>

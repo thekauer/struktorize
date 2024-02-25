@@ -57,16 +57,39 @@ export const Name = styled.span`
   max-width: 7rem;
 `;
 
-export const Input = styled.input`
+export const Input = styled.input<{ $error?: boolean }>`
+  position: relative;
   font-family: Consolas, monospace;
   font-size: 0.9rem;
   border: 1px solid var(--blue);
+  ${(props) =>
+    props.$error &&
+    css`
+      border: 1px solid var(--red);
+    `}
   background-color: var(--dark);
   color: var(--text);
 
   &:focus {
     outline: none;
   }
+`;
+export const ErrorContainer = styled.div`
+  /* bottom: calc(-1rem + 7px); */
+  top: 23px;
+  left: 0.25rem;
+  position: absolute;
+  width: calc(100% - 8px);
+`;
+
+export const Error = styled.span`
+  display: block;
+  padding: 0.125rem 0.25rem;
+  font-size: 0.5rem;
+  background-color: var(--red);
+  color: var(--text);
+  overflow-wrap: break-word;
+  white-space: normal;
 `;
 
 export const Button = styled.div<{ $src: string }>`
