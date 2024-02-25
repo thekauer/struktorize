@@ -75,7 +75,6 @@ export const Input = styled.input<{ $error?: boolean }>`
   }
 `;
 export const ErrorContainer = styled.div`
-  /* bottom: calc(-1rem + 7px); */
   top: 23px;
   left: 0.25rem;
   position: absolute;
