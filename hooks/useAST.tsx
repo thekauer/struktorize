@@ -167,6 +167,15 @@ function navigateText(
   }
 }
 
+function updateCursorOnEnter(state: State) {
+  const current = get(state.scope, state.ast);
+  const text = current.text;
+  let cursor = state.cursor;
+  if (cursor < 0) cursor = 0;
+  if (cursor > text.length) cursor = text.length;
+  return { ...state, cursor };
+}
+
 function navigate(
   moveScope: (scope: string[], ast: Ast) => string[],
   state: State,
@@ -259,14 +268,13 @@ function reducer(state: State, action: Action): State {
     case 'text': {
       const current = get(scope, ast);
 
-      const offset = action.payload.last ? +1 : 0;
-      const newIndexCursor = state.editing ? state.indexCursor + offset : -1;
+      const newIndexCursor = state.editing ? state.indexCursor : -1;
       const adder = editAdapter(
         current.text,
         addText(
           action.payload.text,
           action.payload.insertMode ?? state.insertMode,
-          state.editing ? state.cursor + offset : -1,
+          state.editing ? state.cursor : -1,
           newIndexCursor,
         ),
       );
@@ -323,14 +331,13 @@ function reducer(state: State, action: Action): State {
 
     case 'insertSymbol': {
       const current = get(scope, ast);
-      const offset = action.payload.isCC ? +1 : 0;
-      const newIndexCursor = state.editing ? state.indexCursor + offset : -1;
+      const newIndexCursor = state.editing ? state.indexCursor : -1;
       const adder = editAdapter(
         current.text,
         addAbstractChar(
           action.payload.symbol,
           action.payload.insertMode ?? state.insertMode,
-          state.editing ? state.cursor + offset : -1,
+          state.editing ? state.cursor : -1,
           newIndexCursor,
         ),
       );
@@ -400,6 +407,7 @@ function reducer(state: State, action: Action): State {
         state.indexCursor,
         state.insertMode,
       );
+
       if (!word) return state;
 
       const editor = editAdapter(
@@ -428,6 +436,13 @@ function reducer(state: State, action: Action): State {
     case 'setEditing':
       return { ...state, editing: action.payload };
     case 'toggleEditing':
+      if (!state.editing) {
+        return updateCursorOnEnter({
+          ...state,
+          editing: !state.editing,
+          insertMode: 'normal',
+        });
+      }
       return { ...state, editing: !state.editing };
     case 'load':
       return {

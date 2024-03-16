@@ -36,7 +36,7 @@ export const useEditor = ({ readonly, disableNavigation }: UseEditorProps) => {
   const setCCVisible = useSetAtom(codeCompletionVisibleAtom);
   const ccShown = useAtomValue(ccShownAtom);
 
-  if (editing) setCCVisible(false);
+  if (editing && insertMode !== 'normal') setCCVisible(false);
 
   const getKey = (e: KeyboardEvent) => {
     if (e.key === 'Dead' && e.code === 'Digit3') return '^';
