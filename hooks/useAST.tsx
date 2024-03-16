@@ -167,7 +167,7 @@ function navigateText(
   }
 }
 
-function fixCursor(state: State) {
+function updateCursorOnEnter(state: State) {
   const current = get(state.scope, state.ast);
   const text = current.text;
   let cursor = state.cursor;
@@ -437,7 +437,7 @@ function reducer(state: State, action: Action): State {
       return { ...state, editing: action.payload };
     case 'toggleEditing':
       if (!state.editing) {
-        return fixCursor({
+        return updateCursorOnEnter({
           ...state,
           editing: !state.editing,
           insertMode: 'normal',
