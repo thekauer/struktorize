@@ -268,14 +268,13 @@ function reducer(state: State, action: Action): State {
     case 'text': {
       const current = get(scope, ast);
 
-      const offset = action.payload.last ? +1 : 0;
-      const newIndexCursor = state.editing ? state.indexCursor + offset : -1;
+      const newIndexCursor = state.editing ? state.indexCursor : -1;
       const adder = editAdapter(
         current.text,
         addText(
           action.payload.text,
           action.payload.insertMode ?? state.insertMode,
-          state.editing ? state.cursor + offset : -1,
+          state.editing ? state.cursor : -1,
           newIndexCursor,
         ),
       );
@@ -332,14 +331,13 @@ function reducer(state: State, action: Action): State {
 
     case 'insertSymbol': {
       const current = get(scope, ast);
-      const offset = action.payload.isCC ? +1 : 0;
-      const newIndexCursor = state.editing ? state.indexCursor + offset : -1;
+      const newIndexCursor = state.editing ? state.indexCursor : -1;
       const adder = editAdapter(
         current.text,
         addAbstractChar(
           action.payload.symbol,
           action.payload.insertMode ?? state.insertMode,
-          state.editing ? state.cursor + offset : -1,
+          state.editing ? state.cursor : -1,
           newIndexCursor,
         ),
       );

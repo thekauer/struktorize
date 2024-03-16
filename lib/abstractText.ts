@@ -367,7 +367,7 @@ export const deleteAbstractText =
     }
     return {
       text: toSpliced(currentText, at - length, length),
-      cursor: at - 1 - length,
+      cursor: at - length,
       indexCursor: cursorIndex,
     };
   };
