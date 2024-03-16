@@ -325,6 +325,14 @@ export const deleteAbstractChar =
     }
 
     const at = cursor < 0 ? currentText.length + 1 + cursor : cursor;
+    if (at === 0) {
+      return {
+        text: currentText,
+        cursor: 0,
+        indexCursor: cursorIndex,
+      };
+    }
+
     return {
       text: toSpliced(currentText, at - 1, 1),
       cursor: at - 1,
@@ -350,6 +358,13 @@ export const deleteAbstractText =
     }
 
     const at = cursor < 0 ? currentText.length + 1 + cursor : cursor;
+    if (at === 0) {
+      return {
+        text: currentText,
+        cursor: 0,
+        indexCursor: cursorIndex,
+      };
+    }
     return {
       text: toSpliced(currentText, at - length, length),
       cursor: at - 1 - length,
