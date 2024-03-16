@@ -167,6 +167,15 @@ function navigateText(
   }
 }
 
+function fixCursor(state: State) {
+  const current = get(state.scope, state.ast);
+  const text = current.text;
+  let cursor = state.cursor;
+  if (cursor < 0) cursor = 0;
+  if (cursor > text.length) cursor = text.length;
+  return { ...state, cursor };
+}
+
 function navigate(
   moveScope: (scope: string[], ast: Ast) => string[],
   state: State,
@@ -400,6 +409,7 @@ function reducer(state: State, action: Action): State {
         state.indexCursor,
         state.insertMode,
       );
+
       if (!word) return state;
 
       const editor = editAdapter(
@@ -428,6 +438,13 @@ function reducer(state: State, action: Action): State {
     case 'setEditing':
       return { ...state, editing: action.payload };
     case 'toggleEditing':
+      if (!state.editing) {
+        return fixCursor({
+          ...state,
+          editing: !state.editing,
+          insertMode: 'normal',
+        });
+      }
       return { ...state, editing: !state.editing };
     case 'load':
       return {
