@@ -529,7 +529,7 @@ const isOnCondition = (scope: Scope, ast: Ast) => {
 
 const isOnSwitch = (scope: Scope, ast: Ast) => {
   const current = get(scope, ast);
-  return current.type === 'case';
+  return current?.type === 'case';
 };
 
 const isCaseOutsideSwitch = (scope: Scope, node: Ast) => {
@@ -562,7 +562,11 @@ const getScopeAfterAdd = (scope: Scope, ast: Ast, node: Ast) => {
 };
 
 const getScopeAfterAddBefore = (scope: Scope, ast: Ast, node: Ast) => {
-  if (node.type === 'switch') return scope.concat('cases', '0');
+  if (
+    scope.at(-2) === 'cases' &&
+    !(node.type === 'case' || node.type === 'switch')
+  )
+    return scope.slice(0, -2);
 
   return scope;
 };
@@ -869,7 +873,8 @@ export const remove = (scope: Scope, ast: Ast, strict = false): CST => {
         return removed;
       }
 
-      return add(scope, removed.ast, {
+      let newScope = scope.at(-2) === 'cases' ? scope.slice(0, -2) : scope;
+      return add(newScope, removed.ast, {
         type: 'statement',
         text: [],
         path: '',
