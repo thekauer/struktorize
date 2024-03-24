@@ -563,6 +563,7 @@ const getScopeAfterAdd = (scope: Scope, ast: Ast, node: Ast) => {
 
 const getScopeAfterAddBefore = (scope: Scope, ast: Ast, node: Ast) => {
   if (node.type === 'switch') return scope.concat('cases', '0');
+  if (scope.at(-2) === 'cases') return scope.slice(0, -2);
 
   return scope;
 };
