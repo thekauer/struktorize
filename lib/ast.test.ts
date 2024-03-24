@@ -2743,6 +2743,178 @@ describe('ast', () => {
     global.structuredClone = jest.fn((val) => {
       return JSON.parse(JSON.stringify(val));
     });
+
+    it('should strict remove first branch in branch', () => {
+      const ast = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'branch',
+            path: 'body.0',
+            text: [{ type: 'variable', name: 'a' }],
+            ifBranch: [
+              {
+                type: 'branch',
+                path: 'body.0.ifBranch.0',
+                text: [{ type: 'variable', name: 'a' }],
+                ifBranch: [
+                  {
+                    type: 'branch',
+                    path: 'body.0.ifBranch.0.ifBranch.0',
+                    text: [{ type: 'variable', name: 'a' }],
+                  },
+                ],
+                elseBranch: [
+                  {
+                    type: 'branch',
+                    path: 'body.0.ifBranch.0.elseBranch.0',
+                    text: [{ type: 'variable', name: 'a' }],
+                  },
+                ],
+              },
+            ],
+            elseBranch: [
+              {
+                type: 'statement',
+                path: 'body.0.elseBranch.0',
+                text: [{ type: 'variable', name: 'c' }],
+              },
+            ],
+          },
+        ],
+        type: 'function',
+      } as any;
+      const scope = ['body', '0', 'ifBranch', '0'];
+      const actual = remove(scope, ast, true).ast;
+
+      const expected = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'branch',
+            path: 'body.0',
+            text: [{ type: 'variable', name: 'a' }],
+            ifBranch: [
+              {
+                type: 'statement',
+                path: 'body.0.ifBranch.0',
+                text: [],
+              },
+            ],
+            elseBranch: [
+              {
+                type: 'statement',
+                path: 'body.0.elseBranch.0',
+                text: [{ type: 'variable', name: 'c' }],
+              },
+            ],
+          },
+        ],
+        type: 'function',
+      } as any;
+
+      expect(actual).toEqual(expected);
+    });
+
+    it('should strict remove first switch in branch', () => {
+      const ast = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'branch',
+            path: 'body.0',
+            text: [{ type: 'variable', name: 'a' }],
+            ifBranch: [
+              {
+                type: 'switch',
+                path: 'body.0.ifBranch.0',
+                cases: [
+                  {
+                    type: 'case',
+                    path: 'body.0.ifBranch.0.cases.0',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        text: [],
+                        path: 'body.0.ifBranch.0.cases.0.body.0',
+                      },
+                    ],
+                  },
+                  {
+                    type: 'case',
+                    path: 'body.0.ifBranch.0.cases.1',
+                    text: [],
+                    body: [
+                      {
+                        type: 'statement',
+                        text: [],
+                        path: 'body.0.ifBranch.0.cases.1.body.0',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+            elseBranch: [
+              {
+                type: 'statement',
+                path: 'body.0.elseBranch.0',
+                text: [{ type: 'variable', name: 'c' }],
+              },
+            ],
+          },
+        ],
+        type: 'function',
+      } as any;
+      const scope = ['body', '0', 'ifBranch', '0', 'cases', '0'];
+      const actual = remove(scope, ast, true).ast;
+
+      const expected = {
+        signature: {
+          type: 'signature',
+          path: 'signature',
+          text: [{ type: 'variable', name: 'none' }],
+        },
+        body: [
+          {
+            type: 'branch',
+            path: 'body.0',
+            text: [{ type: 'variable', name: 'a' }],
+            ifBranch: [
+              {
+                type: 'statement',
+                path: 'body.0.ifBranch.0',
+                text: [],
+              },
+            ],
+            elseBranch: [
+              {
+                type: 'statement',
+                path: 'body.0.elseBranch.0',
+                text: [{ type: 'variable', name: 'c' }],
+              },
+            ],
+          },
+        ],
+        type: 'function',
+      } as any;
+
+      expect(actual).toEqual(expected);
+    });
+
     it('should remove first statement in loop', () => {
       const ast = {
         signature: {
@@ -3808,6 +3980,107 @@ describe('ast', () => {
       expect(actualAst.body[0].text).toEqual([]);
       expect(actualAst.body[0].type).toEqual('statement');
       expect(actualAst.body[1].text).toEqual([{ name: 'a', type: 'variable' }]);
+    });
+
+    it('should add a statement before the a switch', () => {
+      const ast = {
+        type: 'function',
+        path: '',
+        signature: {
+          text: [],
+          type: 'signature',
+          path: 'signature',
+        },
+        body: [
+          {
+            type: 'switch',
+            text: [{ type: 'variable', name: 'a' }],
+            path: 'body.0',
+            cases: [
+              {
+                type: 'case',
+                text: [{ type: 'variable', name: 'b' }],
+                path: 'body.0.cases.0',
+                body: [],
+              },
+              {
+                type: 'case',
+                text: [{ type: 'variable', name: 'c' }],
+                path: 'body.0.cases.1',
+                body: [],
+              },
+            ],
+          },
+        ],
+      };
+
+      const scope = ['body', '0', 'cases', '0'];
+
+      const actual = addBefore(scope, ast, {
+        type: 'statement',
+        path: '',
+        text: [],
+      });
+
+      const actualAst = actual.ast as any;
+
+      expect(actual.scope.join('.')).toBe('body.0');
+      expect(actualAst.body[0].type).toEqual('statement');
+      expect(actualAst.body[1].cases[0].type).toEqual('case');
+      expect(actualAst.body[1].cases[0].text).toEqual([
+        { name: 'b', type: 'variable' },
+      ]);
+    });
+
+    it('should add a switch before a switch', () => {
+      const ast = {
+        type: 'function',
+        path: '',
+        signature: {
+          text: [],
+          type: 'signature',
+          path: 'signature',
+        },
+        body: [
+          {
+            type: 'switch',
+            text: [{ type: 'variable', name: 'a' }],
+            path: 'body.0',
+            cases: [
+              {
+                type: 'case',
+                text: [{ type: 'variable', name: 'b' }],
+                path: 'body.0.cases.0',
+                body: [],
+              },
+              {
+                type: 'case',
+                text: [{ type: 'variable', name: 'c' }],
+                path: 'body.0.cases.1',
+                body: [],
+              },
+            ],
+          },
+        ],
+      };
+
+      const scope = ['body', '0', 'cases', '0'];
+
+      const actual = addBefore(scope, ast, {
+        type: 'switch',
+        path: '',
+        text: [],
+        cases: [],
+      });
+
+      const actualAst = actual.ast as any;
+
+      expect(actual.scope.join('.')).toBe('body.0.cases.0');
+      expect(actualAst.body[0].type).toEqual('switch');
+      expect(actualAst.body[1].cases[0].type).toEqual('case');
+      expect(actualAst.body[1].cases[0].text).toEqual([
+        { name: 'b', type: 'variable' },
+      ]);
     });
 
     it('should add a case before the first case of a switch', () => {
